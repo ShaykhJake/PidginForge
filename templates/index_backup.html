@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block style %}
+    <link type="text/css" href="{% static 'bundle.css' %}">
+{% endblock %}
+
+{% block content %}
+    <noscript>
+        <strong>
+            Backup
+            My sincerest apologies, but you must enable your browser's JavaScript in order for PidginForge to function properly. <Br>Love,<br> Shaykh Jake
+        </strong>
+    </noscript>
+    <div id="app"></div>
+    {% endblock %}
+
+{% block js %}
+    <script type="application/javascript" src="{% static 'bundle.js' %}"></script>
+{% endblock %}

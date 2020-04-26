@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block content %}
+    
+    <noscript
+        <strong>
+            My sincerest apologies, but you must enable your browser's JavaScript in order for PidginForge to function properly. <Br>Love,<br> Shaykh Jake
+        </strong>
+    </noscript>
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+
+    {% render_bundle 'app' %}
+
+{% endblock %}

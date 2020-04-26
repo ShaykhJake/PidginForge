@@ -1,0 +1,119 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>PidginForge</title>
+    {% block style %}
+      <style type="text/css">
+        html, body {
+            height: 100%;
+            font-family: 'PT Sans';
+            /* font-family: 'Philosopher', ;
+            font-family: 'Marck Script', ; */
+        }
+        .login-form-container {
+            width: 90%;
+            margin: auto;
+        }
+        .logo {
+          width: 65%;
+        }
+        .auth-box {
+            border: 3px solid lightgray;
+            border-radius: 10px;
+            padding-top: 15px;
+            padding-left: 15px;
+            padding-right: 15px;
+            padding-bottom: 15px;
+            /* width: 95%; */
+            margin: auto;
+        }
+        .blocktext {
+          text-align: left;
+          text-indent: 1em;
+        }
+        .signature {
+          text-align: left;
+          text-indent: 0;
+        }
+        .signup-form-container {
+            width: 95%;
+            margin: auto;
+        }
+        .confirm-container {
+            width: 90%;
+            margin: auto;
+        }
+        .outer-area {
+            margin-top: 75px;
+        }
+        .alert {
+          margin: 0px;
+          width: 100%;
+        }
+        .verification-sent {
+          text-align: left;
+          text-indent: 2em;
+        }
+        .verification-signature {
+          text-align: left;
+          text-indent: 0;
+        }
+
+
+      </style>  
+    {% endblock %}
+</head>
+
+
+<body>
+<!-- 
+{% block messages %}
+  {% if messages %}
+    <div>
+        <ul>
+        {% for message in messages %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>{{message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+        </div>
+        {% endfor %}
+        </ul>
+    </div>
+  {% endif %}
+{% endblock %} -->
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12 col-sm-8 col-md-7 col-lg-6 mx-auto">
+      <div class="outer-area">
+        <div class="auth-box text-center">
+          <img class="logo" src="{% static 'images/pidginforge_logo_white_small.jpg' %}">
+            {% block auth %}
+            {% endblock %}
+        </div>    
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+
+{% block js %}
+{% endblock %}
+
+</body>
+</html>

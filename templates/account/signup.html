@@ -1,0 +1,36 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+
+{% load crispy_forms_tags %}
+
+{% block auth %}
+
+
+  {% if user.is_authenticated %}
+  <div class="signup-form-container">
+    <h3>You're already logged in...</h3>
+    <button class="btn btn-outline-primary btn-lg" onclick="window.location.href = '/';">PidginForge</button>
+    <button class="btn btn-outline-primary btn-lg" onclick="window.location.href = '{% url account_logout %}';">Logout</button>
+  </div>
+
+  {% else %}
+    <div class="signup-form-container">
+      <hr>
+      <h3>Account Registration</h3>
+      <p class="exist_account_info">{% blocktrans %}Already have an account? <a href="{{ login_url }}">Login Here</a>.{% endblocktrans %}</p>
+      <hr>
+      <form class="container-fluid text-center" id="signup_form" method="post" action="{% url 'account_signup' %}">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        {% if redirect_field_value %}
+
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />  
+        {% endif %}
+        <button class="btn btn-outline-primary btn-lg" type="submit">{% trans "Sign Up" %}</button>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}

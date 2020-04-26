@@ -1,0 +1,15 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+
+{% load crispy_forms_tags %}
+
+{% block auth %}
+<div class="confirm-container">
+    <hr>
+    <h3 class="h3" id="head_banner">{% trans "Verify Your E-mail Address" %}</h3>
+    <hr>
+    <p class="verification-sent">{% blocktrans %}We have sent an e-mail to you for verification. Follow the link provided to finalize the signup process. Please contact us if you do not receive it within a few minutes. You may need to check your junk/spam mail folder as well. Sorry for any inconvenience.{% endblocktrans %}</p>
+    <p class="verification-signature">{% blocktrans %}Love,<br> Shaykh Jake{% endblocktrans %}</p>
+</div>
+{% endblock %}

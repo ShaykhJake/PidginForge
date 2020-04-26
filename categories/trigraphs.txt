@@ -1,0 +1,36 @@
+ACE, Achinese, RTL
+ACH, Acholi,
+ADY, Adigey,
+AFR, Afrikaans, 
+AFA, TZ, Afro-Asian
+AKA, Akan,
+KPO, Akposso,
+SQI, Albanian,
+
+ARA, Arabic, RTL
+ARB, Arabic-Modern Standard, RTL,
+ARQ, Arabic-Algerian, RTL,
+SHU, Arabic-Chadian, RTL,
+QAC, Arabic-Classical, RTL,
+ARZ, Arabic-Egyptian, RTL,
+QAG, Arabic-Gulf, RTL,
+MEY, Arabic-Hassaniyya, RTL,
+QAI, Arabic-Iraqi, RTL,
+QAJ, Arabic-Jordanian, RTL,
+QLB, Arabic-Lebanese, RTL,
+QAV, Arabic-Levantine, RTL,
+AYL, Arabic-Libyan, RTL,
+QAM, Arabic-Maghrebi, RTL,
+ARY, Arabic-Morrocan, RTL,
+QAS, Arabic-Saudi, RTL,
+APD, Arabic-Sudanese, RTL,
+QAL, Arabic-Syrian, RTL,
+AEB, Arabic-Tunisian, RTL,
+QAY, Arabic-Yemeni, RTL,
+
+ZHO, Chinese, RTL,
+
+ENG, English, LTR,
+FRA, French, LTR,
+
+
