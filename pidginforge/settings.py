@@ -25,7 +25,7 @@ FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['pidginforge-1.eba-q824jzfn.us-west-2.elasticbeanstalk.com',
                  'pidginforge.herokuapp.com',
@@ -211,13 +211,19 @@ AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
-AWS_STATIC_LOCATION = 'static'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 # Development
-STATIC_URL = '/static/'
-# UNCOMMENT FOR Production
+
+####### For Serving Static Files
+# Testing & Dev
+# STATIC_URL = '/staticfiles/'
+# STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "staticfiles")
+# STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static") # This will be the absolute path.
+
+# Production:
+AWS_STATIC_LOCATION = 'static'
 STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_STATIC_LOCATION)
 STATICFILES_STORAGE = 'pidginforge.storage_backends.StaticStorage'
 
@@ -229,7 +235,7 @@ STATICFILES_DIRS = (
     # os.path.join(FRONTEND_DIR, "dist/static"),
 )
 
-STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static") # This will be the absolute path.
+
 
 
 
@@ -282,4 +288,4 @@ WEBPACK_LOADER = {
 }
 
 # Activate Django-Heroku
-django_heroku.settings(locals())
+# django_heroku.settings(locals())
