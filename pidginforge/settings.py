@@ -24,7 +24,7 @@ FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['pidginforge-1.eba-q824jzfn.us-west-2.elasticbeanstalk.com',
                  'pidginforge.herokuapp.com',
