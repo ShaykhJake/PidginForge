@@ -1,3 +1,4 @@
+DEVMODE = False
 """
 Django settings for pidginforge project.
 
@@ -11,8 +12,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-import django_heroku
-# disabling django_heroku
+if not DEVMODE:
+    import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +26,10 @@ FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+if not DEVMODE:
+    DEBUG = False
+else:
+    DEBUG = True
 
 ALLOWED_HOSTS = ['pidginforge-1.eba-q824jzfn.us-west-2.elasticbeanstalk.com',
                  'pidginforge.herokuapp.com',
@@ -124,23 +128,18 @@ WSGI_APPLICATION = 'pidginforge.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('RDS_NAME'),
-        'USER': os.environ.get('RDS_USER'),
-        'PASSWORD': os.environ.get('RDS_PASSWORD'),
-        'HOST': os.environ.get('RDS_HOST'),
-        'PORT': os.environ.get('RDS_PORT'),
+# If in development mode, connect to the test database on Amazon RDS; otherwise connect to production on Heroku
+if DEVMODE:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('RDS_NAME'),
+            'USER': os.environ.get('RDS_USER'),
+            'PASSWORD': os.environ.get('RDS_PASSWORD'),
+            'HOST': os.environ.get('RDS_HOST'),
+            'PORT': os.environ.get('RDS_PORT'),
+        }
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -235,10 +234,6 @@ STATICFILES_DIRS = (
     # os.path.join(FRONTEND_DIR, "dist/static"),
 )
 
-
-
-
-
 AWS_DEFAULT_ACL = None
 AWS_PUBLIC_MEDIA_LOCATION = 'media/public'
 DEFAULT_FILE_STORAGE = 'pidginforge.storage_backends.PublicMediaStorage'
@@ -288,4 +283,5 @@ WEBPACK_LOADER = {
 }
 
 # Activate Django-Heroku
-django_heroku.settings(locals(), staticfiles=False)
+if not DEVMODE:
+    django_heroku.settings(locals(), staticfiles=False)
