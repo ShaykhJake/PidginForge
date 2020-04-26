@@ -4,19 +4,14 @@ module.exports = {
   // on Windows you might want to set publicPath: "http://127.0.0.1:8080/"
   
   
-  // Development:
-  // publicPath: "http://0.0.0.0:8080/", //
-  // Production:
-  // publicPath: "./static/.",
-  
-  // path: path.resolve(__dirname, './dist'),
-  // publicPath: '/dist/',
-  // filename: 'build.js',
-  
   // Set the following directory to a place where Django can easily find it:
   outputDir: "../static/dist/",
+  
+  // Development:
+  // publicPath: "http://0.0.0.0:8080/", //  
+
+  // Production: 
   publicPath: "https://jakesdesk-media.s3.amazonaws.com/static/dist/",
-  // assetsDir: "static/dist/",
 
   chainWebpack: config => {
     config

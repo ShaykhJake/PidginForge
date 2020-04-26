@@ -1,7 +1,6 @@
 <template>
   <div class="sandstone">
     <v-container class="pa-2 pt-2 mx-auto" fill-height fluid>
-
       <v-row justify-center dense wrap>
         <v-col>
           <v-card>

@@ -105,14 +105,13 @@
             @click="checkPhoto"
             :disabled="!valid"
           >Check If Available</v-btn> -->
-          <v-btn
+          <v-btn v-if="!success"
             color="blue lighten-2"
             @click="onSubmit"
-            :hidden="success"
             :loading="submitting"
             ><v-icon>done</v-icon>Submit</v-btn
           >
-          <v-btn color="blue lighten-2" @click="cancelDialog" :hidden="!success"
+          <v-btn v-else color="blue lighten-2" @click="cancelDialog">
             ><v-icon>done_outline</v-icon>Close</v-btn
           >
           <v-spacer></v-spacer>

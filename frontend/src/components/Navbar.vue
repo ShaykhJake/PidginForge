@@ -1,20 +1,35 @@
 <template>
   <nav>
     <v-app-bar app flat dense class="desertsand">
-      <v-btn small fab @click="drawer = !drawer">
-        <v-avatar mx-2>
-          <v-img class="elevation-6" :src="userData.avatar"></v-img>
-        </v-avatar>
-      </v-btn>
-      <v-toolbar-title class="hidden-xs-and-down ml-5">
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            fab
+            text
+            class="mt-2"
+            v-on="on"
+            router
+            :to="{ name: 'Home' }"
+            exact
+          >
+          <a>
+            <v-avatar>
+              <img
+                src="https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"
+                class="logo-img hidden-sm-and-down"
+                alt=""
+              />
+            </v-avatar>
+          </a>
+          </v-btn>
+        </template>
+        <span>Home</span>
+      </v-tooltip>
+
+      <v-toolbar-title class="hidden-xs-and-down ml-1">
         <span class="font-weight-light">Pidgin</span
         ><span class="primary--text font-weight-black">Forge</span>
       </v-toolbar-title>
-      <img
-        src="https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"
-        class="logo-img hidden-sm-and-down"
-        alt=""
-      />
       <v-spacer></v-spacer>
       <!-- <v-btn class="primary" router to:"confirm-logout"> -->
 
@@ -84,8 +99,15 @@
         </template>
         <span>Collaborate</span>
       </v-tooltip>
+      <v-btn text fab class="calligraphy mt-2" @click="drawer = !drawer">
+        <v-avatar>
+          <v-img class="elevation-6" :src="userData.avatar"></v-img>
+        </v-avatar>
+      </v-btn>
+
     </v-app-bar>
-    <v-navigation-drawer app v-model="drawer" class="calligraphy" xs12>
+
+    <v-navigation-drawer floating temporary right app v-model="drawer" class="calligraphy" xs12>
       <v-container fluid class="pa-0">
         <v-row>
           <v-col xs12>

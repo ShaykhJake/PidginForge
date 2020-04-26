@@ -1,4 +1,4 @@
-DEVMODE = False
+DEVMODE = False 
 """
 Django settings for pidginforge project.
 
@@ -31,10 +31,7 @@ if not DEVMODE:
 else:
     DEBUG = True
 
-ALLOWED_HOSTS = ['pidginforge-1.eba-q824jzfn.us-west-2.elasticbeanstalk.com',
-                 'pidginforge.herokuapp.com',
-                 'pidginforge.org', 
-                 '127.0.0.1',]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'pidginforge.herokuapp.com','pidginforge.org','www.pidginforge.org']
 
 
 # Application definition
