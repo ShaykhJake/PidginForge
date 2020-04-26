@@ -1,1 +1,1 @@
-web: gunicorn pidginforge.wsgi --log-file-
+web: gunicorn pidginforge.wsgi
