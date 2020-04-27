@@ -18,8 +18,8 @@ module.exports = {
       .plugin("BundleTracker")
       .use(BundleTracker, [{ filename: "./webpack-stats.json" }]);
 
-    config.output.filename("bundle.js");
-    // config.output.filename("[name].[hash:8].bundle.js");
+    // config.output.filename("bundle.js");
+    config.output.filename("[name].[hash:8].bundle.js");
 
     config.optimization.splitChunks(false);
     // config.optimization
@@ -51,8 +51,8 @@ module.exports = {
   // uncomment before executing 'npm run build'
   css: {
     extract: {
-      filename: "bundle.css",
-      // filename: "[name].[hash:8].css",
+      // filename: "bundle.css",
+      filename: "[name].[hash:8].css",
       // chunkFilename: "bundle.css",
       // chunkFilename: "[id].[hash:8].css"
     }

@@ -74,14 +74,17 @@
             <br>
             <p class="emailtext"> 
 		        Thank you for registering with PidginForge. In order to improve the user experience, we need to ensure that
-				all users are real people with real addresses. Please confirm your address by clicking the confirm button below,
+				    all users are real people with real addresses. Please confirm your address by clicking the confirm button below,
             </p>
             <p class="signature">Sincerely,<br> Shaykh Jake</p>
             <br>
-  	 		<form method="post" action="{{ activate_url }}">
-                {% csrf_token %}
-			    <button class="btn btn-outline-primary btn-lg" type="submit">{% trans 'Confirm Address' %}</button>
-			</form>
+
+  	 		    <!-- <form method="post" action="{{ activate_url }}">
+              {% csrf_token %}
+			        <button class="btn btn-outline-primary btn-lg" type="submit">{% trans 'Confirm Address' %}</button>
+            </form> -->
+            
+            <a href="{{ activate_url }}" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
 			
         </div>    
     </div>
