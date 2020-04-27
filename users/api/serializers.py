@@ -131,19 +131,23 @@ class ProfileImageSerializer(serializers.ModelSerializer):
         
     def image_update(self, request):
         print("Starting update")
-        newimage = self.validated_data['image']
-        newimagename = newimage.name
+        # s3 = boto3.resource("s3")
+
 
         profile = Profile.objects.get(user = request.user.pk)
-        data = {}
+        print(profile.image.name)
 
-        # if profile.image.name:
-        #     old_image_name = profile.image.name
-        #     if old_image_name != "profile_pics/default.jpg":
-        #         profile.image.storage.delete(old_image_name)
+        newImage = self.validated_data['image']
+        newImageName = newImage.name
+        print(newImage.name)
 
-        profile.image = newimage
+        if profile.image.name != "profile_pics/default.jpg":
+            profile.image.storage.delete(profile.image.name)
+        
+        profile.image = newImage
         profile.save()
+        print(profile.image.name)
+
 
         imageTemporary = Image.open(profile.image.storage.open(profile.image.name))
         outputIoStream = BytesIO()
@@ -163,8 +167,9 @@ class ProfileImageSerializer(serializers.ModelSerializer):
             imageTemporaryResized = imageTemporary.resize((wsize,hsize), Image.ANTIALIAS ) 
             imageTemporaryResized.save(outputIoStream , format='JPEG', quality=85)
             outputIoStream.seek(0)
-            profile.image.storage.delete(profile.image.name)
-            profile.image = InMemoryUploadedFile(outputIoStream,'ImageField', "%s.jpg" %newimagename.split('.')[0], 'image/jpeg', sys.getsizeof(outputIoStream), None)
+            if profile.image.name != "profile_pics/default.jpg":
+                profile.image.storage.delete(profile.image.name)
+            profile.image = InMemoryUploadedFile(outputIoStream,'ImageField', "%s.jpg" %newImageName.split('.')[0], 'image/jpeg', sys.getsizeof(outputIoStream), None)
             profile.save()
         imageTemporary.close()
         
@@ -189,8 +194,9 @@ class ProfileImageSerializer(serializers.ModelSerializer):
         outputIoStream.seek(0)
         # if profile.avatar and profile.avatar.name != "avatars/default.jpg":
         #     profile.avatar.storage.delete(profile.avatar.name)
-        profile.avatar = InMemoryUploadedFile(outputIoStream,'ImageField', "%s.jpg" %newimagename.split('.')[0], 'image/jpeg', sys.getsizeof(outputIoStream), None)
+        profile.avatar = InMemoryUploadedFile(outputIoStream,'ImageField', "%s.jpg" %newImageName.split('.')[0], 'image/jpeg', sys.getsizeof(outputIoStream), None)
         profile.save()
+        print(profile.avatar.name)
         avatarTemporary.close()
 
         return True

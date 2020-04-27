@@ -25,6 +25,7 @@
         <v-card-title class="pb-1 grey darken-4 white--text">
           Change Photo
         </v-card-title>
+        
         <v-card-text class="pa-1 grey lighten-4">
           <v-container class="pa-1" fluid grid-list-md>
             <v-row wrap dense>
@@ -57,6 +58,7 @@
                 </section>
               </v-col>
             </v-row>
+
             <v-row justify="center">
               <v-col cols="11">
                 <div>
@@ -139,6 +141,7 @@ export default {
     return {
       imageSource: String,
       imageName: String,
+      loadingImage: false,
       cropImg: "",
       data: null,
       cropper: {},
@@ -171,6 +174,7 @@ export default {
   },
   methods: {
     initializeImage() {
+
       this.imageSource = this.imgSrc;
       this.imageName = this.imgName;
     },
@@ -206,6 +210,7 @@ export default {
       this.$refs.cropper.setCropBoxData(JSON.parse(this.data));
     },
     setImage(newimage) {
+      this.loadingImage = true;
       this.imageName = newimage.name;
       const file = newimage;
       if (file.type.indexOf("image/") === -1) {
@@ -220,12 +225,11 @@ export default {
           this.$refs.cropper.replace(event.target.result);
         };
         reader.readAsDataURL(file);
+        this.loadingImage = false;
       } else {
-        alert("Sorry, FileReader API not supported");
+        console.log("Sorry, that file is not supported");
+        this.loadingImage = false;
       }
-    },
-    onFileSelected(event) {
-      this.imageName = event.name;
     },
     onSubmit() {
       // The following grabs the blob, converts to a JPEG, wraps it, and sends it to the API

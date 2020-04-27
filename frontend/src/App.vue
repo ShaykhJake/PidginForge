@@ -32,6 +32,12 @@ export default {
   methods: {
     syncUserData(userData) {
       this.userData = userData;
+      if(!this.userData.image){
+        this.userData.image="https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg"
+      }
+      if(!this.userData.avatar){
+        this.userData.avatar="https://jakesdesk-media.s3.amazonaws.com/media/public/avatars/default.jpg"
+      }
       localStorage.setItem("username", userData.user.username);
     },
     initializeUser() {

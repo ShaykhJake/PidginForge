@@ -1,7 +1,13 @@
 // webpack.config.js
 
 module.exports = {
-   rules: [
+  resolve: {
+    alias: {
+      //...
+      '__STATIC__': this.resolve('static'),
+    }
+  },
+  rules: [
      {
        test: /\.s(c|a)ss$/,
        use: [

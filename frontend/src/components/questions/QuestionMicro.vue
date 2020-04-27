@@ -22,7 +22,7 @@
                 <v-avatar mx-2 size="48">
                   <v-img
                     class="elevation-6"
-                    :src="question.author.user_profile.avatar"
+                    :src="question.author.user_profile.avatar ? question.author.user_profile.avatar  : 'https://jakesdesk-media.s3.amazonaws.com/media/public/avatars/default.jpg' "
                   ></v-img>
                 </v-avatar>
               </v-col>

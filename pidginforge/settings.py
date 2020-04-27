@@ -1,4 +1,4 @@
-DEVMODE = False 
+DEVMODE = False
 """
 Django settings for pidginforge project.
 
@@ -218,15 +218,24 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 ####### For Serving Static Files
 # Testing & Dev
-# STATIC_URL = '/staticfiles/'
-# STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "staticfiles")
+## STATIC_ROOT is the destination where COLLECTSTATIC puts all of the static files for deployment
+
+
 # STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static") # This will be the absolute path.
 
-# Production:
-AWS_STATIC_LOCATION = 'static'
-STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_STATIC_LOCATION)
-STATICFILES_STORAGE = 'pidginforge.storage_backends.StaticStorage'
 
+AWS_STATIC_LOCATION = 'static'
+
+if DEVMODE:
+    STATIC_URL = '/static/'
+    STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static")
+    
+# Production:
+else: 
+    STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_STATIC_LOCATION)
+    STATIC_ROOT = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_STATIC_LOCATION)
+
+STATICFILES_STORAGE = 'pidginforge.storage_backends.StaticStorage'
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
