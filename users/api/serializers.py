@@ -21,19 +21,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     user = UserDisplaySerializer(read_only=True)
 
 
-    # learninglanguage = serializers.SlugRelatedField(
-    #     queryset = Language.objects.all(),
-    #     read_only=False,
-    #     slug_field='name'
-    # )
-
-    # nativelanguage = serializers.SlugRelatedField(
-    #     queryset = Language.objects.all(),
-    #     read_only=False,
-    #     many=True,
-    #     slug_field='name'
-    # )
-
     image_name = serializers.SerializerMethodField(read_only=True)
     # user = Profile.CustomUser.username
     biography = serializers.CharField(max_length=600, min_length=None, allow_blank=True)
@@ -150,6 +137,11 @@ class ProfileImageSerializer(serializers.ModelSerializer):
         profile = Profile.objects.get(user = request.user.pk)
         data = {}
 
+        # if profile.image.name:
+        #     old_image_name = profile.image.name
+        #     if old_image_name != "profile_pics/default.jpg":
+        #         profile.image.storage.delete(old_image_name)
+
         profile.image = newimage
         profile.save()
 
@@ -195,21 +187,11 @@ class ProfileImageSerializer(serializers.ModelSerializer):
             avatarTemporary = avatarTemporary.resize((wsize,hsize), Image.ANTIALIAS ) 
         avatarTemporary.save(outputIoStream, format='JPEG', quality=80)
         outputIoStream.seek(0)
-        if profile.avatar and profile.avatar.name != "default.jpg":
-            profile.avatar.storage.delete(profile.avatar.name)
+        # if profile.avatar and profile.avatar.name != "avatars/default.jpg":
+        #     profile.avatar.storage.delete(profile.avatar.name)
         profile.avatar = InMemoryUploadedFile(outputIoStream,'ImageField', "%s.jpg" %newimagename.split('.')[0], 'image/jpeg', sys.getsizeof(outputIoStream), None)
         profile.save()
         avatarTemporary.close()
-
-        # if profile.image.name:
-        #     old_image_name = profile.image.name
-        #     if old_image_name != "profile_pics/default.jpg":
-        #         profile.image.storage.delete(old_image_name)
-
-        # if profile.avatar.name:
-        #     old_avatar_name = profile.avatar.name
-        #     if old_avatar_name != "avatars/default.jpg":
-        #         profile.avatar.storage.delete(old_avatar_name)
 
         return True
 
