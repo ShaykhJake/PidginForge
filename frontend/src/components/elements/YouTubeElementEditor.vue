@@ -462,8 +462,6 @@ export default {
                 this.error = false;
                 // this.$emit("rerenderYouTube");
                 if (!this.editing) {
-                  console.log("LETS GO!")
-                  alert('yup')
                   this.$router.push({
                     name: "Media-Viewer",
                     params: { elementtype: "YouTube", elementslug: data.slug }
