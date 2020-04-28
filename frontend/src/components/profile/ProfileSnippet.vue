@@ -1,7 +1,8 @@
 <template>
+  <v-dialog v-model="profileDialog" width="275">
   <v-card class="desertsand">
     <v-card-title class="pa-0">
-      <v-img :src="profile.avatar">
+      <v-img :src="curatorObject.user_profile.image">
         <v-btn
           icon
           fab
@@ -16,7 +17,7 @@
     <v-card-text class="pt-2 pl-4 desertsand calligraphy--text">
       <v-row dense>
         <v-col align="center">
-          <h2>{{ username }}</h2>
+          <h2>{{ curatorObject.username }}</h2>
           <v-chip outlined small class="primary primary--text">{{
             userPointsText
           }}</v-chip>
@@ -70,6 +71,7 @@
       </v-row>
     </v-card-text>
   </v-card>
+  </v-dialog>
 </template>
 <script>
 import { apiService } from "@/common/api.service.js";
@@ -77,11 +79,12 @@ export default {
   name: "ProfileSnippet",
   components: {},
   props: {
-    username: String
+    profileDialog: Boolean,
+    curatorObject: Object,
   },
   data: () => ({
     loading: true,
-    profile: Object,
+    profile: {},
     following: false,
     hiding: false
   }),
@@ -91,7 +94,7 @@ export default {
     },
     isProfileOwner() {
       // return this.question.author.username === this.requestUser;
-      return this.username === window.localStorage.getItem("username");
+      return this.curatorObject.username === window.localStorage.getItem("username");
       // return true;
     }
   },
@@ -101,7 +104,7 @@ export default {
     },
     getProfileSnippet() {
       this.loading = true;
-      let endpoint = `/api/users/snippet/${this.username}`;
+      let endpoint = `/api/users/snippet/${this.curatorObject.username}`;
       apiService(endpoint).then(data => {
         if (data) {
           this.profile = data;
@@ -147,7 +150,7 @@ export default {
       this.hiding = true;
       let endpoint = `api/users/hide/`;
       try {
-        apiService(endpoint, "POST", { username: this.profile.username }).then(
+        apiService(endpoint, "POST", { username: this.userObject.username }).then(
           data => {
             if (data != null) {
               if (data.success == true) {

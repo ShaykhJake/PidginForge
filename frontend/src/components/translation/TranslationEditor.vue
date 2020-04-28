@@ -447,14 +447,17 @@
                 </v-toolbar>
               </div>
             </editor-menu-bar>
-            <editor-content :editor="editor" :style="editorFontClass" class="editor-box" />
-            <v-btn icon @click="changeEditorFontSize('down')">
-                  <v-icon>mdi-magnify-minus</v-icon>
-                </v-btn>
+            <editor-content :editor="editor" :style="editorFontClass" class="editor-box" id="translationeditorbox" />
+            <v-card-actions>
+              <v-btn icon @click="changeEditorFontSize('down')">
+                    <v-icon>mdi-magnify-minus</v-icon>
+              </v-btn>
                 Text Size
-                <v-btn icon @click="changeEditorFontSize('up')">
+              <v-btn icon @click="changeEditorFontSize('up')">
                   <v-icon>mdi-magnify-plus</v-icon>
-            </v-btn>
+              </v-btn>
+              <v-btn icon @click="printText"><v-icon>mdi-printer</v-icon></v-btn>
+            </v-card-actions>
           </v-col>
         </v-row>
       </v-card-text>
@@ -829,6 +832,46 @@ export default {
       } catch (err) {
         console.log(err);
       }
+    },
+    printText(){
+        var html = document.getElementById("translationeditorbox").innerHTML
+        var a = window.open('', '', 'height=300, width=300');
+        var dateStamp = new Date();
+        a.document.write(
+        `
+          <html>
+          <head>
+          <title>PF Printer...</title>
+          </head>
+            <style>
+              .header {
+                position: fixed;
+                top: 0;
+                left: 50%;
+                transform: translate(-50%, 0);
+              }
+              .footer {
+                position: fixed;
+                bottom: 0;
+                left: 50%;
+                transform: translate(-50%, 0);
+              }
+              .content {
+                font-family:Arial, Helvetica, sans-serif;
+                line-height: 1.5;
+                font-size: ${this.editorFontSize}em;
+              }
+            </style>
+            <body>
+                <div class="header">${this.sourceObject.title}</div>
+                <div class="content">${html}</div>
+                <div class="footer">PidginForge on ${dateStamp.toLocaleString()}</div>
+            </body>  
+          </html>
+          <style>
+          `
+        );
+        a.print();
     },
     forkTranslation() {
       // CREATE A NEW TRANSLATION...

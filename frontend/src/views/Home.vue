@@ -106,6 +106,57 @@
 
         <v-col>
           <v-card>
+
+            <v-toolbar class="desertsand calligraphy--text">
+              <v-toolbar-title>Recent Texts</v-toolbar-title>
+              <v-spacer></v-spacer>
+
+              <v-btn 
+                icon 
+                @click="textPreferenceFilter=!textPreferenceFilter"
+                :class="!textPreferenceFilter ? 'elements--text' : 'elements'"
+              >
+
+                <v-icon>filter_list</v-icon>
+              </v-btn>
+
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" icon @click="showTextElementEditor=true">
+                    <v-icon color="elements">library_add</v-icon>
+                  </v-btn>
+                </template>
+                <span>Add Text Element</span>
+              </v-tooltip>
+
+
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on }">
+                  <v-btn 
+                    v-on="on"
+                    icon 
+                    @click="showTextElements=!showTextElements"
+                    class="garbage--text"
+                  >
+                    <v-icon v-if="!showTextElements">mdi-eye</v-icon>
+                    <v-icon v-if="showTextElements">mdi-eye-off</v-icon>
+                  </v-btn>
+                </template>
+                <span v-if="!showTextElements">View Audio List</span>
+                <span v-else>Hide Audio List</span>
+              </v-tooltip>
+            </v-toolbar>
+
+            <v-card-text  v-show="showTextElements" class="content-box calligraphy px-1">
+              <TextElementList :preference-filter="textPreferenceFilter"/>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+
+
+        <v-col>
+          <v-card>
               
             <v-toolbar class="desertsand calligraphy--text">
               <v-toolbar-title>Recent Questions</v-toolbar-title>
@@ -180,6 +231,12 @@
         @closeDialog="showAudioEditor = false"
         @rerenderAudio="rerenderAudio"
       />
+      <TextElementEditor
+        v-if="showTextElementEditor"
+        :editor-dialog="showTextElementEditor"
+        is-new-element="true"
+        @closeDialog="showTextElementEditor = false"
+      />
 
 
     </v-container>
@@ -190,6 +247,7 @@
 import YouTubeList from "@/components/elements/YouTubeList.vue";
 import AudioList from "@/components/elements/AudioList.vue";
 import QuestionsList from "@/components/questions/QuestionsList.vue";
+import TextElementList from "@/components/elements/TextElementList.vue";
 export default {
   name: "Home",
   data() {
@@ -202,10 +260,13 @@ export default {
       showQuestionEditor: false,
       questionPreferenceFilter: false,
 
+      showTextElementEditor: false,
+      textPreferenceFilter: false,
+
       showQuestions: true,
       showVideos: true,
       showAudios: true,
-
+      showTextElements: true,
 
       youTubeKey: 0,
       youTubeEditorLoaded: false,
@@ -232,6 +293,7 @@ export default {
     YouTubeList,
     QuestionsList,
     AudioList,
+    TextElementList,
     YouTubeElementEditor: () =>
       import(
         /* webpackPrefetch: true */ "@/components/elements/YouTubeElementEditor.vue"
@@ -243,7 +305,12 @@ export default {
     QuestionEditor: () =>
       import(
         /* webpackPrefetch: true */ "@/components/questions/QuestionEditor.vue"
+      ),
+    TextElementEditor: () =>
+      import(
+        /* webpackPrefetch: true */ "@/components/elements/TextElementEditor.vue"
       )
+
   },
   methods: {
     loadQuestionEditor() {

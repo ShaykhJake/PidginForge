@@ -7,6 +7,7 @@ import QuestionViewer from "../views/QuestionViewer.vue";
 // import YouTubeViewer from "../views/YouTubeViewer.vue";
 // import AudioViewer from "../views/AudioViewer.vue";
 import MediaElementViewer from "../views/MediaElementViewer.vue";
+import TextElementViewer from "../views/TextElementViewer.vue";
 import Curate from "../views/Curate.vue";
 import Learn from "../views/Learn.vue";
 
@@ -14,8 +15,8 @@ Vue.use(VueRouter);
 
 export default new VueRouter({
   // TODO Enable history mode later when going to production
-  mode: "history",
-  base: process.env.BASE_URL,
+  // mode: "history",
+  // base: process.env.BASE_URL,
   routes: [
     {
       path: "/curate",
@@ -53,7 +54,12 @@ export default new VueRouter({
       component: MediaElementViewer,
       props: true
     },
-
+    {
+      path: "/text/:elementslug",
+      name: "Text-Viewer",
+      component: TextElementViewer,
+      props: true
+    },
     {
       path: "/",
       name: "Home",

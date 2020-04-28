@@ -44,6 +44,8 @@ export default {
       apiService(`api/users/profile/`).then(data => {
         this.syncUserData(data);
         this.loadingUser = false;
+      }).catch(err => {
+        console.log(err);
       });
     },
     reloadUserData() {

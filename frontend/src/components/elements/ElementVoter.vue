@@ -95,7 +95,17 @@ export default {
         endpoint = `/api/elements/translation/vote/`;
         payload.id = this.elementid; // Note that this will actually be the pk
         payload.vote = votetype;
-      }
+      } else if (this.elementType === "Text") {
+        endpoint = `/api/elements/text/vote/`;
+        payload.slug = this.slug;
+        payload.id = this.elementid; 
+        payload.vote = votetype;
+      } else if (this.elementType === "Markup") {
+        endpoint = `/api/elements/markup/vote/`;
+        payload.id = this.elementid; 
+        payload.vote = votetype;
+      } 
+
 
       if (endpoint) {
         apiService(endpoint, "POST", payload).then(data => {

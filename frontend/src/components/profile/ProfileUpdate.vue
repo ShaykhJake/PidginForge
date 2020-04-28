@@ -23,12 +23,16 @@
                     <v-container fill-height pa-1 align-start>
                       <v-row no-gutters>
                         <v-col cols="12">
+
+
                           <ChangePhoto
                             @emitUserDataChange="emitUserDataChange"
                             :img-src="userData.image"
                             :img-name="userData.image_name"
                             :key="photoKey"
                           ></ChangePhoto>
+
+
                         </v-col>
                       </v-row>
                     </v-container>

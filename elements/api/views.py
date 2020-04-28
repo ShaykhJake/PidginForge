@@ -8,13 +8,23 @@ from rest_framework.decorators import api_view, action
 from elements.api.serializers import (
                            YouTubeElementSerializer,
                            AudioElementSerializer,
+                           TextElementSerializer,
                            TranscriptSerializer,
                            TranscriptSnippetSerializer,
                            TranslationSerializer,
-                           TranslationSnippetSerializer
+                           TranslationSnippetSerializer,
+                           TextMarkupSerializer,
+                           MarkupSnippetSerializer,
                             )
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from elements.models import YouTubeElement, Transcript, Translation, AudioElement
+from elements.models import (
+                           YouTubeElement, 
+                           Transcript, 
+                           Translation, 
+                           AudioElement, 
+                           TextElement,
+                           TextMarkup
+                           )
 
 
 class IsCuratorOrReadOnly(permissions.BasePermission):
@@ -508,23 +518,26 @@ class TranslationViewSet(viewsets.ModelViewSet):
         # have already been attached to this transcript by this user...
         serializer.save(curator=self.request.user)
         # Determine what to attach the item to:
-        if self.request.data['sourcetype'] == "transcript":
-           sourceelement = get_object_or_404(Transcript, pk=self.request.data['sourceid'])
-           pass
-        elif self.request.data['sourcetype'] == "graphic":
-         #   sourceelement = get_object_or_404(Graphic, pk=self.request.data['sourceid'])
-           pass
+        if self.request.data['sourcetype']:
+         if self.request.data['sourcetype'].lower() == "transcript":
+            sourceelement = get_object_or_404(Transcript, pk=self.request.data['sourceid'])
+            pass
+         elif self.request.data['sourcetype'].lower() == "text":
+            sourceelement = get_object_or_404(TextElement, pk=self.request.data['sourceid'])
+            pass
+         else:
+            return Response({"success":"false","message":"invalid source type"})
 
-        oldtranslation = sourceelement.translations.filter(curator=self.request.user)
-        if oldtranslation.count() > 0:
-           for i in oldtranslation:
-              i.delete()
-              print("Deleted old translation")
-      
-        # Now we attach the new translation to the transcript
-        sourceelement.translations.add(serializer.data['id'])
-        sourceelement.save()
-      
+         oldtranslation = sourceelement.translations.filter(curator=self.request.user)
+         if oldtranslation.count() > 0:
+            for i in oldtranslation:
+               if i.pk != serializer.data.get('id'):
+                  i.delete()
+               print("Deleted old translation")
+         
+         # Now we attach the new translation to the transcript
+         sourceelement.translations.add(serializer.data['id'])
+         sourceelement.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, pk):
@@ -616,4 +629,296 @@ def translation_togglevote(request):
       resdata['message'] = "You must be logged in to vote!"
       resdata['success'] = False
       return Response(resdata)
+
+
+### MARKUP VIEWS ###
+class MarkupViewSet(viewsets.ModelViewSet):
+    queryset = TextMarkup.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = TextMarkupSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def retrieve(self, request, pk):
+       if request.user.is_authenticated:
+         serializer_context = {"request": request}
+         markup = get_object_or_404(TextMarkup, pk=pk)
+         if markup.published or markup.curator == request.user:
+            serializer=TextMarkupSerializer(markup, context=serializer_context)
+            return Response(serializer.data)
+         else:
+            resdata = {}
+            resdata['success']=False
+            resdata['message']='Sorry, but that translation is currently in draft mode and only visible by the author.'
+         return Response(resdata)
+
+
+    def perform_create(self, serializer):
+        # After creating a new object, we need to check to see if other translations
+        # have already been attached to this transcript by this user..
+        serializer_context = {"request": self.request}
+        sourcetype = self.request.data.get('sourcetype')
+        print(sourcetype)
+        if sourcetype:
+        # Determine what to attach the item to:
+            sourcetype = sourcetype.lower()
+            if sourcetype == "transcript":
+               sourceelement = get_object_or_404(Transcript, pk=self.request.data.get('sourceid'))
+            elif sourcetype == "textelement":
+               sourceelement = get_object_or_404(TextElement, pk=self.request.data.get('sourceid'))
+            else:
+               return Response({"success":"false","message":"incorrect source type"})
+
+            oldmarkup = sourceelement.markups.filter(curator=self.request.user)
+            if oldmarkup.count() > 0:
+               for i in oldmarkup:
+                  if i.pk != serializer.data.get('id'):
+                     i.delete()
+                     print("Deleted old markup")
+            else:
+               print("no old markups")
+            
+            serializer.save(curator=self.request.user, content=sourceelement.content, targetlanguage=self.request.user.user_profile.nativelanguage)
+            sourceelement.markups.add(serializer.data['id'])
+            sourceelement.save()
+        else:
+           serializer.save(curator=self.request.user)
+      #   return Response(newserializer.data, status=status.HTTP_200_OK)
+      #   return newserializer.data
+
+    def partial_update(self, request, pk):
+      print("Updating")
+      element = get_object_or_404(TextMarkup, pk=pk)
+      resdata = {}
+      # print(request.data)
+      if element.curator == request.user:
+         serializer_context = {"request": request}
+         serializer=TextMarkupSerializer(element, data=request.data, partial=True)
+         if serializer.is_valid():
+            serializer.save()
+            resdata['message'] = 'Markup updated!'
+            resdata['success'] = True
+         else:
+            resdata['message'] = 'Updates were invalid!'
+            resdata['success'] = False
+      else:
+         resdata['message'] = "You don't have permission!"
+         resdata['success'] = False
+         #  updatedserializer=AudioElementSerializer(element, context=serializer_context)
+      return Response(resdata)
+
+    def list(self, request):
+      #   queryset = TextMarkup.objects.filter(published=False).order_by("-curationdate")
+        queryset = TextMarkup.objects.all().order_by("-curationdate")
+        serializer_context = {"request": request}
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = TranslationSnippetSerializer(page, many=True, context=serializer_context) 
+            return self.get_paginated_response(serializer.data)
+
+        serializer=TranslationSnippetSerializer(queryset, many=True, context=serializer_context)
+        return Response(serializer.data)
+
+@api_view(['POST'])
+def markup_togglepublish(request):
+   if request.method == 'POST':
+      resdata = {}
+      if request.user.is_authenticated:
+         element = get_object_or_404(TextMarkup, pk=int(request.data['pk']))
+         if element.curator == request.user:
+            if element.published == True:
+               element.published = False
+               element.save()
+               resdata['message'] = "Successfully returned markup to draft mode"
+               resdata['success'] = True
+               resdata['published'] = element.published
+            else: 
+               element.published = True
+               element.save()
+               resdata['message'] = "Successfully published markup."
+               resdata['success'] = True
+               resdata['published'] = element.published
+   return Response(resdata)
+
+@api_view(['POST'])
+def markup_fork(request):
+   if request.method == 'POST':
+      if request.user.is_authenticated:
+         sourcemarkup = get_object_or_404(TextMarkup, pk=int(request.data.get('forkparent')))
+         source = get_object_or_404(TextElement, pk=int(request.data.get('sourceid')))
+         newmarkup = TextMarkup()
+         newmarkup.content = sourcemarkup.content
+         newmarkup.curator = request.user
+         newmarkup.forkparent = sourcemarkup
+         newmarkup.targetlanguage = request.user.user_profile.nativelanguage
+         newmarkup.save()
+
+         oldmarkups = source.markups.filter(curator=request.user)
+         if oldmarkups.count() > 0:
+            for i in oldmarkups:
+               if i.pk != newmarkup.pk:
+                  i.delete()
+                  print("Deleted old markup")
+               else:
+                  print("Nothing to delete")
+
+         source.markups.add(newmarkup)
+         source.save()
+         serializer = TextMarkupSerializer(newmarkup, context={"request": request})
+         print(serializer.data)
+         return Response(serializer.data)
+
+
+@api_view(['POST'])
+def markup_togglevote(request):
+   if request.method == 'POST':
+      resdata = {}
+      if request.user.is_authenticated:
+         element = get_object_or_404(TextMarkup, pk=request.data['id'])
+         if request.data['vote'] == "up":
+            resdata['newuservote'] = 1
+            if request.user in element.downvote.all():
+               element.downvote.remove(request.user)
+               element.save()
+            if request.user not in element.upvote.all():
+               element.upvote.add(request.user)
+               element.save()
+            resdata['message'] = "Successfully upvoted the markup!"
+            resdata['success'] = True
+
+         elif request.data['vote'] == "down":
+            resdata['newuservote'] = -1
+            if request.user in element.upvote.all():
+               element.upvote.remove(request.user)
+               element.save()
+            if request.user not in element.downvote.all():
+               element.downvote.add(request.user)
+               element.save()
+            resdata['message'] = "Successfully downvoted the markup!"
+            resdata['success'] = True
+
+         resdata['newupcount'] = element.upvote.all().count()
+         resdata['newdowncount'] = element.downvote.all().count()
+         # print(resdata)
+         return Response(resdata)
+      resdata['message'] = "You must be logged in to vote!"
+      resdata['success'] = False
+      return Response(resdata)
+
+
+####### TEXT ELEMENT VIEWS ############
+class TextViewSet(viewsets.ModelViewSet):
+    queryset = TextElement.objects.all().order_by("-curationdate")
+    lookup_field = "slug"
+    serializer_class = TextElementSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+   #  def create(self, request):
+   #     print(request.data['audiofile'])
+   #     resdata = {}
+   #     resdata["message"]="hello"
+   #     return Response(resdata)
+
+    def perform_create(self, serializer):
+        serializer.save(curator=self.request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, slug):
+       element = get_object_or_404(TextElement, slug=slug)
+       serializer_context = {"request": request}
+       serializer=TextElementSerializer(element, data=request.data, partial=True)
+       if serializer.is_valid():
+         serializer.save()
+         print('yep')
+       else:
+         print("nope")
+       updatedserializer=TextElementSerializer(element, context=serializer_context)
+       return Response(updatedserializer.data)
+
+    def list(self, request):
+      #   userlanguages = request.user.user_profile.learninglanguage.all()
+      #   usertopics = request.user.user_profile.learningtopics.all()
+        queryset = TextElement.objects.filter(
+           suspended = False,
+         #   language__in = userlanguages,
+         #   topic__in = usertopics,
+        ).order_by("-curationdate")
+
+        serializer_context = {"request": request}
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = TextElementSerializer(page, many=True, context=serializer_context) 
+            return self.get_paginated_response(serializer.data)
+
+        serializer = TextElementSerializer(queryset, many=True, context=serializer_context) 
+        return Response(serializer.data)
+
+
+@api_view(['POST'])
+def text_togglesaved(request):
+   if request.method == 'POST':
+      resdata = {}
+      if request.user.is_authenticated:
+         element = get_object_or_404(TextElement, pk=int(request.data['pk']))
+         if request.user in element.saved.all():
+            element.saved.remove(request.user)
+            element.save()
+            resdata['message'] = "Successfully removed item from saved list"
+            resdata['success'] = True
+         else: 
+            element.saved.add(request.user)
+            element.save()
+            resdata['message'] = "Successfully added item to saved list"
+            resdata['success'] = True
+   return Response(resdata)
+
+@api_view(['POST'])
+def text_togglehidden(request):
+   if request.method == 'POST':
+      resdata = {}
+      if request.user.is_authenticated:
+         element = get_object_or_404(TextElement, pk=int(request.data['pk']))
+         if request.user in element.hidden.all():
+            element.hidden.remove(request.user)
+            element.save()
+            resdata['message'] = "Successfully removed item from hidden list"
+            resdata['success'] = True
+         else: 
+            element.hidden.add(request.user)
+            element.save()
+            resdata['message'] = "Successfully added item to hidden list"
+            resdata['success'] = True
+   return Response(resdata)
+
+@api_view(['POST'])
+def text_togglevote(request):
+   if request.method == 'POST':
+      resdata = {}
+      if request.user.is_authenticated:
+         element = get_object_or_404(TextElement, slug=request.data['slug'])
+         if request.data['vote'] == "up":
+            resdata['newuservote'] = 1
+            if request.user in element.downvote.all():
+               element.downvote.remove(request.user)
+               element.save()
+            if request.user not in element.upvote.all():
+               element.upvote.add(request.user)
+               element.save()
+            resdata['message'] = "Successfully upvoted the text element!"
+            resdata['success'] = True
+
+         elif request.data['vote'] == "down":
+            resdata['newuservote'] = -1
+            if request.user in element.upvote.all():
+               element.upvote.remove(request.user)
+               element.save()
+            if request.user not in element.downvote.all():
+               element.downvote.add(request.user)
+               element.save()
+            resdata['message'] = "Successfully downvoted the text element!"
+            resdata['success'] = True
+         resdata['newupcount'] = element.upvote.all().count()
+         resdata['newdowncount'] = element.downvote.all().count()
+         
+      return Response(resdata)
+
 

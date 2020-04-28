@@ -35,11 +35,8 @@
                 <v-btn class="mb-2 primary" block large @click="loadAudioEditor"
                   >Audio <v-icon right>audiotrack</v-icon></v-btn
                 >
-                <v-btn class="mb-2 primary" block :disabled="true" large
+                <v-btn class="mb-2 primary" block @click="textEditorDialog=true" large
                   >Text <v-icon right>text_fields</v-icon></v-btn
-                >
-                <v-btn class="mb-2 primary" block :disabled="true" large
-                  >Image<v-icon right>add_a_photo</v-icon></v-btn
                 >
                 <v-btn class="mb-2 primary" block :disabled="true" large
                   >Vocab<v-icon right>credit_card</v-icon></v-btn
@@ -259,6 +256,13 @@
       @closeDialog="showAudioEditor = false"
       @rerenderAudio="rerenderAudio"
     />
+    <TextElementEditor
+      v-if="textEditorDialog"
+      :editor-dialog="textEditorDialog"
+      :is-new-element="true"
+      :key="textKey"
+      @closeDialog="textEditorDialog = false"
+    />
   </div>
 </template>
 <script>
@@ -273,7 +277,13 @@ export default {
     AudioElementEditor: () =>
       import(
         /* webpackPrefetch: true */ "@/components/elements/AudioElementEditor.vue"
+      ),
+    TextElementEditor: () =>
+      import(
+        /* webpackPrefetch: true */ "@/components/elements/TextElementEditor.vue"
       )
+
+
   },
   data() {
     return {
@@ -293,7 +303,9 @@ export default {
       needsTranscription: 0,
       loadingTranscription: true,
       violations: 0,
-      loadingViolations: true
+      loadingViolations: true,
+      textEditorDialog: false,
+
     };
   },
   props: {},

@@ -1,5 +1,5 @@
 <template>
-  <div class="audio-micro" v-if="audio">
+  <div class="audio-micro" v-if="audio && !audio.user_has_hidden">
     <v-hover>
       <template v-slot:default="{ hover }">
         <v-card class="pa-0 desertsand">

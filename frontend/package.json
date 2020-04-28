@@ -16,6 +16,7 @@
     "vue": "^2.6.11",
     "vue-cropperjs": "^4.0.1",
     "vue-google-api": "^0.2.0",
+    "vue-html-to-paper": "^1.3.1",
     "vue-router": "^3.1.5",
     "vue-style-loader": "^4.1.2",
     "vue-youtube": "^1.4.0",

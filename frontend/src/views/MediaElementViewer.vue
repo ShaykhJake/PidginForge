@@ -10,24 +10,19 @@
             <v-col cols="12">
               <p class="overline mb-2">
                 Curated by
-
-                <v-dialog v-model="profileDialog" width="275">
-                  <template v-slot:activator="{ on }">
                     <v-btn
-                      v-on="on"
+                      @click="profileDialog=true"
                       text
                       small
                       class="primary--text font-weight-bold px-0 py-0"
                     >
                       {{ curatorName }}
                     </v-btn>
-                  </template>
-                  <ProfileSnippet
-                    :username="curatorName"
+                  <ProfileSnippet v-if="profileDialog"
+                    :profile-dialog="profileDialog"
+                    :curator-object="elementObject.curator"
                     @closeDialog="closeProfileDialog"
                   />
-                </v-dialog>
-
                 on {{ elementObject.curationdate }} <br />
               </p>
             </v-col>
@@ -581,6 +576,7 @@ export default {
   },
   mounted() {
     this.mediaType = this.$route.params.elementtype;
+    console.log(this.elementObject);
   },
   beforeDestroy() {
     console.log("Before destroy?");

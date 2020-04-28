@@ -21,7 +21,7 @@
       >
         <YouTubeMicro
           :you-tube-element="video"
-          :hidden="preferenceFilter ? video.user_has_hidden : false"
+          :hidden="video.user_has_hidden"
           @hideElement="video.user_has_hidden = !video.user_has_hidden"
         />
       </v-col>

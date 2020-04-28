@@ -1,13 +1,13 @@
 from rest_framework import serializers
 from users.models import CustomUser, Profile
-from elements.models import YouTubeElement, AudioElement, Translation, Transcript
+from elements.models import YouTubeElement, AudioElement, Translation, Transcript, TextElement, TextMarkup
 from categories.models import Language, TopicTag
 from categories.api.serializers import LanguageSerializer, TopicTagSerializer, MethodTagSerializer
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['avatar']
+        fields = ['avatar', 'image']
 
 class CuratorSerializer(serializers.ModelSerializer):
     user_profile = ProfileSerializer(read_only=True)
@@ -15,7 +15,7 @@ class CuratorSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'user_profile']
-
+ 
 
 class TranslationSnippetSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
@@ -407,37 +407,183 @@ class AudioElementSerializer(serializers.ModelSerializer):
 
 
 
+class MarkupSnippetSerializer(serializers.ModelSerializer):
+    curator = CuratorSerializer(read_only=True)
+    curationdate = serializers.SerializerMethodField()
+    updated = serializers.SerializerMethodField()
+    user_vote = serializers.SerializerMethodField()
+    upvote_count = serializers.SerializerMethodField()
+    downvote_count = serializers.SerializerMethodField()
 
+    targetlanguage = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name'
+    )
 
+    class Meta:
+        model = TextMarkup
+        fields = ['id', 'curator', 'curationdate', 'updated', 'targetlanguage', 'user_vote', 'upvote_count', 'downvote_count']
 
-   # curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="youtube_curator")
-   #  curationdate = models.DateTimeField(auto_now_add=True, editable=False)
-   #  transcripts = models.ManyToManyField(Transcript, editable=False)
-
-   #  purpose = models.CharField(max_length=305, default="", null=False)
-   #  notes = models.CharField(max_length=305, default="", null=False)
-
-   #  #Source Info
-   #  videoid = models.CharField(max_length=100)
-   #  thumbURL = models.CharField(max_length=200)
-   #  # Length will be stored in seconds, then converted into HH:MM:SEC for display
-   #  duration = models.PositiveIntegerField(default=0, editable=False) 
-
-   #  # Title Defaults to What's Pulled in From YouTube, but Can be Changed
-   #  title = models.CharField(max_length=150, default="", null=False)
-   #  slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
-
-   #  # TODO - Consider whether or not to add a start/stop time?
-
-   #  # Categories
-   #  topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
-   #  language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
-   #  tags = ArrayField(models.CharField(max_length=100, blank=True), null=True)
-   #  # TODO minorlanguage = models.ManyToManyField(Language)
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
     
-   #  # Views is simply a one-up calculation every time a YTElement is loaded for viewing (TODO)
-   #  views = models.PositiveIntegerField(default=0, editable=False)
+    def get_updated(self, instance):
+        return instance.updated.strftime("%B %d, %Y")
+
+    def get_user_vote(self, instance):
+        request = self.context.get("request")
+        if instance.upvote.filter(pk=request.user.pk).exists():
+            return 1
+        elif instance.downvote.filter(pk=request.user.pk).exists():
+            return -1
+        else:
+            return 0
+
+    def get_upvote_count(self, instance):
+        return instance.upvote.count()
+
+    def get_downvote_count(self, instance):
+        return instance.downvote.count()
+
+class TextMarkupSerializer(serializers.ModelSerializer):
+    curator = CuratorSerializer(read_only=True)
+    curationdate = serializers.SerializerMethodField()
+    updated = serializers.SerializerMethodField()
+    user_vote = serializers.SerializerMethodField()
+    upvote_count = serializers.SerializerMethodField()
+    downvote_count = serializers.SerializerMethodField()
+    targetlanguage = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name'
+    )
+
+    class Meta:
+        model = TextMarkup
+        fields = '__all__'
+        # fields = ['id', 'curator', 'translations', 'curationdate', 'updated', 'user_vote', 'upvote_count', 'downvote_count', 'published']
     
-   # #  Interactions
-   #  saved = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="youtube_saved")
-   #  hidden = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="youtube_hidden")
+    # This will only return those items that are published
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_updated(self, instance):
+        return instance.updated.strftime("%B %d, %Y")
+
+    def get_user_vote(self, instance):
+        request = self.context.get("request")
+        if instance.upvote.filter(pk=request.user.pk).exists():
+            return 1
+        elif instance.downvote.filter(pk=request.user.pk).exists():
+            return -1
+        else:
+            return 0
+
+    def get_upvote_count(self, instance):
+        return instance.upvote.count()
+
+    def get_downvote_count(self, instance):
+        return instance.downvote.count()
+
+
+
+class TextElementSerializer(serializers.ModelSerializer):
+    curator = CuratorSerializer(read_only=True)
+    translations = serializers.SerializerMethodField()
+    markups = serializers.SerializerMethodField()
+    curationdate = serializers.SerializerMethodField()
+    updated = serializers.SerializerMethodField()
+    user_vote = serializers.SerializerMethodField()
+    upvote_count = serializers.SerializerMethodField()
+    downvote_count = serializers.SerializerMethodField()
+    user_translation = serializers.SerializerMethodField()
+    user_has_flagged = serializers.SerializerMethodField()
+    user_has_saved = serializers.SerializerMethodField()
+    user_has_hidden = serializers.SerializerMethodField()
+    flag_count = serializers.SerializerMethodField()
+    user_markup = serializers.SerializerMethodField()
+
+    language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name'
+    )
+
+    topic = serializers.SlugRelatedField(
+        queryset = TopicTag.objects.all(),
+        read_only=False,
+        slug_field='name'
+    )
+
+
+    class Meta:
+        model = TextElement
+        fields = '__all__'
+        # fields = ['id', 'curator', 'translations', 'curationdate', 'updated', 'user_vote', 'upvote_count', 'downvote_count', 'published']
+    
+    # This will only return those items that are published
+    def get_translations(self, instance):
+        request = self.context.get("request")
+        translations = instance.translations.filter(published=True)
+        return TranslationSnippetSerializer(translations, context = {"request": request}, many=True).data
+
+    def get_user_translation(self, instance):
+        request = self.context.get("request")
+        usertranslation = instance.translations.filter(curator=request.user.pk)
+        if usertranslation.exists():
+            return usertranslation[0].pk
+        else:
+            return 0
+
+    def get_markups(self, instance):
+        request = self.context.get("request")
+        markups = instance.markups.filter(published=True)
+        return MarkupSnippetSerializer(markups, context = {"request": request}, many=True).data
+
+    def get_user_markup(self, instance):
+        request = self.context.get("request")
+        usertranscript = instance.markups.filter(curator=request.user.pk)
+        if usertranscript.exists():
+            return usertranscript[0].pk
+        else:
+            return 0
+
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_updated(self, instance):
+        return instance.updated.strftime("%B %d, %Y")
+
+    def get_user_vote(self, instance):
+        request = self.context.get("request")
+        if instance.upvote.filter(pk=request.user.pk).exists():
+            return 1
+        elif instance.downvote.filter(pk=request.user.pk).exists():
+            return -1
+        else:
+            return 0
+
+    def get_user_has_flagged(self, instance):
+        request = self.context.get("request")
+        return instance.flag.all().filter(flagger=request.user).exists()
+
+    def get_flag_count(self, instance):
+        return instance.flag.count()
+
+    def get_upvote_count(self, instance):
+        return instance.upvote.count()
+
+    def get_downvote_count(self, instance):
+        return instance.downvote.count()
+
+    def get_saved_count(self, instance):
+        return instance.saved.count()
+
+    def get_user_has_saved(self, instance):
+        request = self.context.get("request")
+        return instance.saved.filter(pk=request.user.pk).exists()
+
+    def get_user_has_hidden(self, instance):
+        request = self.context.get("request")
+        return instance.hidden.filter(pk=request.user.pk).exists()

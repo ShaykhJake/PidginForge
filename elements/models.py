@@ -217,16 +217,96 @@ def add_slug_to_audioelement(sender, instance, *args, **kwargs):
         instance.slug = slug + "-" + random_string
 
 
+class TextMarkup(models.Model):
+    ## This model is a critical many-to-many model; resource: https://docs.djangoproject.com/en/3.0/topics/db/examples/many_to_many/
+    # Source & User
+    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="textmarkup_curator") #do we want this to be null?
+    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+    updated = models.DateField(auto_now=True, editable=False)
+   
+    #### Content
+    content = JSONField(null=True, blank=True)
+    notes = models.TextField(default='', null=True, blank=True)
+    
+    targetlanguage = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="markup_target")
+    # References #TODO
+    # TODO termlist = models.ManyToMany  ... #Should we store the list of words here, or create a separate list with a key to it?
+    # TODO speakers = models.ManyToManyField(Person, related_name="transcript_speaker")
+    # TODO people = models.ManyToManyField(Person, related_name="transcript_reference")
+    # TODO placenames = models.ManyToManyField(PlaceName, related_name="transcript_placename")
+
+    # QCing & Forking #TODO
+    published = models.BooleanField(default=False)
+    forkparent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='forks')
+    # TODO Figure out the QC models...this might be a bit more complicated because of
+    # how to track & integrate changes that were previously made
+    # TODO qcs = models.ManyToManyField... #Should this be totally separate?
+    
+    #  Interactions #TODO 
+    upvote = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="markup_upvoted")
+    downvote= models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="markup_downvoted")
+    # HOW TO ADD COMMENT FLAGS DIRECTLY TO SCRIPT????!? TODO
+
+    def __str__(self):
+        if (self.curator):
+            return self.curator.username + " on " + self.curationdate.strftime("%B %d, %Y")
+        return "Object Orphaned"
 
 
-# TODO The Rest of these will be VERY similar to YouTubeElement
+class TextElement(models.Model):
+    ## This model is a critical many-to-many model; resource: https://docs.djangoproject.com/en/3.0/topics/db/examples/many_to_many/
+    # Source & User
+    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="text_curator") #do we want this to be null?
+    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+    updated = models.DateField(auto_now=True, editable=False)
+   
+    #### Content
+    title = models.CharField(max_length=150, default="", null=False)
+    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
 
-# class AudioElement(models.Model):
+    content = JSONField(null=True, blank=True)
+    rawtext = models.TextField(default='')
+    charactercount = models.PositiveIntegerField(default=0)
+
+    topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
+    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
+    purpose = models.CharField(max_length=305, default="", null=False)
+    
+    citation = models.CharField(max_length=305, default="", null=False)
+    notes = models.TextField(default='', null=True, blank=True)
+    tags = ArrayField(models.CharField(max_length=100), null=True, blank=True)
+    
+    #  Interactions #TODO 
+    saved = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="text_saved")
+    hidden = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="text_hidden")
+    flag = models.ManyToManyField(Flag, blank=True, related_name="text_flag")
+    suspended = models.BooleanField(default=False)
+
+    upvote = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="text_upvoted")
+    downvote= models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="text_downvoted")
+    # HOW TO ADD COMMENT FLAGS DIRECTLY TO SCRIPT????!? TODO
+    
+    translations = models.ManyToManyField(Translation, blank=True, related_name="textelements")
+    markups = models.ManyToManyField(TextMarkup, blank=True, related_name="textelements")
+    #  rating = models.ManyToManyField(Rating, null=True)
+    #  comment = models.ManyToManyField(Comment, null=True)
+
+    def __str__(self):
+        return self.title
+
+@receiver(pre_save, sender=TextElement)
+def add_slug_to_textelement(sender, instance, *args, **kwargs):
+    if instance and not instance.slug:
+        slug = slugify(instance.title)
+        random_string = generate_random_string()
+        instance.slug = slug + "-" + random_string
+
+
+
+
+
 
 # class WebElement(models.Model):
-
-# class TextElement(models.Model):
-
 # class DocumentElement(models.Model):
 
 

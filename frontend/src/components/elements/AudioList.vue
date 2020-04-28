@@ -20,7 +20,7 @@
       >
         <AudioMicro
           :audio="audio"
-          :hidden="preferenceFilter ? audio.user_has_hidden : false"
+          :hidden="audio.user_has_hidden"
           @hideElement="audio.user_has_hidden = !audio.user_has_hidden"
         />
       </v-col>

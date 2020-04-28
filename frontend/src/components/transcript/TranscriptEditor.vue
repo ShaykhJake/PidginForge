@@ -480,14 +480,17 @@
                   </v-toolbar>
                 </div>
               </editor-menu-bar>
-              <editor-content :editor="editor" :style="editorFontClass" class="editor-box" />
-              <v-btn icon @click="changeEditorFontSize('down')">
+              <editor-content :editor="editor" :style="editorFontClass" class="editor-box" id="transcripteditorbox" />
+              <v-card-actions>
+                <v-btn icon @click="changeEditorFontSize('down')">
                       <v-icon>mdi-magnify-minus</v-icon>
-                    </v-btn>
-                    Text Size
-                    <v-btn icon @click="changeEditorFontSize('up')">
-                      <v-icon>mdi-magnify-plus</v-icon>
-              </v-btn>
+                </v-btn>
+                  Text Size
+                <v-btn icon @click="changeEditorFontSize('up')">
+                    <v-icon>mdi-magnify-plus</v-icon>
+                </v-btn>
+                <v-btn icon @click="printText"><v-icon>mdi-printer</v-icon></v-btn>
+              </v-card-actions>
               <div v-text="jsonText"></div>
               <div v-text="htmlText"></div>
             </v-col>
@@ -680,11 +683,57 @@ export default {
       return this.elementObject.user_transcript > 0 ? true : false;
     }
   },
-  methods: {
 
+  
+  methods: {
+    printText(){
+        var html = document.getElementById("transcripteditorbox").innerHTML
+        var a = window.open('', '', 'height=300, width=300');
+        var dateStamp = new Date();
+        a.document.write(
+        `
+          <html>
+          <head>
+          <title>PF Printer...</title>
+          </head>
+            <style>
+              .header {
+                position: fixed;
+                top: 0;
+                left: 50%;
+                transform: translate(-50%, 0);
+              }
+              .footer {
+                position: fixed;
+                bottom: 0;
+                left: 50%;
+                transform: translate(-50%, 0);
+              }
+              .content {
+                margin-top: 35px;
+                margin-bottom: 35px;
+                margin-left: 25px;
+                margin-right: 25px;
+                font-family:Arial, Helvetica, sans-serif;
+                line-height: 1.5;
+                font-size: ${this.editorFontSize}em;
+              }
+            </style>
+            <body>
+                <div class="header">(Source Title: ${this.elementObject.title})</div>
+                <div class="content">${html}</div>
+                <div class="footer">(PidginForge on ${dateStamp.toLocaleString()})</div>
+            </body>  
+          </html>
+          <style>
+          `
+        );
+        a.print();
+    },
     triggerTimeStamp() {
       this.$emit("triggerTimeStamp");
     },
+    
     recordTimeStamp(currenttime) {
       if (this.editing) {
         var newstamp = parseInt(currenttime);
@@ -839,6 +888,7 @@ export default {
         // this.$refs.scripteditor.loadTranscript(transcriptid);
       }
     },
+    
     async submitSave() {
       // CREATE A NEW TRANSCRIPT...
       this.submittingSave = true;

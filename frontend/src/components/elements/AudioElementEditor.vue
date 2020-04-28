@@ -202,7 +202,7 @@
 import { apiService } from "@/common/api.service.js";
 import { apiFileService } from "@/common/api.fileservice.js";
 export default {
-  name: "audioElementEditor",
+  name: "AudioElementEditor",
   components: {
     AudioPlayerComponent: () =>
       import("@/components/elements/AudioPlayerComponent.vue")
