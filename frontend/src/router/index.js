@@ -15,8 +15,8 @@ Vue.use(VueRouter);
 
 export default new VueRouter({
   // TODO Enable history mode later when going to production
-  mode: "history",
-  base: process.env.BASE_URL,
+  // mode: "history",
+  // base: process.env.BASE_URL,
   routes: [
     {
       path: "/curate",
