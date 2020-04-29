@@ -52,8 +52,9 @@ class YouTubeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
 
     def perform_create(self, serializer):
-        
         serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 10
+        self.request.user.user_profile.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # This list is currently factoring in user preferences and filtering by learning languages/topics
@@ -251,6 +252,8 @@ class AudioViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 10
+        self.request.user.user_profile.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, slug):
@@ -380,6 +383,8 @@ class TranscriptViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 10
+        self.request.user.user_profile.save()
       #   print(self.request.data)
         if self.request.data['elementtype']=='YouTube':
            element = get_object_or_404(YouTubeElement, slug=self.request.data['elementslug']) 
@@ -517,6 +522,8 @@ class TranslationViewSet(viewsets.ModelViewSet):
         # After creating a new object, we need to check to see if other translations
         # have already been attached to this transcript by this user...
         serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 10
+        self.request.user.user_profile.save()
         # Determine what to attach the item to:
         if self.request.data['sourcetype']:
          if self.request.data['sourcetype'].lower() == "transcript":
@@ -657,6 +664,8 @@ class MarkupViewSet(viewsets.ModelViewSet):
         # have already been attached to this transcript by this user..
         serializer_context = {"request": self.request}
         sourcetype = self.request.data.get('sourcetype')
+        self.request.user.user_profile.points += 10
+        self.request.user.user_profile.save()
         print(sourcetype)
         if sourcetype:
         # Determine what to attach the item to:
@@ -820,6 +829,8 @@ class TextViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 10
+        self.request.user.user_profile.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, slug):

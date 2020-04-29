@@ -48,7 +48,7 @@
               </v-col>
 
               <v-col cols="12">
-                <v-alert :hidden="!alertActive" :type="alertType" dense>
+                <v-alert v-if="alertActive" :type="alertType" dense>
                   {{ alertMessage }}
                 </v-alert>
                 <v-alert v-if="videoExists" class="info" type="info" dense>
@@ -62,7 +62,7 @@
                     class="mb-2 orange lighten-2 black--text"
                     :to="{
                       name: 'Media-Viewer',
-                      params: { slug: existingSlug }
+                      params: { elementtype: 'YouTube', elementslug: existingSlug }
                     }"
                     >View Existing Video
                     <v-icon right class="black--text"
@@ -221,7 +221,7 @@ export default {
     existingSlug: "",
     existingTitle: "",
     // items: ['Streaming', 'Eating'],
-    newVideoID: "KmOAznOQX-g",
+    newVideoID: "KOfWzrQYqxY",
     // use this video as a sample of a video that exists: -YJSDJGyIaU, this does not: KmOAznOQX-g
     available: false,
     submitting: false,
@@ -229,7 +229,7 @@ export default {
     success: false,
     fitParent: true,
     alertType: "success",
-    alertMessage: "It's all good!",
+    alertMessage: "",
     alertActive: false,
     allLanguages: [],
     loadingLanguages: false,
@@ -305,10 +305,6 @@ export default {
         console.log(err);
       }
     },
-    rerenderYouTubePlayer() {
-      this.youTubePlayerKey += 1;
-    },
-
     parseDuration(duration) {
       var matches = duration.match(/[0-9]+[HMS]/g);
 

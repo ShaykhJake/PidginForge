@@ -7,7 +7,7 @@
           :user-data="userData"
           @emitUserDataChange="reloadUserData"
         />
-        <keep-alive :max="2">
+        <keep-alive :max="1">
           <router-view :key="$route.fullPath" />
         </keep-alive>
       </div>

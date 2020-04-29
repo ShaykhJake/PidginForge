@@ -146,7 +146,7 @@
 
               <v-btn
                 v-if="typeVideo"
-                @click="loadYouTubeEditor"
+                @click="showYouTubeEditor=true"
                 class="mr-1 mb-1 primary desertsand--text"
                 icon
               >
@@ -155,18 +155,17 @@
                 </v-icon>
               </v-btn>
               <YouTubeElementEditor
-                v-if="youTubeEditorLoaded"
+                v-if="showYouTubeEditor"
                 :editor-dialog="showYouTubeEditor"
                 :editing="true"
                 :video="elementObject"
                 @closeDialog="showYouTubeEditor = false"
-                @rerenderYouTube="rerenderYouTube"
                 @updateViewer="updateViewer"
               />
 
               <v-btn
                 v-if="typeAudio"
-                @click="loadAudioEditor"
+                @click="showAudioEditor=true"
                 class="mr-1 mb-1 primary desertsand--text"
                 icon
               >
@@ -176,12 +175,11 @@
               </v-btn>
 
               <AudioElementEditor
-                v-if="audioEditorLoaded"
+                v-if="showAudioEditor"
                 :editor-dialog="showAudioEditor"
                 :editing="true"
                 :audio="elementObject"
                 @closeDialog="showAudioEditor = false"
-                @rerenderAudio="rerenderAudio"
                 @updateViewer="updateViewer"
               />
               <v-btn

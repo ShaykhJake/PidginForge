@@ -29,8 +29,10 @@
                   ></v-file-input>
                 </v-form>
               </v-col>
+            </v-row>
+            <v-row wrap dense no-gutters v-if="imageSource">
               <v-col cols="12">
-                <section class="cropper-area" v-if="imageSource">
+                <section class="cropper-area">
                   <p class="text-center">Original</p>
                   <vue-cropper
                     ref="cropper"
@@ -40,14 +42,8 @@
                     :auto-crop-area="1"
                   />
                 </section>
-                <v-overlay
-                  absolute
-                  :value="loadingImage"
-                >
-                  <v-progress-circular indeterminate size="64"></v-progress-circular>
-                </v-overlay>
               </v-col>
-              <v-col cols="12" class="align-content-center" v-if="imageSource">
+              <v-col cols="12" class="align-content-center">
                 <div align="center">
                   <v-btn @click.prevent="rotate(90)" class="mx-1 sandstone">
                     <span class="hidden-sm-and-down">Rotate Right</span>
@@ -63,7 +59,7 @@
                   </v-btn>
                 </div>
               </v-col>
-              <v-col cols="12" v-if="imageSource">
+              <v-col cols="12">
                 <div align="center">
                 <p class="text-center">Avatar Preview</p>
                 <div class="preview avatar text-center" />
@@ -145,8 +141,8 @@ export default {
       rules: [
         value =>
           !value ||
-          value.size < 500000 ||
-          "Image size should be less than 500kb!"
+          value.size < 1000000 ||
+          "Image size should be less than 1MB!"
       ],
       notification: {
         message: "",
@@ -232,8 +228,8 @@ export default {
               this.success = true;
               this.changeSuccessMessage = data.message;
               // console.log(data.message);
-              this.$emit("emitUserDataChange");
               this.submittingChange = false;
+              this.$emit("emitUserDataChange");
               this.closeDialog();
             } else {
               this.changeerror = true;
@@ -246,8 +242,6 @@ export default {
         "image/jpeg",
         0.85
       );
-      this.reset();
-      this.submittingChange = false;
     },
     closeDialog() {
       this.error = false;
@@ -259,6 +253,7 @@ export default {
   mounted() {
     if(this.imgSrc){
       this.initializeImage();
+      this.loaded=true;
     }
   },
   created() {

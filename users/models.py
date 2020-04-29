@@ -10,6 +10,16 @@ from allauth.account.models import EmailAddress
 from allauth.account.signals import email_confirmed
 
 
+##### POINTS SCHEME ######
+# 20 for first update of profile
+# 10 for each like/save/upvote
+# 20 for each follow
+# 10 for posting a new element
+# 20 for posting a new lesson
+# 10 for each forked item
+# 20 for establishing a study group
+
+
 class CustomUserManager(UserManager):
     def get_by_natural_key(self, username):
         return self.get(username__iexact=username)

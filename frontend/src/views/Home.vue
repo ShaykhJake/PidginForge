@@ -25,7 +25,7 @@
 
               <v-tooltip bottom>
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" icon @click="showYouTubeEditor=true">
+                  <v-btn v-on="on" icon @click="showYouTubeEditor = !showYouTubeEditor">
                     <v-icon color="elements">library_add</v-icon>
                   </v-btn>
                 </template>
@@ -218,23 +218,19 @@
         :editor-dialog="showYouTubeEditor"
         :editing="false"
         :video="blankVideo"
-        :key="youTubeKey"
         @closeDialog="showYouTubeEditor = false"
-        @rerenderYouTube="rerenderYouTube"
       />
       <AudioElementEditor
         v-if="showAudioEditor"
         :editor-dialog="showAudioEditor"
         :editing="false"
         :audio="blankAudio"
-        :key="audioKey"
         @closeDialog="showAudioEditor = false"
-        @rerenderAudio="rerenderAudio"
       />
       <TextElementEditor
         v-if="showTextElementEditor"
         :editor-dialog="showTextElementEditor"
-        is-new-element="true"
+        :is-new-element="true"
         @closeDialog="showTextElementEditor = false"
       />
 

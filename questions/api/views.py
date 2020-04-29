@@ -17,6 +17,8 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+        self.request.user.user_profile.points += 10
+        self.request.user.user_profile.save()
 
 
 class AnswerCreateAPIView(generics.CreateAPIView):
@@ -26,6 +28,8 @@ class AnswerCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         print("hello")
+        self.request.user.user_profile.points += 10
+        self.request.user.user_profile.save()
         request_user = self.request.user
         kwarg_slug = self.kwargs.get("slug")
         question = get_object_or_404(Question, slug=kwarg_slug)

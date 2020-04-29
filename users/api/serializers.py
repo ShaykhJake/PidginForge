@@ -132,26 +132,22 @@ class ProfileImageSerializer(serializers.ModelSerializer):
     def image_update(self, request):
         print("Starting update")
         # s3 = boto3.resource("s3")
-
-
         profile = Profile.objects.get(user = request.user.pk)
         print(profile.image.name)
-
+        oldImageName = profile.image.name
         newImage = self.validated_data['image']
         newImageName = newImage.name
         print(newImage.name)
-
-        if profile.image.name != "profile_pics/default.jpg":
-            profile.image.storage.delete(profile.image.name)
-        
         profile.image = newImage
         profile.save()
-        print(profile.image.name)
+        if oldImageName != "profile_pics/default.jpg":
+            profile.image.storage.delete(oldImageName)
 
+        print(profile.image.name)
 
         imageTemporary = Image.open(profile.image.storage.open(profile.image.name))
         outputIoStream = BytesIO()
-
+        print("test")
         #set profile photo max size preferences (these are max for both)
         basewidth = 300
         baseheight = 300
@@ -167,16 +163,19 @@ class ProfileImageSerializer(serializers.ModelSerializer):
             imageTemporaryResized = imageTemporary.resize((wsize,hsize), Image.ANTIALIAS ) 
             imageTemporaryResized.save(outputIoStream , format='JPEG', quality=85)
             outputIoStream.seek(0)
+        # if profile.image.name and profile.image.name != "profile_pics/default.jpg":
+        #     profile.image.storage.delete(profile.image.name)
             if profile.image.name != "profile_pics/default.jpg":
                 profile.image.storage.delete(profile.image.name)
             profile.image = InMemoryUploadedFile(outputIoStream,'ImageField', "%s.jpg" %newImageName.split('.')[0], 'image/jpeg', sys.getsizeof(outputIoStream), None)
             profile.save()
         imageTemporary.close()
-        
+        print("test2")
         # Create Avatar:
         avatarTemporary = Image.open(profile.image.storage.open(profile.image.name)) 
         outputIoStream = BytesIO()
         #set avatar photo max size preferences (these are max for both)
+        print("test3")
         basewidth = 175
         baseheight = 175
         if float(avatarTemporary.size[0]) > basewidth or float(avatarTemporary.size[1]) > baseheight:
@@ -190,15 +189,23 @@ class ProfileImageSerializer(serializers.ModelSerializer):
                 wsize = int((float(avatarTemporary.size[0])*float(hpercent)))
                 hsize = baseheight
             avatarTemporary = avatarTemporary.resize((wsize,hsize), Image.ANTIALIAS ) 
-        avatarTemporary.save(outputIoStream, format='JPEG', quality=80)
-        outputIoStream.seek(0)
-        # if profile.avatar and profile.avatar.name != "avatars/default.jpg":
-        #     profile.avatar.storage.delete(profile.avatar.name)
-        profile.avatar = InMemoryUploadedFile(outputIoStream,'ImageField', "%s.jpg" %newImageName.split('.')[0], 'image/jpeg', sys.getsizeof(outputIoStream), None)
-        profile.save()
+            avatarTemporary.save(outputIoStream, format='JPEG', quality=80)
+            outputIoStream.seek(0)
+            oldAvatarName = profile.avatar.name
+            profile.avatar = InMemoryUploadedFile(outputIoStream,'ImageField', "%s.jpg" %newImageName.split('.')[0], 'image/jpeg', sys.getsizeof(outputIoStream), None)
+            profile.save()
+            if oldAvatarName != "avatars/default.jpg":
+                profile.avatar.storage.delete(oldAvatarName)
+        else:
+            oldAvatarName = profile.avatar.name
+            profile.avatar = profile.image
+            profile.save()
+            # if oldAvatarName != "avatars/default.jpg":
+            #     profile.avatar.storage.delete(oldAvatarName)
         print(profile.avatar.name)
         avatarTemporary.close()
-
+        profile.points += 5
+        profile.save()
         return True
 
 class UserCheckPassSerializer(serializers.ModelSerializer):
