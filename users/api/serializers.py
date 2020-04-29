@@ -19,8 +19,6 @@ class UserDisplaySerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserDisplaySerializer(read_only=True)
-
-
     image_name = serializers.SerializerMethodField(read_only=True)
     # user = Profile.CustomUser.username
     biography = serializers.CharField(max_length=600, min_length=None, allow_blank=True)
@@ -28,7 +26,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(max_length=150, allow_empty_file=False)
     avatar = serializers.ImageField(max_length=150, allow_empty_file=False)
     # nativelanguage = LanguageSerializer()
-    
+    points = serializers.IntegerField(read_only=True)
+    follower_count = serializers.SerializerMethodField()
+
     nativelanguage = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
         read_only=False,
@@ -51,12 +51,13 @@ class ProfileSerializer(serializers.ModelSerializer):
         slug_field='name'
     )
 
-    points = serializers.IntegerField(read_only=True)
-
     class Meta:
         model = Profile
-        fields = ['user', 'biography', 'country', 'image', 'avatar', 'nativelanguage', 'learninglanguage', 'learningtopics', 'points', 'image_name']
+        fields = ['user', 'biography', 'country', 'image', 'avatar', 'nativelanguage', 'learninglanguage', 'learningtopics', 'points', 'image_name', 'follower_count']
     
+    def get_follower_count(self, instance):
+        return instance.followed.count()
+
     def get_user(self, instance, request):
         return instance.voters.count()
     
