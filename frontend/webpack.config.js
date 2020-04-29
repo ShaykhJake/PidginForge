@@ -1,6 +1,16 @@
 // webpack.config.js
 
 module.exports = {
+  build: {
+    assetsRoot: path.resolve(__dirname, '../static/'),
+    assetsSubDirectory: 'app_name',
+    assetsPublicPath: '/static/',
+    // ...
+  },
+  dev: {
+    assetsPublicPath: 'http://localhost:8080/',
+    // ...
+  },
   resolve: {
     alias: {
       //...
