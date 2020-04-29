@@ -1,101 +1,73 @@
 <template>
   <v-row justify="center" class="ma-0">
-    <v-dialog v-model="changeEmailDialog" persistent max-width="320px">
-      <template v-slot:activator="{ on: changeEmailDialog }">
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on: tooltip }">
-            <v-btn
-              small
-              fab
-              class="orange lighten-4"
-              v-on="{ ...tooltip, ...changeEmailDialog }"
-            >
-              <v-icon>edit</v-icon>
-            </v-btn>
-          </template>
-          <span>Change Email</span>
-        </v-tooltip>
-      </template>
+    <v-dialog v-model="showDialog" persistent max-width="320px">
       <v-card class="ma-0">
-        <v-card-title class="pb-1 grey darken-4 white--text">
+        <v-card-title class="pb-1 sandstone calligraphy--text">
           Change Email Address
         </v-card-title>
-        <v-card-text class="pa-1 grey lighten-4">
-          <v-container class="pa-1" fluid grid-list-md>
-            <v-row wrap dense>
-              <v-col cols="12">
-                <p>Current address: {{ currentEmail }}</p>
-                <v-form
-                  ref="form"
-                  v-model="valid"
-                  :hidden="success || thinking"
-                >
-                  <v-text-field
-                    v-model="email1"
-                    :rules="[rules.required, rules.pattern]"
-                    name="input-10-1"
-                    hint=""
-                    autofocus
-                    label="New Email"
-                    @focus="
-                      available = false;
-                      error = false;
-                    "
-                  ></v-text-field>
-                  <v-text-field
-                    v-model="email2"
-                    :rules="[rules.required, rules.emailMatch]"
-                    name="input-10-2"
-                    label="Confirm New Email"
-                    value=""
-                    class="input-group--focused"
-                  ></v-text-field>
-                </v-form>
-                <v-alert :value="error" dense type="error"
-                  >That E-Mail address is already in use</v-alert
-                >
-                <v-alert :value="changeerror" dense type="error">{{
-                  changeErrorMessage
-                }}</v-alert>
-                <v-alert :value="success" dense type="info"
-                  ><strong>{{ confirmEmail }}</strong
-                  >: {{ changeSuccessMessage }}</v-alert
-                >
-              </v-col>
-            </v-row>
-          </v-container>
+        <v-card-text class="pa-1 desertsand">
+          <v-row wrap dense>
+            <v-col cols="12">
+              <p>Current address: {{ currentEmail }}</p>
+              <v-form
+                ref="form"
+                v-model="valid"
+              >
+                <v-text-field
+                  v-model="email1"
+                  :rules="[rules.required, rules.pattern]"
+                  name="input-10-1"
+                  hint=""
+                  autofocus
+                  label="New Email"
+                  @focus="
+                    available = false;
+                    error = false;
+                  "
+                ></v-text-field>
+                <v-text-field
+                  v-model="email2"
+                  :rules="[rules.required, rules.emailMatch]"
+                  name="input-10-2"
+                  label="Confirm New Email"
+                  value=""
+                  class="input-group--focused"
+                ></v-text-field>
+              </v-form>
+              <v-alert :value="error" dense type="error"
+                >That E-Mail address is already in use</v-alert
+              >
+              <v-alert :value="changeerror" dense type="error">{{
+                changeErrorMessage
+              }}</v-alert>
+              <v-alert :value="success" dense type="info"
+                ><strong>{{ confirmEmail }}</strong
+                >: {{ changeSuccessMessage }}</v-alert
+              >
+            </v-col>
+          </v-row>
         </v-card-text>
-        <v-card-actions class="grey darken-4 white--text">
+        <v-card-actions class="sandstone">
           <v-spacer></v-spacer>
           <v-btn
-            color="orange lighten-2"
-            @click="cancelDialog"
-            :hidden="success"
-            :disabled="success"
-            >Cancel</v-btn
+            color="garbage desertsand--text"
+            @click="closeDialog"
+            v-if="!success"
+            >Cancel<v-icon>mdi-cancel</v-icon></v-btn
           >
-
           <v-btn
-            color="blue lighten-2"
-            @click="onSubmit"
-            :disabled="!valid || !available"
-            :hidden="success || !valid || !available"
-            >Submit Change</v-btn
-          >
-
-          <v-btn
-            color="blue lighten-2"
+            color="primary"
             @click="checkAvailable"
-            :disabled="!valid || available"
-            :hidden="success || !valid || available"
+            v-if="!available && valid"
+            :loading="checkingAvailability"
             >Check Availability</v-btn
           >
-
           <v-btn
-            color="orange lighten-2"
-            @click="closeDialog"
-            :hidden="!success"
-            >Close</v-btn
+            color="primary"
+            @click="onSubmit"
+            v-if="valid & available"
+            :loading="submittingChange"
+            >Submit Change</v-btn
           >
 
           <v-spacer></v-spacer>
@@ -110,6 +82,7 @@ import { apiService } from "@/common/api.service.js";
 export default {
   name: "ChangeEmail",
   props: {
+    showDialog: Boolean,
     currentEmail: String
   },
   data() {
@@ -129,11 +102,11 @@ export default {
       changeEmailDialog: false,
       error: null,
       success: false,
-      thinking: false,
       changeSuccessMessage: "",
       changeerror: false,
       changeErrorMessage: "",
-
+      checkingAvailability: false,
+      submittingChange: false,
       notification: {
         message: "",
         type: ""
@@ -145,6 +118,7 @@ export default {
       this.$refs.form.validate();
     },
     checkAvailable() {
+      this.checkingAvailability=true;
       let endpoint = `/api/users/checkemail/`;
       try {
         apiService(endpoint, "POST", { email: this.email1 }).then(data => {
@@ -161,16 +135,17 @@ export default {
             return false;
           }
         });
+        this.checkingAvailability=false;
       } catch (err) {
         console.log(err);
+        this.checkingAvailability=false;
       }
     },
 
     onSubmit() {
-      this.thinking = true;
+      this.submittingChange = true;
       if (this.available) {
         let endpoint = `/api/users/changeemail/`;
-        this.thinking = true;
         this.confirmEmail = this.email1;
         try {
           apiService(endpoint, "POST", { email: this.email1 }).then(data => {
@@ -179,34 +154,29 @@ export default {
               this.error = false;
               this.success = true;
               this.changeSuccessMessage = data.message;
-              console.log(data.message);
               this.$refs.form.reset();
-              this.thinking = false;
               this.$emit("emitUserDataChange");
+              this.closeDialog();
             } else {
               this.changeerror = true;
               this.success = false;
               this.changeErrorMessage = data.message;
-              console.log(data.message);
-              this.thinking = false;
             }
+            this.submittingChange = false;
           });
         } catch (err) {
           console.log(err);
-          this.thinking = false;
+          this.submittingChange = false;
         }
       }
+      this.submittingChange = false;
       // this.changeEmailDialog = false;
     },
     closeDialog() {
-      this.changeEmailDialog = false;
-    },
-    cancelDialog() {
-      this.$refs.form.reset();
       this.error = false;
       this.success = false;
       this.available = false;
-      this.changeEmailDialog = false;
+      this.$emit("closeDialog")
     }
   }
 };

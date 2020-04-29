@@ -1,9 +1,9 @@
 <template>
   <v-card class="ma-0" v-if="userData">
-    <v-card-title class="pb-1 grey darken-4 white--text">
+    <v-card-title class="pb-1 sandstone calligraphy--text">
       Update User Profile
     </v-card-title>
-    <v-card-text class="pa-1 grey lighten-4">
+    <v-card-text class="pa-1 desertsand black--text">
       <p class="body-2 mx-2 black--text text-justify text-wrap">
         Dear Friend, <br /><br /><span class="font-weight-light">Pidgin</span
         ><span class="font-weight-black">Forge</span> deeply values your
@@ -13,102 +13,95 @@
         have identity concerns. We want you to feel safe to explore, learn, and
         contribute.<br /><br />Love, Shaykh Jake
       </p>
-      <v-container class="pa-1" fluid grid-list-md>
         <v-row wrap dense>
-          <v-col cols="12">
-            <v-row dense>
-              <v-col cols="12" md="6">
-                <v-card class="pa-2" outlined>
+              <v-col cols="12" sm="6">
+                <v-card class="ma-2">
                   <v-img :src="userData.image">
                     <v-container fill-height pa-1 align-start>
                       <v-row no-gutters>
                         <v-col cols="12">
-
-
+                          <v-btn small class="primary" @click="changePhotoDialog=true">Change<v-icon>mdi-pencil</v-icon></v-btn>
                           <ChangePhoto
+                            v-if="changePhotoDialog"
+                            :show-dialog="changePhotoDialog"
+                            @closeDialog="changePhotoDialog=false"
                             @emitUserDataChange="emitUserDataChange"
                             :img-src="userData.image"
                             :img-name="userData.image_name"
                             :key="photoKey"
                           ></ChangePhoto>
-
-
                         </v-col>
                       </v-row>
                     </v-container>
                   </v-img>
                 </v-card>
               </v-col>
-              <v-col cols="12" md="6">
-                <v-row wrap dense>
-                  <v-col cols="12">
-                    <v-card class="pa-2" outlined>
-                      <v-row>
-                        <v-col cols="2">
-                          <ChangeUsername
-                            @emitUserDataChange="emitUserDataChange"
-                            :current-username="userData.user.username"
-                          ></ChangeUsername>
-                        </v-col>
-                        <v-col cols="10">
-                          <div class="overline font-weight-black">
-                            Username
-                          </div>
-                          <div class="subtitle-1">
-                            {{ userData.user.username }}
-                          </div>
-                        </v-col>
-                      </v-row>
-                    </v-card>
-                  </v-col>
 
-                  <v-col cols="12">
-                    <v-card class="pa-2" outlined>
-                      <v-row>
-                        <v-col cols="2">
-                          <ChangeEmail
-                            @emitUserDataChange="emitUserDataChange"
-                            :current-email="userData.user.email"
-                          ></ChangeEmail>
-                        </v-col>
-                        <v-col cols="10">
-                          <div class="overline font-weight-black">
-                            Email
-                          </div>
-                          <div class="subtitle-1">
-                            {{ userData.user.email }}
-                          </div>
-                        </v-col>
-                      </v-row>
-                    </v-card>
-                  </v-col>
+              <v-col cols="12" sm="6">
+                <v-card class="ma-2 pl-2 sandstone">
+                  <v-row>
+                    <v-col>
+                      <div class="overline font-weight-black">
+                        Username
+                      </div>
+                      <div class="subtitle-1">
+                        {{ userData.user.username }}
+                      </div>
+                      <v-btn small class="primary" @click="changeUsernameDialog=true">Change<v-icon>mdi-pencil</v-icon></v-btn>
+                    </v-col>
+                    <ChangeUsername
+                      v-if="changeUsernameDialog"
+                      :show-dialog="changeUsernameDialog"
+                      @closeDialog="changeUsernameDialog=false"
+                      @emitUserDataChange="emitUserDataChange"
+                      :current-username="userData.user.username"
+                    ></ChangeUsername>
+                  </v-row>
+                </v-card>
 
-                  <v-col cols="12">
-                    <v-card class="pa-2" outlined>
-                      <v-row>
-                        <v-col cols="2">
-                          <ChangePassword></ChangePassword>
-                        </v-col>
-                        <v-col cols="10">
-                          <div class="overline font-weight-black">
-                            Password
-                          </div>
-                          <div class="subtitle-1">* * * * * * * *</div>
-                        </v-col>
-                      </v-row>
-                    </v-card>
-                  </v-col>
-                </v-row>
+                <v-card class="ma-2 pl-2 sandstone">
+                  <v-row>
+                    <v-col>
+                      <div class="overline font-weight-black">
+                        Email
+                      </div>
+                      <div class="subtitle-1">
+                        {{ userData.user.email }}
+                      </div>
+                      <v-btn small class="primary" @click="changeEmailDialog=true">Change<v-icon>mdi-pencil</v-icon></v-btn>
+                    </v-col>
+                    <ChangeEmail
+                      v-if="changeEmailDialog"
+                      :show-dialog="changeEmailDialog"
+                      @closeDialog="changeEmailDialog=false"
+                      @emitUserDataChange="emitUserDataChange"
+                      :current-email="userData.user.email"
+                    ></ChangeEmail>
+                  </v-row>
+                </v-card>
+
+                <v-card class="ma-2 pl-2 sandstone">
+                  <v-row>
+                    <v-col>
+                      <div class="overline font-weight-black">
+                        Password
+                      </div>
+                      <div class="subtitle-1">* * * * * * * *</div>
+                      <v-btn small class="primary" @click="changePasswordDialog=true">Change<v-icon>mdi-pencil</v-icon></v-btn>
+                    </v-col>
+                      <ChangePassword
+                        @closeDialog="changePasswordDialog=false"
+                        v-if="changePasswordDialog"
+                        :show-dialog="changePasswordDialog"
+                      >
+                      </ChangePassword>
+                  </v-row>
+                </v-card>
               </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
-        <v-form ref="form" v-model="valid" :hidden="success || thinking">
-          <v-row dense>
-            <v-col cols="12">
-              <v-card outlined class="px-2">
-                <v-row wrap dense class="pt-2">
-                  <v-col cols="12">
+              <v-col cols="12">
+
+              <v-card outlined class="px-2 desertsand">
+                <v-form ref="form" v-model="valid" :hidden="success || thinking" class="pt-5">
                     <v-select
                       v-model="userData.nativelanguage"
                       :items="allLanguages"
@@ -117,9 +110,9 @@
                       :rules="[rules.requiredNative]"
                       required
                       outlined
+                      v-on:change="unsavedChanges=true"
                     ></v-select>
-                  </v-col>
-                  <v-col cols="12">
+
                     <v-select
                       v-model="userData.learninglanguage"
                       :items="allLanguages"
@@ -129,9 +122,9 @@
                       multiple
                       required
                       outlined
+                      v-on:change="unsavedChanges=true"
                     ></v-select>
-                  </v-col>
-                  <v-col cols="12">
+
                     <v-autocomplete
                       v-model="userData.learningtopics"
                       :items="allTopics"
@@ -140,52 +133,40 @@
                       multiple
                       required
                       outlined
+                      v-on:change="unsavedChanges=true"
                     ></v-autocomplete>
-                  </v-col>
-                </v-row>
-              </v-card>
-            </v-col>
-          </v-row>
 
-          <v-row dense>
-            <v-col cols="12">
-              <v-card outlined>
-                <v-card-text>
-                  <div class="font-weight-black black--text">
-                    User Biography
-                  </div>
-                  <div>
                     <v-textarea
-                      label="About"
-                      v-model="userData.biography"
+                      outlined
+                      name="userbio"
+                      label="User Biography"
+                      :value="userData.biography"
                       counter
-                      maxlength="600"
-                      full-width
-                      single-line
+                      maxlength="300"
+                      v-on:change="unsavedChanges=true"
                     ></v-textarea>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-form>
-      </v-container>
-      <small>*indicates required field</small>
-    </v-card-text>
-    <v-card-actions class="grey darken-4 white--text">
-      <v-spacer></v-spacer>
-      <v-btn color="orange lighten-2" @click="closeDialog">Cancel</v-btn>
-      <v-btn
-        color="blue lighten-2"
-        @click="submitData"
-        :hidden="!valid"
-        :loading="submitting"
-        >Save Changes</v-btn
-      >
-      <v-spacer></v-spacer>
-      <!-- TODO: need to ensure that the user information is reloaded after saving -->
-    </v-card-actions>
-  </v-card>
+
+                </v-form>
+              <small>*indicates required field</small>            
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card-text>
+
+      <v-card-actions class="sandstone">
+        <v-spacer></v-spacer>
+        <v-btn color="garbage desertsand--text" @click="closeDialog">Cancel<v-icon>mdi-cancel</v-icon></v-btn>
+        <v-btn
+          color="primary"
+          @click="submitData"
+          :disabled="!valid || !unsavedChanges"
+          :loading="submitting"
+          >Save Changes<v-icon>mdi-content-save</v-icon></v-btn
+        >
+        <v-spacer></v-spacer>
+        <!-- TODO: need to ensure that the user information is reloaded after saving -->
+      </v-card-actions>
+    </v-card>
 </template>
 <script>
 import { apiService } from "@/common/api.service.js";
@@ -206,7 +187,12 @@ export default {
   },
   data: () => ({
     // userData: Object,
+    changePhotoDialog: false,
+    changeUsernameDialog: false,
+    changePasswordDialog: false,
+    changeEmailDialog: false,
     photoKey: 0,
+    unsavedChanges: false,
     nativeLanguage: String,
     thinking: false,
     submitting: false,

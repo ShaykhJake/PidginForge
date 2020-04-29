@@ -1,52 +1,36 @@
 <template>
   <v-row justify="center" class="ma-0">
     <v-dialog
-      v-model="changePhotoDialog"
+      v-model="showDialog"
       scrollable
       persistent
       max-width="600px"
     >
-      <template v-slot:activator="{ on: changePhotoDialog }">
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on: tooltip }">
-            <v-btn
-              small
-              fab
-              class="orange lighten-4"
-              v-on="{ ...tooltip, ...changePhotoDialog }"
-            >
-              <v-icon>edit</v-icon>
-            </v-btn>
-          </template>
-          <span>Change Photo</span>
-        </v-tooltip>
-      </template>
-      <v-card class="ma-0">
-        <v-card-title class="pb-1 grey darken-4 white--text">
+      <v-card>
+        <v-card-title class="sandstone calligraphy--text">
           Change Photo
         </v-card-title>
         
-        <v-card-text class="pa-1 grey lighten-4">
-          <v-container class="pa-1" fluid grid-list-md>
-            <v-row wrap dense>
-              <v-col cols="12">
-                <v-file-input
-                  :rules="rules"
-                  show-size
-                  @change="setImage"
-                  accept="image/png, image/jpeg, image/gif"
-                  placeholder="Pick a profile image"
-                  prepend-icon="mdi-camera"
-                  label="Profile Image"
-                  ref="input"
-                  name="image"
-                ></v-file-input>
-              </v-col>
-            </v-row>
+        <v-card-text class="desertsand">
 
-            <v-row wrap dense justify="center">
+            <v-row wrap dense jusify="center">
+              <v-col cols="12" justify="center">
+                <v-form v-model="valid"> 
+                  <v-file-input
+                    :rules="rules"
+                    show-size
+                    @change="setImage"
+                    accept="image/png, image/jpeg, image/gif"
+                    placeholder="Pick a profile image"
+                    prepend-icon="mdi-camera"
+                    label="Profile Image"
+                    ref="input"
+                    name="image"
+                  ></v-file-input>
+                </v-form>
+              </v-col>
               <v-col cols="12">
-                <section class="cropper-area">
+                <section class="cropper-area" v-if="imageSource">
                   <p class="text-center">Original</p>
                   <vue-cropper
                     ref="cropper"
@@ -56,35 +40,35 @@
                     :auto-crop-area="1"
                   />
                 </section>
+                <v-overlay
+                  absolute
+                  :value="loadingImage"
+                >
+                  <v-progress-circular indeterminate size="64"></v-progress-circular>
+                </v-overlay>
               </v-col>
-            </v-row>
-
-            <v-row justify="center">
-              <v-col cols="11">
-                <div>
-                  <v-spacer></v-spacer>
-                  <v-btn @click.prevent="rotate(90)" class="mx-1">
+              <v-col cols="12" class="align-content-center" v-if="imageSource">
+                <div align="center">
+                  <v-btn @click.prevent="rotate(90)" class="mx-1 sandstone">
                     <span class="hidden-sm-and-down">Rotate Right</span>
                     <v-icon>rotate_right</v-icon>
                   </v-btn>
-                  <v-btn @click.prevent="rotate(-90)" class="mx-1">
+                  <v-btn @click.prevent="rotate(-90)" class="mx-1 sandstone">
                     <span class="hidden-sm-and-down">Rotate Left</span>
                     <v-icon>rotate_left</v-icon>
                   </v-btn>
-                  <v-btn @click.prevent="rotate(90)" class="mx-1">
+                  <v-btn @click.prevent="rotate(90)" class="mx-1 sandstone">
                     <span class="hidden-sm-and-down">Flip Image</span>
                     <v-icon>flip</v-icon>
                   </v-btn>
                 </div>
               </v-col>
-            </v-row>
-            <v-row>
-              <v-spacer></v-spacer>
-              <v-col cols="7" md="3">
+              <v-col cols="12" v-if="imageSource">
+                <div align="center">
                 <p class="text-center">Avatar Preview</p>
                 <div class="preview avatar text-center" />
+                </div>
               </v-col>
-              <v-spacer></v-spacer>
             </v-row>
 
             <v-row>
@@ -92,29 +76,20 @@
                 <div class="content"></div>
               </v-col>
             </v-row>
-          </v-container>
+
         </v-card-text>
-        <v-card-actions class="grey darken-4 white--text">
+        <v-card-actions class="sandstone">
           <v-spacer></v-spacer>
           <v-btn
-            color="orange lighten-2"
-            @click="cancelDialog"
-            :hidden="success"
-            ><v-icon>cancel</v-icon>Cancel</v-btn
-          >
-          <!-- <v-btn 
-            color="orange lighten-2" 
-            @click="checkPhoto"
-            :disabled="!valid"
-          >Check If Available</v-btn> -->
-          <v-btn v-if="!success"
-            color="blue lighten-2"
-            @click="onSubmit"
-            :loading="submitting"
-            ><v-icon>done</v-icon>Submit</v-btn
-          >
-          <v-btn v-else color="blue lighten-2" @click="cancelDialog">
-            ><v-icon>done_outline</v-icon>Close</v-btn
+            color="garbage desertsand--text"
+            @click="closeDialog"
+            >Cancel<v-icon>mdi-cancel</v-icon></v-btn>
+          <v-btn
+            color="primary"
+            @click="submitChange"
+            :disabled="!valid || !loaded"
+            :loading="submittingChange"
+            >Submit Change<v-icon>done</v-icon></v-btn
           >
           <v-spacer></v-spacer>
           <!-- TODO: need to ensure that the user information is reloaded after saving -->
@@ -134,14 +109,22 @@ export default {
     VueCropper
   },
   props: {
-    imgSrc: String,
-    imgName: String
+    imgSrc: {
+      type: String,
+      required: false,
+    },
+    imgName: {
+      type: String,
+      required: false,
+    },
+    showDialog: Boolean,
   },
   data() {
     return {
-      imageSource: String,
-      imageName: String,
+      imageSource: '',
+      imageName: '',
       loadingImage: false,
+      loaded: false,
       cropImg: "",
       data: null,
       cropper: {},
@@ -152,10 +135,9 @@ export default {
       confirmPhoto: "",
       valid: false,
       available: false,
-      changePhotoDialog: false,
       error: null,
       success: false,
-      thinking: false,
+      submittingChange: false,
       changeSuccessMessage: "",
       changeerror: false,
       submitting: false,
@@ -174,9 +156,8 @@ export default {
   },
   methods: {
     initializeImage() {
-
       this.imageSource = this.imgSrc;
-      this.imageName = this.imgName;
+      this.imageName = this.imgName;      
     },
     cropImage() {
       // get image data for post processing, e.g. upload or setting image src
@@ -211,6 +192,7 @@ export default {
     },
     setImage(newimage) {
       this.loadingImage = true;
+      this.loaded = false;
       this.imageName = newimage.name;
       const file = newimage;
       if (file.type.indexOf("image/") === -1) {
@@ -226,14 +208,16 @@ export default {
         };
         reader.readAsDataURL(file);
         this.loadingImage = false;
+        this.loaded = true;
       } else {
         console.log("Sorry, that file is not supported");
         this.loadingImage = false;
+        this.loaded = false;
       }
     },
-    onSubmit() {
+    submitChange() {
       // The following grabs the blob, converts to a JPEG, wraps it, and sends it to the API
-      this.submitting = true;
+      this.submittingChange = true;
       const canvas = this.$refs.cropper.getCroppedCanvas();
       let stripped = this.imageName.split(".");
       let newfilename = stripped[0].concat(".jpg");
@@ -249,13 +233,13 @@ export default {
               this.changeSuccessMessage = data.message;
               // console.log(data.message);
               this.$emit("emitUserDataChange");
-              this.submitting = false;
-              this.cancelDialog();
+              this.submittingChange = false;
+              this.closeDialog();
             } else {
               this.changeerror = true;
               this.success = false;
               this.changeErrorMessage = data.message;
-              // console.log(data.message);
+              this.submittingChange = false;
             }
           });
         },
@@ -263,21 +247,22 @@ export default {
         0.85
       );
       this.reset();
+      this.submittingChange = false;
     },
     closeDialog() {
-      this.changePhotoDialog = false;
-    },
-    cancelDialog() {
-      // this.$refs.form.reset();
-      this.changePhotoDialog = false;
       this.error = false;
       this.success = false;
       this.available = false;
-      this.reset();
+      this.$emit("closeDialog");
+    },
+  },
+  mounted() {
+    if(this.imgSrc){
+      this.initializeImage();
     }
   },
   created() {
-    this.initializeImage();
+
   }
 };
 </script>

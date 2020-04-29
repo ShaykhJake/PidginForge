@@ -1,105 +1,79 @@
 <template>
   <v-row justify="center" class="ma-0">
-    <v-dialog v-model="changeUsernameDialog" persistent max-width="320px">
-      <template v-slot:activator="{ on: changeUsernameDialog }">
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on: tooltip }">
-            <v-btn
-              small
-              fab
-              class="orange lighten-4"
-              v-on="{ ...tooltip, ...changeUsernameDialog }"
-            >
-              <v-icon>edit</v-icon>
-            </v-btn>
-          </template>
-          <span>Change Username</span>
-        </v-tooltip>
-      </template>
-      <v-card class="ma-0">
-        <v-card-title class="pb-1 grey darken-4 white--text">
+    <v-dialog v-model="showDialog" persistent max-width="320px">
+      <v-card>
+        <v-card-title class="sandstone calligraphy--text">
           Change Username
         </v-card-title>
-        <v-card-text class="pa-1 grey lighten-4">
-          <v-container class="pa-1" fluid grid-list-md>
-            <v-row wrap dense>
-              <v-col cols="12">
-                <p>Current username: {{ currentUsername }}</p>
-                <v-form
-                  ref="form"
-                  v-model="valid"
-                  :hidden="success || thinking"
-                >
-                  <v-text-field
-                    v-model="username1"
-                    :rules="[rules.required, rules.nospace]"
-                    name="input-10-1"
-                    hint=""
-                    autofocus
-                    label="New Username"
-                    @focus="
-                      available = false;
-                      error = false;
-                    "
-                  ></v-text-field>
-                  <v-text-field
-                    v-model="username2"
-                    :rules="[rules.required, rules.usernameMatch]"
-                    name="input-10-2"
-                    label="Confirm New Username"
-                    value=""
-                    class="input-group--focused"
-                  ></v-text-field>
-                </v-form>
-                <v-alert :value="error" dense type="error"
-                  >That username is already in use</v-alert
-                >
-                <v-alert :value="changeerror" dense type="error">{{
-                  changeErrorMessage
-                }}</v-alert>
-                <v-alert :value="available" dense type="info"
-                  >Username is available!</v-alert
-                >
-                <v-alert :value="success" dense type="info"
-                  ><strong>{{ confirmUsername }}</strong
-                  >: {{ changeSuccessMessage }}</v-alert
-                >
-              </v-col>
-            </v-row>
-          </v-container>
+        <v-card-text class="desertsand calligraphy--text">
+          <v-row wrap dense>
+            <v-col cols="12">
+              <p>Current username: <strong>{{ currentUsername }}</strong></p>
+              <v-form
+                ref="form"
+                v-model="valid"
+              >
+                <v-text-field
+                  v-model="username1"
+                  :rules="[rules.required, rules.nospace]"
+                  name="input-10-1"
+                  hint=""
+                  autofocus
+                  label="New Username"
+                  @focus="
+                    available = false;
+                    error = false;
+                  "
+                ></v-text-field>
+                <v-text-field
+                  v-model="username2"
+                  :rules="[rules.required, rules.usernameMatch]"
+                  name="input-10-2"
+                  label="Confirm New Username"
+                  value=""
+                  class="input-group--focused"
+                ></v-text-field>
+              </v-form>
+              <v-alert :value="error" dense type="error"
+                >That username is already in use; please try
+                a different one.</v-alert
+              >
+              <v-alert :value="changeerror" dense type="error">{{
+                changeErrorMessage
+              }}</v-alert>
+              <v-alert :value="available" dense type="info"
+                >Username is available!</v-alert
+              >
+              <v-alert :value="success" dense type="info"
+                ><strong>{{ confirmUsername }}</strong
+                >: {{ changeSuccessMessage }}</v-alert
+              >
+            </v-col>
+          </v-row>
         </v-card-text>
-        <v-card-actions class="grey darken-4 white--text">
+        <v-card-actions class="sandstone calligraphy--text">
           <v-spacer></v-spacer>
           <v-btn
-            color="orange lighten-2"
-            @click="cancelDialog"
-            :hidden="success"
-            >Cancel</v-btn
+            color="garbage desertsand--text"
+            @click="closeDialog"
+            v-if="!success"
+            >Cancel<v-icon>mdi-cancel</v-icon></v-btn
           >
           <v-btn
-            color="blue lighten-2"
-            @click="onSubmit"
-            :disabled="!valid || !available"
-            :hidden="success || !valid || !available"
-            :loading="thinking"
-            >Submit Change</v-btn
-          >
-          <v-btn
-            color="blue lighten-2"
+            color="primary"
             @click="checkAvailable"
-            :disabled="!valid || available"
-            :hidden="success || !valid || available"
-            :loading="thinking"
+            v-if="!available && valid"
+            :loading="checkingAvailability"
             >Check Availability</v-btn
           >
 
           <v-btn
-            color="orange lighten-2"
-            @click="closeDialog"
-            :hidden="!success"
-            >Close</v-btn
+            color="primary"
+            @click="submitChange"
+            v-if="valid && available"
+            :loading="submittingChange"
+            >Submit Change</v-btn
           >
-
           <v-spacer></v-spacer>
           <!-- TODO: need to ensure that the user information is reloaded after saving -->
         </v-card-actions>
@@ -112,7 +86,8 @@ import { apiService } from "@/common/api.service.js";
 export default {
   name: "ChangeUsername",
   props: {
-    currentUsername: String
+    currentUsername: String,
+    showDialog: Boolean,
   },
   data() {
     return {
@@ -129,6 +104,8 @@ export default {
       confirmUsername: "",
       valid: false,
       available: false,
+      checkingAvailability: false,
+      submittingChange: false,
       changeUsernameDialog: false,
       error: null,
       success: false,
@@ -148,7 +125,7 @@ export default {
       this.$refs.form.validate();
     },
     checkAvailable() {
-      this.thinking = true;
+      this.checkingAvailability = true;
       let endpoint = `/api/users/checkusername/`;
       try {
         apiService(endpoint, "POST", { username: this.username1 }).then(
@@ -158,24 +135,26 @@ export default {
               this.available = true;
               console.log(data.message);
               this.error = false;
-              this.thinking = false;
+              this.checkingAvailability = false;
               return true;
             } else {
               console.log(data.message);
               this.error = true;
               this.notification.message = data.message;
-              this.thinking = false;
+              this.checkingAvailability = false;
+              this.valid = false;
               return false;
             }
           }
         );
       } catch (err) {
+        this.checkingAvailability = false;
         console.log(err);
       }
     },
 
-    onSubmit() {
-      this.thinking = true;
+    submitChange() {
+      this.submittingChange = true;
       try {
         let payload = { username: this.username1 };
         let endpoint = `/api/users/changeusername/`;
@@ -189,18 +168,19 @@ export default {
             this.changeSuccessMessage = data.message;
             // console.log(data.message);
             this.$refs.form.reset();
-            this.thinking = false;
+            this.submittingChange = false;
             this.$emit("emitUserDataChange");
+            this.closeDialog();
           } else {
             this.changeerror = true;
             this.success = false;
             this.changeErrorMessage = data.message;
             // console.log(data.message);
-            this.thinking = false;
+            this.submittingChange = false;
           }
         });
       } catch (err) {
-        this.thinking = false;
+        this.submittingChange = false;
       }
       // this.changeUsernameDialog = false;
     },
@@ -209,15 +189,8 @@ export default {
       this.error = false;
       this.success = false;
       this.available = false;
-      this.changeUsernameDialog = false;
+      this.$emit("closeDialog");
     },
-    cancelDialog() {
-      this.$refs.form.reset();
-      this.error = false;
-      this.success = false;
-      this.available = false;
-      this.changeUsernameDialog = false;
-    }
   }
 };
 </script>
