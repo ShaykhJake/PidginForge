@@ -110,31 +110,24 @@
     <v-navigation-drawer floating temporary right app v-model="drawer" class="calligraphy" xs12>
       <v-container fluid class="pa-0">
         <v-row>
-          <v-col xs12>
+          <v-col>
             <v-container fluid>
+
               <v-card dense class="center mt-0" mx-0>
                 <v-img :src="userData.image ? userData.image : '' ">
-                  <v-container fill-height fluid pa-1>
-                    <v-row no-gutters class="align-center mt-auto">
-                      <v-col xs12 align="center" outlined text>
-                        <v-card
-                          class="calligraphy darken-2"
-                          style="opacity: 0.85"
-                          outlined
-                        >
-                          <span
-                            class="body-1 desertsand--text font-weight-bold"
-                            >{{ userData.user.username }}</span
-                          >
-                        </v-card>
-                      </v-col>
-                    </v-row>
-                  </v-container>
                 </v-img>
-
-                <v-card-actions class="calligraphy darken-2">
+                <v-card-title class="sandstone calligraphy--text py-2">
+                  {{ userData.user.username }}
+                </v-card-title>
+                <v-card-text class="desertsand pt-2">
+                  User Points: {{ userData.points }}
+                  <hr>
+                  Followers: {{ userData.follower_count }}
+                  <hr>
+                  Vocab Stack: 0
+                </v-card-text>
+                <v-card-actions class="sandstone">
                   <v-spacer></v-spacer>
-
                   <v-tooltip bottom class="font-weight-bold">
                     <template v-slot:activator="{ on }">
                       <v-btn disabled small fab color="primary" v-on="on"
@@ -143,41 +136,36 @@
                     </template>
                     <span>User Dashboard</span>
                   </v-tooltip>
-
                   <v-spacer></v-spacer>
-
-                  <v-dialog
-                    v-model="profileUpdateDialog"
-                    scrollable
-                    persistent
-                    max-width="750px"
-                  >
-                    <template v-slot:activator="{ on: profileUpdateDialog }">
-                      <v-tooltip bottom>
-                        <template v-slot:activator="{ on: tooltip }">
-                          <v-btn
-                            small
-                            fab
-                            class="primary"
-                            v-on="{ ...tooltip, ...profileUpdateDialog }"
-                          >
-                            <v-icon>settings</v-icon>
-                          </v-btn>
-                        </template>
-                        <span>Update Profile</span>
-                      </v-tooltip>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on: on }">
+                      <v-btn
+                        small
+                        fab
+                        class="primary"
+                        v-on="on"
+                        @click="profileUpdateDialog=true"
+                      >
+                        <v-icon>settings</v-icon>
+                      </v-btn>
                     </template>
-                    <ProfileUpdate
-                      :user-data="userData"
-                      @closeDialog="closeProfileUpdateDialog"
-                      @emitUserDataChange="emitUserDataChange"
-                    />
-                  </v-dialog>
-
+                    <span>Update Profile</span>
+                  </v-tooltip>
                   <v-spacer></v-spacer>
-
-                  <ConfirmLogout></ConfirmLogout>
-
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on: on }">
+                      <v-btn
+                        small
+                        fab
+                        class="primary"
+                        v-on="on"
+                        @click="confirmLogoutDialog=true"
+                      >
+                        <v-icon>mdi-exit-run</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Logout</span>
+                  </v-tooltip>
                   <v-spacer></v-spacer>
                 </v-card-actions>
               </v-card>
@@ -203,6 +191,20 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
+
+    <ProfileUpdate
+      v-if="profileUpdateDialog"
+      :show-dialog="profileUpdateDialog"
+      :user-data="userData"
+      @closeDialog="profileUpdateDialog=false"
+      @emitUserDataChange="emitUserDataChange"
+    />
+    <ConfirmLogout 
+      v-if="confirmLogoutDialog"
+      :show-dialog="confirmLogoutDialog"
+      @closeDialog="confirmLogoutDialog=false"
+    />
+
   </nav>
 </template>
 
@@ -214,6 +216,7 @@ export default {
   data() {
     return {
       profileUpdateDialog: false,
+      confirmLogoutDialog: false,
       drawer: false,
       username: null,
       links: [

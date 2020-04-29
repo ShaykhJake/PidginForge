@@ -1,40 +1,24 @@
 <template>
   <div class="text-center">
     <v-dialog
-      v-model="conflogout"
+      v-model="showDialog"
       width="300"
       slot="activator"
       :fullscreen="$vuetify.breakpoint.xsOnly"
     >
-      <template v-slot:activator="{ on: dialog }">
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on: tooltip }">
-            <v-btn small fab class="primary" v-on="{ ...tooltip, ...dialog }">
-              <v-icon class="desertsand--text">logout</v-icon>
-            </v-btn>
-          </template>
-          <span>Logout</span>
-        </v-tooltip>
-        <!-- <v-btn class="orange" v-on="on">
-            <span class="hidden-xs-and-down">Logout</span>
-            <v-icon right>logout</v-icon>
-        </v-btn> -->
-      </template>
-
       <v-card>
         <v-card-title class="desertsand calligraphy--text" primary-title>
           Confirm Logout?
         </v-card-title>
         <v-card-actions class="sandstone">
-          <v-spacer></v-spacer>
-          <v-btn class="garbage desertsand--text" @click="finishLogout">
-            Yes
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn class="primary desertsand--text" @click="conflogout = false">
-            Cancel
-          </v-btn>
-          <v-spacer></v-spacer>
+          <div align="center">
+            <v-btn class="garbage desertsand--text mr-2" @click="$emit('closeDialog')">
+              Cancel<v-icon right>mdi-cancel</v-icon>
+            </v-btn>
+            <v-btn class="primary desertsand--text" @click="finishLogout">
+              Logout<v-icon right>mdi-exit-run</v-icon>
+            </v-btn>
+          </div>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -48,6 +32,9 @@ export default {
     return {
       conflogout: false
     };
+  },
+  props: {
+    showDialog: Boolean,
   },
   methods: {
     finishLogout() {

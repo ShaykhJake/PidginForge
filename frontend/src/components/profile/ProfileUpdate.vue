@@ -1,4 +1,10 @@
 <template>
+  <v-dialog
+    v-model="showDialog"
+    scrollable
+    persistent
+    max-width="650px"
+  >
   <v-card class="ma-0" v-if="userData">
     <v-card-title class="pb-1 sandstone calligraphy--text">
       Update User Profile
@@ -167,6 +173,7 @@
         <!-- TODO: need to ensure that the user information is reloaded after saving -->
       </v-card-actions>
     </v-card>
+  </v-dialog>
 </template>
 <script>
 import { apiService } from "@/common/api.service.js";
@@ -183,7 +190,8 @@ export default {
     ChangeUsername
   },
   props: {
-    userData: {}
+    userData: {},
+    showDialog: Boolean,
   },
   data: () => ({
     // userData: Object,
