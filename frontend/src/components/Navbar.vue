@@ -99,6 +99,24 @@
         </template>
         <span>Collaborate</span>
       </v-tooltip>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            small
+            fab
+            class="mx-1 calligraphy"
+            v-on="on"
+            router
+            :to="{ name: 'Events' }"
+          >
+            <v-icon class="desertsand--text">mdi-calendar</v-icon>
+          </v-btn>
+        </template>
+        <span>Events Calendar</span>
+      </v-tooltip>
+
+
+
       <v-btn text fab class="calligraphy mt-2" @click="drawer = !drawer">
         <v-avatar>
           <v-img class="elevation-6" :src="userData.avatar ? userData.avatar : 'https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg' "></v-img>

@@ -2,6 +2,7 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import AnswerEditor from "../views/AnswerEditor.vue";
 import Home from "../views/Home.vue";
+import Events from "../views/Events.vue";
 import NotFound from "../views/NotFound.vue";
 import QuestionViewer from "../views/QuestionViewer.vue";
 // import YouTubeViewer from "../views/YouTubeViewer.vue";
@@ -64,6 +65,11 @@ export default new VueRouter({
       path: "/",
       name: "Home",
       component: Home
+    },
+    {
+      path: "/events",
+      name: "Events",
+      component: Events
     },
 
     {
