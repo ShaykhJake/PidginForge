@@ -95,7 +95,7 @@
 
             </v-toolbar>
             <v-card-text color="desertsand">
-              Added by {{ selectedEvent.curator }} on {{ selectedEvent.curationdate }}<hr>
+              Added by {{ selectedEvent.curator['username'] }} on {{ selectedEvent.curationdate }}<hr>
                <v-chip x-small outlined class="primary primary--text mr-1">Event Type: {{ selectedEvent.type }}</v-chip>
                <v-chip x-small outlined class="languages languages--text mr-1">Language Pair: {{ selectedEvent.native_language }} &#8594; {{ selectedEvent.target_language}}</v-chip>
                <v-chip x-small outlined class="topics topics--text mr-1">Topic Area: {{ selectedEvent.topic }}</v-chip>
@@ -105,7 +105,8 @@
               Location: {{ selectedEvent.location }}<br>
               Starting: {{ selectedEvent.start }}<br>
               Ending: {{ selectedEvent.end }}<br>
-              RSVP'd Yes: {{ selectedEvent.guest_list ? selectedEvent.guest_list.length : 0 }}
+              Invited #: {{ selectedEvent.guest_list_count }}
+              RSVP'd #: {{ selectedEvent.rsvp_list_count }}
 
             </v-card-text>
             <v-card-actions>
@@ -140,6 +141,7 @@
 </template>
 
 <script>
+   import { apiService } from "@/common/api.service.js";
   import EventEditor from "@/components/events/EventEditor.vue";
 
   export default {
@@ -159,7 +161,7 @@
       selectedEvent: {},
       selectedElement: null,
       selectedOpen: false,
-
+      eventsList: {},
 
 
       colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green', 'orange', 'grey darken-1'],
@@ -251,9 +253,31 @@
       },
     },
     mounted () {
-      this.$refs.calendar.checkChange()
+      this.$refs.calendar.checkChange();
+      this.getEventsList();
     },
     methods: {
+
+      getEventsList() {
+         this.loadingEvents = true;
+         let endpoint = `/api/events/eventz/`;
+         try {
+         apiService(endpoint).then(data => {
+            if (data != null) {
+               this.eventsList = data;
+               this.events= data;
+               console.log(this.eventsList)
+            } else {
+               console.log("Something bad happened...");
+               this.error = true;
+            }
+            this.loadingEvents = false;
+         });
+         } catch (err) {
+         console.log(err);
+         }
+      },
+
       viewDay ({ date }) {
         this.focus = date
         this.type = 'day'
@@ -261,14 +285,14 @@
       getEventColor (event) {
       //   let eventType = event.type;
         var typeToColorMap = {
-           holiday: "elements",
-           meeting: "primary",
-           performance: "blue",
-           conference: "languages",
-           studysession: "topics",
-           lecture: "garbage",
+           Holiday: "elements",
+           Meeting: "primary",
+           Performance: "blue",
+           Conference: "languages",
+           Studysession: "topics",
+           Lecture: "garbage",
         }
-         return typeToColorMap[event.type]
+         return typeToColorMap[event.event_type] || 'primary'
 
          // return event.color
       },
@@ -307,30 +331,6 @@
          this.events.push(newEvent);
       },
       updateRange ({ start, end }) {
-
-
-
-      // // Generate random....
-      //   const events = []
-      //   const min = new Date(`${start.date}T00:00:00`)
-      //   const max = new Date(`${end.date}T23:59:59`)
-      //   const days = (max.getTime() - min.getTime()) / 86400000
-      //   const eventCount = this.rnd(days, days + 20)
-
-      //   for (let i = 0; i < eventCount; i++) {
-      //     const allDay = this.rnd(0, 3) === 0
-      //     const firstTimestamp = this.rnd(min.getTime(), max.getTime())
-      //     const first = new Date(firstTimestamp - (firstTimestamp % 900000))
-      //     const secondTimestamp = this.rnd(2, allDay ? 288 : 8) * 900000
-      //     const second = new Date(first.getTime() + secondTimestamp)
-
-      //     events.push({
-      //       name: this.names[this.rnd(0, this.names.length - 1)],
-      //       start: this.formatDate(first, !allDay),
-      //       end: this.formatDate(second, !allDay),
-      //       color: this.colors[this.rnd(0, this.colors.length - 1)],
-      //     })
-      //   }
          console.log(this.events)
         this.start = start
         this.end = end

@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'categories',
     'elements',
     'malapropos',
+    'events',
 ]
 
 MIDDLEWARE = [

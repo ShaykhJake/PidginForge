@@ -13,7 +13,7 @@
        <v-form v-model="valid">
          <v-select
             v-model="RSVP.status"
-            :items="['Yes', 'Maybe', 'No']"
+            :items="['Yes', 'No']"
             label="Will you attend?"
             placeholder="Will you attend?"
             outlined
@@ -35,7 +35,7 @@
          ></v-textarea>
        </v-form>
 
-    Confirmed Attendees ({{ guestList.length }}):
+    Confirmed Attendees ({{ rsvpList.length }}):
     <v-list
       two-line
       dense
@@ -47,26 +47,26 @@
       max-height="150"
     >
       <v-list-item
-        v-for="guest in guestList"
-        :key="guest.username"
+        v-for="rsvp in rsvpList"
+        :key="rsvp.invited_user.username"
 
       >
         <v-list-item-avatar>
           <v-avatar class="mr-2" size="42">
             <v-img
               class="elevation-6"
-              :src="guest.avatar"
+              :src="rsvp.invited_user.user_profile.avatar"
             ></v-img>
           </v-avatar>
         </v-list-item-avatar>
 
         <v-list-item-content>
           <v-list-item-title
-            >{{ guest.username }}
+            >{{ rsvp.invited_user.username }}
             </v-list-item-title
           >
           <v-list-item-subtitle> 
-             {{ guest.comment }}
+             {{ rsvp.attending }}: {{ rsvp.comment }}
           </v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
@@ -85,7 +85,7 @@ export default {
   name: "RSVPDialog",
   components: {},
   props: {
-    guestList: Array,
+    rsvpList: Array,
     showDialog: Boolean,
     userRSVP: {
        type: Object,

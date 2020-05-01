@@ -25,11 +25,11 @@
                   <v-row dense>
                      <v-col cols="auto">
                         <v-avatar>
-                           <v-img class="elevation-6" :src="newScheduledEvent.curator ? newScheduledEvent.curator.avatar : 'https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg' "></v-img>
+                           <v-img class="elevation-6" :src="newScheduledEvent.curator.user_profile ? newScheduledEvent.curator.user_profile.avatar : 'https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg' "></v-img>
                         </v-avatar>
                      </v-col>
                      <v-col>
-                        Added by {{ newScheduledEvent.curator }} 
+                        Added by {{ newScheduledEvent.curator['username'] }} 
                         on {{ newScheduledEvent.curation_date || 'December 7, 1941' }}
                      </v-col>
                   </v-row>
@@ -92,6 +92,7 @@
                   ></v-text-field>
                   
                   <v-row dense wrap>
+                     <span class="overline">All times are currently in GMT</span>
                      <v-col>
                         <v-menu
                         v-model="startDateMenu"
@@ -257,15 +258,15 @@
                   ></v-select>
                   <div justify="center">
                   Event Access:
-                  <v-radio-group v-model="access" row>
-                     <v-radio label="Public" value="Public"></v-radio>
-                     <v-radio label="Invitation Only" value="Invitation"></v-radio>
+                  <v-radio-group v-model="newScheduledEvent.public" row>
+                     <v-radio label="Public" :value="true"></v-radio>
+                     <v-radio label="Invitation Only" :value="false"></v-radio>
                   </v-radio-group>
                   </div>
 
                   <v-autocomplete
                      v-model="newScheduledEvent.invited_users"
-                     v-if="access==='Invitation'"
+                     v-if="newScheduledEvent.public===false"
                      :items="allUsers"
                      outlined
                      chips
@@ -308,7 +309,7 @@
 
                   <v-autocomplete
                      v-model="newScheduledEvent.invited_groups"
-                     v-if="access==='Invitation'"
+                     v-if="newScheduledEvent.public===false"
                      :items="userGroups"
                      outlined
                      chips
@@ -507,12 +508,12 @@
         </v-row>
          <v-row dense v-if="!isNewEvent">
            <v-col>
-               <v-btn v-if="isCurator && !editing" @click="toggleEditable" class="mr-2 primary desertsand--text mr-2">Edit<v-icon right>mdi-pencil</v-icon></v-btn>
+               <v-btn v-if="isCurator && !editing" @click="toggleEditable(true)" class="mr-2 primary desertsand--text mr-2">Edit<v-icon right>mdi-pencil</v-icon></v-btn>
                <v-btn v-if="isCurator" class="mr-2 garbage desertsand--text">Delete Event<v-icon right>mdi-trash-can</v-icon></v-btn>
                <v-btn v-if="!isCurator" class="primary desertsand--text mr-2">Save<v-icon right>mdi-heart</v-icon></v-btn>
                <v-btn v-if="!isCurator" @click="showRSVPDialog = true" class="elements desertsand--text mr-2">RSVP
                   <v-badge
-                     :content="guestList.length"
+                     :content="newScheduledEvent.rsvp_list_count"
                      color="elements darken-2"
                   >
                      <v-icon right>mdi-message-reply-text</v-icon>
@@ -546,7 +547,7 @@
     <RSVPDialog
       v-if="showRSVPDialog"
       :show-dialog="showRSVPDialog"
-      :guest-list="guestList"
+      :rsvp-list="newScheduledEvent.rsvp_list"
       @closeDialog="showRSVPDialog=false"
     />
   </v-dialog>
@@ -597,7 +598,17 @@ export default {
     endTimeMenu: false,
     startDateMenu: false,
     endDateMenu: false,
-    newScheduledEvent: {},
+    newScheduledEvent: {
+       curator: {
+       },
+       avatar: {
+
+       },
+       public: true,
+       invited_users: [
+       ],
+       invited_groups: [],
+    },
     loaded: false,
     today : new Date().toISOString().substr(0, 10),
     existingSlug: "",
@@ -689,7 +700,13 @@ export default {
       return window.localStorage.getItem("username");
    },
    isCurator() {
-      return this.newScheduledEvent.curator == this.activeUser
+      if(this.newScheduledEvent.curator){
+         return this.newScheduledEvent.curator.username == this.activeUser
+      } else if (this.isNewEvent) {
+         return true 
+      } else {
+         return false
+      }
    },
 
     editorFontClass(){
@@ -709,8 +726,8 @@ export default {
     chooseNewFile() {
       this.loadNewFile = true;
     },
-    toggleEditable(){
-        this.editing = !this.editing;
+    toggleEditable(state){
+        this.editing = state;
         this.editor.setOptions({
             editable: this.editing
         });
@@ -827,12 +844,14 @@ export default {
   },
   mounted() {
     if(this.scheduledEvent){
+      this.toggleEditable(false);
       this.newScheduledEvent = this.scheduledEvent;
       this.editor.setContent(this.scheduledEvent.details);
     } else {
-      this.toggleEditable();
+      // we are editing a new object
+      this.toggleEditable(true);
       this.isNewEvent = true;
-      this.newScheduledEvent = {}
+      // this.newScheduledEvent = {}
     }
     this.loaded = true;
   },
