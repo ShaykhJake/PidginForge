@@ -625,23 +625,31 @@ export default {
   },
   methods: {
     getLanguages() {
-      this.loadingLanguages = true;
-      let endpoint = `/api/categories/languages/`;
-      try {
-        apiService(endpoint).then(data => {
-          if (data != null) {
-            this.allLanguages = data;
-            this.error = false;
-          } else {
-            console.log("Something bad happened...");
-            this.error = true;
-          }
-          this.loadingLanguages = false;
-        });
-      } catch (err) {
-        console.log(err);
+      var localLanguages = localStorage.getItem("languages");
+      if(localLanguages.length > 1){
+        console.log("Shop local!")
+        this.allLanguages = JSON.parse(localLanguages)
+      } else {
+        this.loadingLanguages = true;
+        let endpoint = `/api/categories/languages/`;
+        try {
+          apiService(endpoint).then(data => {
+            if (data != null) {
+              this.allLanguages = data;
+              this.error = false;
+            } else {
+              console.log("Something bad happened...");
+              this.error = true;
+            }
+            this.loadingLanguages = false;
+          });
+        } catch (err) {
+          console.log(err);
+        }
+
       }
     },
+
     printText(){
         var html = document.getElementById("markupeditorbox").innerHTML
         var a = window.open('', '', 'height=300, width=300');

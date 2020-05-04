@@ -36,22 +36,22 @@
                   <v-row>
                      <v-col>
                         <p>
-                           <v-chip small outlined class="primary primary--text mr-1">Event Type: {{ newScheduledEvent.type }}</v-chip>
+                           <v-chip small outlined class="primary primary--text mr-1">Event Type: {{ newScheduledEvent.event_type }}</v-chip>
                            <v-chip small outlined class="languages languages--text mr-1">Language Pair: {{ newScheduledEvent.native_language }} &#8594; {{ newScheduledEvent.target_language}}</v-chip>
                            <v-chip small outlined class="topics topics--text mr-1">Topic Area: {{ newScheduledEvent.topic }}</v-chip>
-                           <v-chip small outlined class="garbage garbage--text mr-1">Access: {{newScheduledEvent.access_type }}</v-chip><br>
+                           <v-chip small outlined class="garbage garbage--text mr-1">Access: {{ newScheduledEvent.public ? 'Public' : 'Invitation Only' }}</v-chip><br>
                         </p>
                         <h1>{{ newScheduledEvent.name }}</h1>
                         <p>{{ newScheduledEvent.caption }}</p>
-                        Start Date/Time: <strong>{{ newScheduledEvent.start }}</strong><br>
-                        End Date/Time: <strong>{{ newScheduledEvent.end }}</strong><br>
+                        Start Date/Time: <strong>{{ displayStartDateTime }}</strong><br>
+                        End Date/Time: <strong>{{ displayEndDateTime }}</strong><br>
                         Location: <strong>{{ newScheduledEvent.location }}</strong><br>
                      </v-col>
                   </v-row>
             </v-col>
          </v-row>
          <v-row wrap dense justify="center" v-if="editing">
-          <v-col cols="12">
+            <v-col cols="12">
                 <v-form
                   ref="details"
                   v-model="valid"
@@ -80,137 +80,155 @@
                     maxlength="200"
                   ></v-textarea>
                   
-                  <span class="overline">For location: If virtual, please specify platform (e.g. 'Zoom'); if holiday, please specify region</span>
                   <v-text-field
                     v-model="newScheduledEvent.location"
                     name="eventlocation"
-                    label="Event Location*"
+                    label="Event Location (or platform)*"
                     placeholder="event location, platform, or region"
                     :rules="[rules.requiredLocation]"
                     outlined
                     class="pb-0 mb-0"
                   ></v-text-field>
                   
-                  <v-row dense wrap>
-                     <span class="overline">All times are currently in GMT</span>
-                     <v-col>
-                        <v-menu
-                        v-model="startDateMenu"
-                        :close-on-content-click="false"
-                        :nudge-right="40"
-                        transition="scale-transition"
-                        offset-y
-                        min-width="290px"
-                        >
-                        <template v-slot:activator="{ on }">
-                           <v-text-field
-                              v-model="newScheduledEvent.start_date"
-                              label="Start Date"
-                              outlined
-                              dense
-                              append-icon="event"
-                              readonly
-                              v-on="on"
-                           ></v-text-field>
-                        </template>
-                        <v-date-picker v-model="newScheduledEvent.start_date" @input="startDateMenu = false"></v-date-picker>
-                        </v-menu>
-                     </v-col>
-                     <v-col>
 
-                        <v-menu
-                        ref="starttimemenu"
-                        v-model="startTimeMenu"
-                        :close-on-content-click="false"
-                        :nudge-right="40"
-                        :return-value.sync="newScheduledEvent.start_time"
-                        transition="scale-transition"
-                        offset-y
-                        max-width="290px"
-                        min-width="290px"
-                        >
-                        <template v-slot:activator="{ on }">
-                           <v-text-field
-                              v-model="newScheduledEvent.start_time"
-                              label="Start Time"
-                              outlined
-                              dense
-                              append-icon="access_time"
-                              readonly
-                              v-on="on"
-                           ></v-text-field>
-                        </template>
-                        <v-time-picker
-                           v-if="startTimeMenu"
-                           v-model="newScheduledEvent.start_time"
-                           format="24hr"
-                           full-width
-                           @click:minute="$refs.starttimemenu.save(newScheduledEvent.start_time)"
-                        ></v-time-picker>
-                        </v-menu>
+
+                  <v-row wrap dense>
+                     <v-col cols="12" sm="6">
+                        <v-dialog
+                           ref="daterangedialog"
+                           v-model="dateRangeDialog"
+                           :return-value.sync="workingDateRange"
+                           persistent
+                           width="290px"
+                           >
+                           <template v-slot:activator="{ on }">
+                              <v-text-field
+                                 v-model="displayDateRange"
+                                 label="Date(s)"
+                                 prepend-icon="event"
+                                 readonly
+                                 v-on="on"
+                              ></v-text-field>
+                           </template>
+                              <v-date-picker 
+                                 v-model="workingDateRange" 
+                                 range
+                                 :locale="navigatorLocale"
+                                 :selected-items-text = "displayDateRange"
+                                 @input="startDateMenu = false">
+                              <v-spacer></v-spacer>
+                              <v-btn text color="primary" @click="dateRangeDialog = false">Cancel</v-btn>
+                              <v-btn text color="primary" @click="$refs.daterangedialog.save(workingDateRange)">OK</v-btn>
+                           </v-date-picker>
+                        </v-dialog>
+
+                     </v-col>
+                     <v-col  cols="12" sm="4">
+                        <v-checkbox v-model="allDayEvent" label="All Day Event">
+                        </v-checkbox>
+                     </v-col>
+
+                     <v-col v-if="!allDayEvent" cols="6" sm="4">
+                        <v-dialog
+                           ref="starttimedialog"
+                           v-model="startTimeDialog"
+                           :return-value.sync="workingStartTime"
+                           persistent
+                           width="290px"
+                           >
+                           <template v-slot:activator="{ on }">
+                              <v-text-field
+                                 v-model="workingStartTime"
+                                 label="Start Time"
+                                 prepend-icon="access_time"
+                                 readonly
+                                 v-on="on"
+                              ></v-text-field>
+                           </template>
+                           <v-time-picker
+                              v-if="startTimeDialog"
+                              v-model="workingStartTime"
+                              full-width
+                              format="24hr"
+                              :max="maxTime"
+                           >
+                              <v-spacer></v-spacer>
+                              <v-btn text color="garbage--text" @click="startTimeDialog = false">Cancel</v-btn>
+                              <v-btn text color="primary" @click="$refs.starttimedialog.save(workingStartTime)">OK</v-btn>
+                           </v-time-picker>
+                        </v-dialog>
+                     </v-col>
+                     <v-col v-if="!allDayEvent" cols="6" sm="4">
+                        <v-dialog
+                           ref="endtimedialog"
+                           v-model="endTimeDialog"
+                           :return-value.sync="workingEndTime"
+                           persistent
+                           width="290px"
+                           >
+                           <template v-slot:activator="{ on }">
+                              <v-text-field
+                                 v-model="workingEndTime"
+                                 label="End Time"
+                                 prepend-icon="access_time"
+                                 readonly
+                                 v-on="on"
+                              ></v-text-field>
+                           </template>
+                           <v-time-picker
+                              v-if="endTimeDialog"
+                              v-model="workingEndTime"
+                              full-width
+                              format="24hr"
+                              :min="minTime"
+                           >
+                              <v-spacer></v-spacer>
+                              <v-btn text color="garbage--text" @click="endTimeDialog = false">Cancel</v-btn>
+                              <v-btn text color="primary" @click="$refs.endtimedialog.save(workingEndTime)">OK</v-btn>
+                           </v-time-picker>
+                        </v-dialog>
+                     </v-col>
+                     <v-col cols="12">
+
+                        <v-dialog
+                           v-model="timeZoneDialog"
+                           scrollable
+                           width="290px"
+                           >
+                           <template v-slot:activator="{ on }">
+                              <v-btn v-on="on" text x-small class="primary--text mb-5">
+                                 Info About Dealing With Time Zones
+                              </v-btn>
+                           </template>
+                           <v-card class="desertsand calligraphy--text">
+                              <v-card-title class="sandstone">
+                                 Time Zones
+                              </v-card-title>
+                              <v-card-text>
+                                 <p class="body-1">
+                                    All dates and times are calculated based on your operating system's locale.<br><br>
+                                    These datetimes will automatically be converted to GMT/UTC datetimes when stored
+                                    on the server.<br><br>
+                                    When displayed on the calendar, they will be converted
+                                    back from GMT/UTC into each user's local settings.<br><br>
+                                    Please note that if you are
+                                    storing datetimes for timezones other than your own, you will 
+                                    need to know the timezone offset relative to yours. <br><br>
+                                    <strong>For example:</strong> If you live in New York, but are entering
+                                    an event that is taking place in London at 17:00, you will need to enter
+                                    12:00, because New York's time zone is 5 hours behind London.
+                                 </p>
+                              </v-card-text>
+                              <v-card-actions class="sandstone">
+                                 <v-spacer></v-spacer><v-btn class="garbage desertsand--text" @click="timeZoneDialog=false">Close</v-btn>
+                              </v-card-actions>
+                           </v-card>
+                        </v-dialog>
                      </v-col>
                   </v-row>
-                  <v-row  dense wrap>
-                     <v-col>
-
-                        <v-menu
-                        v-model="endDateMenu"
-                        :close-on-content-click="false"
-                        :nudge-right="40"
-                        transition="scale-transition"
-                        offset-y
-                        min-width="290px"
-                        >
-                        <template v-slot:activator="{ on }">
-                           <v-text-field
-                              v-model="newScheduledEvent.end_date"
-                              outlined
-                              dense
-                              label="End Date"
-                              append-icon="event"
-                              readonly
-                              v-on="on"
-                           ></v-text-field>
-                        </template>
-                        <v-date-picker v-model="newScheduledEvent.end_date" @input="endDateMenu = false"></v-date-picker>
-                        </v-menu>
-                     </v-col>
-                     <v-col>
-                        <v-menu
-                        ref="endtimemenu"
-                        v-model="endTimeMenu"
-                        :close-on-content-click="false"
-                        :nudge-right="40"
-                        :return-value.sync="newScheduledEvent.end_time"
-                        transition="scale-transition"
-                        offset-y
-                        max-width="290px"
-                        min-width="290px"
-                        >
-                        <template v-slot:activator="{ on }">
-                           <v-text-field
-                              v-model="newScheduledEvent.end_time"
-                              outlined
-                              dense
-                              label="End Time"
-                              append-icon="access_time"
-                              readonly
-                              v-on="on"
-                           ></v-text-field>
-                        </template>
-                        <v-time-picker
-                           v-if="endTimeMenu"
-                           v-model="newScheduledEvent.end_time"
-                           format="24hr"
-                           full-width
-                           @click:minute="$refs.endtimemenu.save(newScheduledEvent.end_time)"
-                        ></v-time-picker>
-                        </v-menu>
-                     </v-col>
-                  </v-row>
-
+               
                   <v-select
-                    v-model="newScheduledEvent.type"
+                    v-model="newScheduledEvent.event_type"
                     name="eventtype"
                     :items="allTypes"
                     label="Event Type*"
@@ -222,7 +240,7 @@
                   ></v-select>
 
                   <v-select
-                    v-model="newScheduledEvent.nativelanguage"
+                    v-model="newScheduledEvent.native_language"
                     name="nativelanguage"
                     :items="allLanguages"
                     label="Native Language*"
@@ -234,7 +252,7 @@
                   ></v-select>
 
                   <v-select
-                    v-model="newScheduledEvent.targetlanguage"
+                    v-model="newScheduledEvent.target_language"
                     name="targetlanguage"
                     :items="allLanguages"
                     label="Target Language*"
@@ -265,9 +283,9 @@
                   </div>
 
                   <v-autocomplete
-                     v-model="newScheduledEvent.invited_users"
+                     v-model="newScheduledEvent.guest_list"
                      v-if="newScheduledEvent.public===false"
-                     :items="allUsers"
+                     :items="allProfiles"
                      outlined
                      chips
                      color="blue-grey lighten-2"
@@ -301,7 +319,7 @@
                            </v-list-item-avatar>
                            <v-list-item-content>
                            <v-list-item-title v-html="data.item.username"></v-list-item-title>
-                           <v-list-item-subtitle>Language 1 - Language 2</v-list-item-subtitle>
+                           <v-list-item-subtitle>{{ data.item.biography }}</v-list-item-subtitle>
                            </v-list-item-content>
                         </template>
                      </template>
@@ -309,7 +327,7 @@
 
                   <v-autocomplete
                      v-model="newScheduledEvent.invited_groups"
-                     v-if="newScheduledEvent.public===false"
+                     v-if="false"
                      :items="userGroups"
                      outlined
                      chips
@@ -354,7 +372,7 @@
         </v-row>
         <v-row no-gutters dense class="mt-0 pt-0">
            <v-col>
-            <span class="body-1">Event Details:</span>
+            <span class="body-1">Extended Event Details:</span>
             <editor-menu-bar
                v-if="loaded && editing"
                :editor="editor"
@@ -509,7 +527,7 @@
          <v-row dense v-if="!isNewEvent">
            <v-col>
                <v-btn v-if="isCurator && !editing" @click="toggleEditable(true)" class="mr-2 primary desertsand--text mr-2">Edit<v-icon right>mdi-pencil</v-icon></v-btn>
-               <v-btn v-if="isCurator" class="mr-2 garbage desertsand--text">Delete Event<v-icon right>mdi-trash-can</v-icon></v-btn>
+               <v-btn v-if="isCurator" class="mr-2 garbage desertsand--text" @click="deleteConfirmDialog=true">Delete Event<v-icon right>mdi-trash-can</v-icon></v-btn>
                <v-btn v-if="!isCurator" class="primary desertsand--text mr-2">Save<v-icon right>mdi-heart</v-icon></v-btn>
                <v-btn v-if="!isCurator" @click="showRSVPDialog = true" class="elements desertsand--text mr-2">RSVP
                   <v-badge
@@ -520,6 +538,35 @@
                   </v-badge>
                </v-btn>
                <v-btn v-if="!isCurator" class="topics desertsand--text mr-2">Export<v-icon right>mdi-calendar-export</v-icon></v-btn>
+
+               <v-dialog
+                  v-model="deleteConfirmDialog"
+                  width="290px"
+                  >
+                  <v-card class="desertsand calligraphy--text">
+                     <v-card-title class="sandstone">
+                        Confirm Delete Event?
+                     </v-card-title>
+                     <v-card-text>
+                        <p class="body-1">
+                           <strong>Are you sure that you want to delete this event?</strong> <br><br>It will be
+                           permanently deleted from the database along with associated
+                           invitations, RSVPs, comments, and what-not. <br><br>
+                           There is no
+                           harm in leaving this event on the calendar for posterity!
+                        </p>
+                     </v-card-text>
+                     <v-card-actions class="sandstone">
+                        <v-btn class="garbage desertsand--text" @click="deleteConfirmDialog=false">
+                           Cancel<v-icon right>mdi-close</v-icon>
+                        </v-btn>
+                        <v-spacer></v-spacer>
+                        <v-btn class="primary" @click="deleteEvent" :loading="deletingEvent">Delete<v-icon right>mdi-delete</v-icon></v-btn>
+                     </v-card-actions>
+                  </v-card>
+               </v-dialog>
+
+
            </v-col>
         </v-row>
       </v-card-text>
@@ -548,7 +595,10 @@
       v-if="showRSVPDialog"
       :show-dialog="showRSVPDialog"
       :rsvp-list="newScheduledEvent.rsvp_list"
+      :user-rsvp="newScheduledEvent.user_rsvp"
+      :event="newScheduledEvent.id"
       @closeDialog="showRSVPDialog=false"
+      @updateRSVP="updateRSVP"
     />
   </v-dialog>
 </template>
@@ -593,11 +643,8 @@ export default {
     showRSVPDialog: false,
     unsavedChanges: false,
     editing: false,
-    startTimeMenu: false,
     isNewEvent: false,
-    endTimeMenu: false,
-    startDateMenu: false,
-    endDateMenu: false,
+    allDayEvent: false,
     newScheduledEvent: {
        curator: {
        },
@@ -605,36 +652,58 @@ export default {
 
        },
        public: true,
-       invited_users: [
-       ],
-       invited_groups: [],
+       guest_list: [],
+      //  invited_groups: [],
     },
     loaded: false,
-    today : new Date().toISOString().substr(0, 10),
+    today : new Date().toString().substr(0, 10),
     existingSlug: "",
     existingTitle: "",
     submittingEvent: false,
+    invitesList: [],
+   //  start: new Date().toISOString().substr(0, 10),
+    
+    editableStartTime: "",
+    startTimeDialog: false,
+    editableEndTime: "",
+    endTimeDialog: false,
+    dateRangeDialog: false,
+    
+    workingStart: new Date(),
+    workingEnd: new Date(),
+
+    workingDateRange: [],
+    workingStartTime: "",
+    workingEndTime: "",
+    displayStartDateTime: "",
+    displayEndDateTime: "",
+
+    timeZoneDialog: false,
+    deleteConfirmDialog: false,
+    deletingEvent: false,
+
     valid: true,
     success: false,
     allLanguages: [],
     loadingTypes: false,
-    access: "public",
+
     loadingLanguages: false,
     loadingTopics: false,
-    loadingUsers: false,
+    loadingProfiles: false,
+    allUsers: [],
     loadingGroups: false,
     
-    allTypes: ['meeting', 'conference', 'study session', 'lecture'],
-    userGroups: [
-       { name: "Radical Russian", id: "1234" },
-       { name: "Awesome Arabic", id: "1244" },
-       { name: "Gnarly Norwegian", id: "1224" },
-    ],
-    allUsers: [
-       { username: "ShaykhJake", comment: "Super stoked!", id: "33333", avatar: "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"},
-       { username: "Jeff", comment: "Can't wait!!", id: "33332", avatar: "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"},
-       { username: "Chad", comment: "Me too!", id: "33334", avatar: "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"},
-    ],
+    allTypes: ['Meeting', 'Conference', 'Study Session', 'Lecture', 'Holiday', 'Historical Event', 'Performance', 'Party',],
+   //  userGroups: [
+   //     { name: "Radical Russian", id: "1234" },
+   //     { name: "Awesome Arabic", id: "1244" },
+   //     { name: "Gnarly Norwegian", id: "1224" },
+   //  ],
+   //  allUsers: [
+   //     { username: "ShaykhJake", comment: "Super stoked!", id: "33333", avatar: "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"},
+   //     { username: "Jeff", comment: "Can't wait!!", id: "33332", avatar: "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"},
+   //     { username: "Chad", comment: "Me too!", id: "33334", avatar: "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"},
+   //  ],
     guestList: [
        { username: "ShaykhJake", comment: "Super stoked!", id: "33333", avatar: "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"},
        { username: "Jeff", comment: "Can't wait!!", id: "33332", avatar: "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"},
@@ -643,16 +712,16 @@ export default {
     allTopics: [],
     rules: {
       requiredTitle: value =>
-        (value || "").length > 5 ||
-        "You must provide a title of at least 6 characters.",
+        (value || "").length > 3 ||
+        "Title length must be at least 4 characters.",
 
       requiredCaption: value =>
-        (value || "").length > 5 ||
-        "You must provide a caption of at least 6 characters.",
+        (value || "").length > 3 ||
+        "Caption length must be at least 4 characters.",
 
       requiredLocation: value =>
-        (value || "").length > 5 ||
-        "You must provide a caption of at least 6 characters.",
+        (value || "").length > 3 ||
+        "Location length must be least 4 characters.",
 
       requiredType: typevalue =>
         (typevalue || "").length > 0 ||
@@ -664,8 +733,6 @@ export default {
         (topicvalue || "").length > 0 || "You must choose a primary topic.",
       requiredCitation: citationvalue =>
         !!citationvalue || "You must provied a source citation.",
-      maxTags: tagsvalue =>
-        (tagsvalue || "").length < 6 || "Maximum of 5 tags allowed!",
     },
     editorFontSize: 1,
     editor: new Editor({
@@ -696,11 +763,58 @@ export default {
           return "";
        }
     },
+    navigatorLocale(){
+       return window.navigator.language;
+    },
+    displayDateRange(){
+       var optionsOne = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+       var optionsMany = { month: 'short', day: 'numeric', year: 'numeric' };
+      //  var options = { dateStyle: 'short' };
+       if(this.workingDateRange && this.workingDateRange.length > 1){
+         // console.log(this.workingDateRange)
+         var startDate = new Date(`${this.workingDateRange[0]}T00:00`)
+         var endDate = new Date(`${this.workingDateRange[1]}T00:00`)
+         // Check and correct date inversion
+         if (this.workingDateRange[0] === this.workingDateRange[1]){
+            let oneDay = new Date(`${this.workingDateRange[0]}T00:00`);
+            // console.log(window.navigator.language)
+            return `${oneDay.toLocaleDateString(window.navigator.language,optionsOne)}`;
+         } else if(startDate > endDate){
+            [this.workingDateRange[0], this.workingDateRange[1]] = [this.workingDateRange[1], this.workingDateRange[0]]
+            // console.log(true)
+            var rangeString = `${endDate.toLocaleDateString(window.navigator.language,optionsMany)} - ${startDate.toLocaleDateString(window.navigator.language,optionsMany)}`;
+            return rangeString
+         } else {
+            rangeString = `${startDate.toLocaleDateString(window.navigator.language,optionsMany)} - ${endDate.toLocaleDateString(window.navigator.language,optionsMany)}`;
+            return rangeString
+         }
+       } else {
+         let oneDay = new Date(`${this.workingDateRange[0]}T00:00`)
+         //  console.log(window.navigator.language)
+          return `${oneDay.toLocaleDateString(window.navigator.language,optionsOne)}`;
+       }
+    },
+    minTime(){
+       // Calculates the earliest time for the End Time
+       if(this.isSingleDay()){
+          return this.editableStartTime
+       } else {
+         return "00:00"  
+       }
+    },
+    maxTime(){
+       if(this.isSingleDay()){
+          return this.editableEndTime
+       } else {
+         return "23:59"  
+       }
+    },
    activeUser() {
       return window.localStorage.getItem("username");
    },
+
    isCurator() {
-      if(this.newScheduledEvent.curator){
+      if(this.newScheduledEvent && this.newScheduledEvent.curator){
          return this.newScheduledEvent.curator.username == this.activeUser
       } else if (this.isNewEvent) {
          return true 
@@ -720,6 +834,53 @@ export default {
     // }
   },
   methods: {
+   updateRSVP(rsvp){
+      this.$emit("updateRSVP", rsvp)
+      this.closeDialog()
+   },
+   isSingleDay(){
+      if(this.workingDateRange && this.workingDateRange > 1){
+         const startDate = new Date(this.workingDateRange[0]);
+         const endDate = new Date(this.workingDateRange[1]);
+         return endDate > startDate ? false : true;
+      } else {
+         return true;
+      }
+   },
+   formatNewDate(date, time){
+      var newDate = new Date(`${date}T${time}`)
+      // console.log(newDate)
+      return newDate
+   },
+   formatLocalDateString(date){
+      // 01, 02, 03, ... 29, 30, 31
+      var dd = (date.getDate() < 10 ? '0' : '') + date.getDate();
+      // 01, 02, 03, ... 10, 11, 12
+      var MM = ((date.getMonth() + 1) < 10 ? '0' : '') + (date.getMonth() + 1);
+      // 1970, 1971, ... 2015, 2016, ...
+      var yyyy = date.getFullYear();
+      // create the format you want
+      return (`${yyyy}-${MM}-${dd}`);
+   },
+   formatLocalDateTimeString(date){
+      // 01, 02, 03, ... 29, 30, 31
+      var dd = (date.getDate() < 10 ? '0' : '') + date.getDate();
+      // 01, 02, 03, ... 10, 11, 12
+      var MM = ((date.getMonth() + 1) < 10 ? '0' : '') + (date.getMonth() + 1);
+      // 1970, 1971, ... 2015, 2016, ...
+      var yyyy = date.getFullYear();
+      
+      var hh = (date.getHours() < 10 ? '0' : '') + date.getHours();
+      var mm = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+
+      // create the format you want
+      return (`${yyyy}-${MM}-${dd} ${hh}:${mm}`);
+   },
+   formatLocalTimeString(date){
+      var hh = (date.getHours() < 10 ? '0' : '') + date.getHours();
+      var mm = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+      return `${hh}:${mm}`
+   },
     closeDialog() {
       this.$emit("closeDialog");
     },
@@ -732,10 +893,7 @@ export default {
             editable: this.editing
         });
     },
-    removeTag(item) {
-      this.newScheduledEvent.tags.splice(this.newScheduledEvent.tags.indexOf(item), 1);
-      this.newScheduledEvent.tags = [...this.newScheduledEvent.tags];
-    },
+
     changeEditorFontSize(direction){
       if(direction==="up"){
         if(this.editorFontSize < 3.5){
@@ -747,99 +905,186 @@ export default {
         }
       }
     },
+
     clearWarnings() {
       this.alertActive = false;
     },
-    passDuration(duration) {
-      this.duration = duration;
-    },
+
     getLanguages() {
-      this.loadingLanguages = true;
-      let endpoint = `/api/categories/languages/`;
-      try {
-        apiService(endpoint).then(data => {
-          if (data != null) {
-            this.allLanguages = data;
-            this.error = false;
-          } else {
-            console.log("Something bad happened...");
-            this.error = true;
-          }
-          this.loadingLanguages = false;
-        });
-      } catch (err) {
-        console.log(err);
+      var localLanguages = localStorage.getItem("languages");
+      if(localLanguages.length > 1){
+        console.log("Shop local!")
+        this.allLanguages = JSON.parse(localLanguages)
+      } else {
+        this.loadingLanguages = true;
+        let endpoint = `/api/categories/languages/`;
+        try {
+          apiService(endpoint).then(data => {
+            if (data != null) {
+              this.allLanguages = data;
+              this.error = false;
+            } else {
+              console.log("Something bad happened...");
+              this.error = true;
+            }
+            this.loadingLanguages = false;
+          });
+        } catch (err) {
+          console.log(err);
+        }
+
       }
     },
 
     getTopics() {
-      this.loadingTopics = true;
-      let endpoint = `/api/categories/topics/`;
-      try {
-        apiService(endpoint).then(data => {
-          if (data != null) {
-            this.allTopics = data;
-            this.error = false;
-          } else {
-            console.log("Something bad happened...");
-            this.error = true;
-          }
-          this.loadingTopics = false;
-        });
-      } catch (err) {
-        console.log(err);
+      var localTopics = localStorage.getItem("topics");
+      if(localTopics.length > 1){
+        console.log("Shop local!")
+        this.allTopics = JSON.parse(localTopics)
+      } else {
+        this.loadingTopics = true;
+        let endpoint = `/api/categories/topics/`;
+        try {
+          apiService(endpoint).then(data => {
+            if (data != null) {
+              this.allTopics = data;
+              this.error = false;
+            } else {
+              console.log("Something bad happened...");
+              this.error = true;
+            }
+            this.loadingTopics = false;
+          });
+         } catch (err) {
+         console.log(err);
+         }
       }
     },
-    updateViewer(scheduledEvent) {
-      this.$emit("updateViewer", scheduledEvent);
+    getProfileList() {
+      var localProfileList = localStorage.getItem("profilelist");
+      if(localProfileList.length > 1){
+        console.log("Shop local!")
+        this.allProfiles = JSON.parse(localProfileList)
+      } else {
+        this.loadingProfiles = true;
+        let endpoint = `/api/users/profilelist/`;
+        try {
+          apiService(endpoint).then(data => {
+            if (data != null) {
+              this.allProfiles = data;
+              this.error = false;
+            } else {
+              console.log("Something bad happened...");
+              this.error = true;
+            }
+            this.loadingProfiles = false;
+          });
+         } catch (err) {
+         console.log(err);
+         }
+      }
     },
-    submitSave(){
-       this.unsavedChanges=false;
-       console.log("hello!");
+
+
+    parseInvites(){
+       for (var user of this.newScheduledEvent.guest_list){
+          this.invitesList.push(user.invited_user)
+       }
+      // console.log(this.invitesList)
+    },
+   compileInvites(){
+      let temp_invites = [];
+      for (var username of this.invitesList){
+         temp_invites.push(
+            { invited_user: username }
+         );
+         // console.log(username);
+      }
+      // console.log(temp_invites);
+      this.newScheduledEvent.guest_list = temp_invites;
+    },
+
+    deleteEvent(){
+       if(this.newScheduledEvent.slug){
+         this.deletingEvent = true;
+         let endpoint = `/api/events/eventz/${this.newScheduledEvent.slug}/`
+         try {
+            apiService(endpoint, "DELETE").then( () => {
+               this.deletingEvent = false;
+               this.deleteConfirmDialog=false;
+               this.closeDialog();
+               this.$emit('eventDeleted', this.newScheduledEvent.slug);
+            });
+         } catch (err) {
+            console.log(err);
+            this.deletingEvent = false;
+         }
+       }
     },
     submitScheduledEvent() {
-      // The following grabs the blob, converts to a JPEG, wraps it, and sends it to the API
-      // this.submittingEvent = true;
-      // let endpoint = `/api/eventz/`;
-      // let method = "POST";
-      // if (this.newScheduledEvent.slug !== undefined) {
-      //   endpoint += `${this.newScheduledEvent.slug}/`;
-      //   method = "PATCH";
-      // }
+      this.submittingEvent = true;
+      // Check for and format dates:
+      if(this.allDayEvent){
+         this.workingStartTime = "00:00"
+         this.workingEndTime = "00:00"
+      }
+      if(this.workingDateRange && this.workingDateRange.length > 1){
+         var newStart = this.formatNewDate(this.workingDateRange[0], this.workingStartTime)
+         var newEnd = this.formatNewDate(this.workingDateRange[1], this.workingEndTime)
+      } else if (this.workingDateRange) {
+         newStart = this.formatNewDate(this.workingDateRange[0], this.workingStartTime)
+         newEnd = this.formatNewDate(this.workingDateRange[0], this.workingEndTime)
+      } else {
+         this.submittingEvent = false;
+         console.log("There is a problem with the form")
+         return false
+      }
+      let endpoint = `/api/events/eventz/`;
+      let method = "POST";
+      if(!this.isNewEvent){
+         method = "PATCH"
+         endpoint = `/api/events/eventz/${this.newScheduledEvent.slug}/`
+      }
+      // this.compileInvites()
       var payload = {
          name: this.newScheduledEvent.name,
-         start: this.newScheduledEvent.start_date + " " + this.newScheduledEvent.start_time,
-         end: [this.newScheduledEvent.end_date, this.newScheduledEvent.end_time].join(" "),
-         type: this.newScheduledEvent.type,
+         caption: this.newScheduledEvent.caption,
+         // TODO - Need to do a bunch of work to ensure that Times & Dates are properly set in Zulu/GMT
+         location: this.newScheduledEvent.location,
+         start_datetime: newStart,
+         end_datetime: newEnd,
+         event_type: this.newScheduledEvent.event_type,
          native_language: this.newScheduledEvent.native_language,
          target_language: this.newScheduledEvent.target_language,
          topic: this.newScheduledEvent.topic,
-         event_access: this.newScheduledEvent.event_access,
-         details: this.editor.getJSON(),
-         caption: this.newScheduledEvent.caption,
+         public: this.newScheduledEvent.public,
+         details: this.editor.getJSON(),         
+         guest_list: this.newScheduledEvent.guest_list,
+         all_day: this.allDayEvent,
       }
-      console.log(payload)
-      this.updateViewer(payload);
-      this.closeDialog();
-      // apiService(endpoint, method, payload).then(data => {
-      //   console.log(data);
-      //   if (data.slug) {
-      //     if (this.isNewEvent) {
-      //       this.$router.push({
-      //         name: "Events",
-      //       });
-      //     } else {
-      //       // this.alertActive = false;
-      //       this.updateViewer(data);
-      //       this.closeDialog();
-      //     }
-      //   } else {
-      //     console.log(data)
-      //     console.log("There was a major problem with the request.");
-      //     // console.log(data.message);
-      //   }
-      //   this.submittingEvent = false;
-      // });
+      // console.log(payload)
+      try {
+         apiService(endpoint, method, payload).then(data => {
+            if (data) {
+               if(this.newScheduledEvent.slug){
+                  this.$emit("updateEvent", data);
+               } else {
+                  this.$emit("addNewEvent", data);
+               }
+               this.closeDialog();
+               this.submittingEvent = false;
+            } else {
+               console.log("There was a major problem with the request.");
+               // console.log(data.message);
+               this.submittingEvent = false;
+            }
+         this.submittingEvent = false;
+         });
+      } catch(err) {
+         console.log(err);
+         this.submittingEvent = false;
+      }
+
     }
   },
   mounted() {
@@ -847,8 +1092,41 @@ export default {
       this.toggleEditable(false);
       this.newScheduledEvent = this.scheduledEvent;
       this.editor.setContent(this.scheduledEvent.details);
+
+
+      this.allDayEvent = this.newScheduledEvent.all_day;
+      if(this.allDayEvent){
+         // this.workingStart = new Date(`${this.newScheduledEvent.start}T00:00`);
+         // this.workingEnd = new Date(`${this.newScheduledEvent.end}T23:59`);
+         this.workingStart = new Date(`${this.newScheduledEvent.start_datetime.substr(0,10)}T00:00`);
+         this.workingEnd = new Date(`${this.newScheduledEvent.end_datetime.substr(0,10)}T00:00`);
+         this.displayStartDateTime = this.workingStart.toLocaleDateString();
+         this.displayEndDateTime = this.workingEnd.toLocaleDateString();
+      } else {
+         // console.log(this.newScheduledEvent.start)
+         this.workingStart = new Date(this.newScheduledEvent.start_datetime);
+         this.workingEnd = new Date(this.newScheduledEvent.end_datetime);
+         this.displayStartDateTime = this.workingStart.toLocaleString();
+         this.displayEndDateTime = this.workingEnd.toLocaleString();
+      }
+      this.workingDateRange[0] = this.formatLocalDateString(this.workingStart);
+      this.workingDateRange[1] = this.formatLocalDateString(this.workingEnd);
+      this.workingStartTime = this.formatLocalTimeString(this.workingStart);
+      this.workingEndTime = this.formatLocalTimeString(this.workingEnd);
+      
+
+      // this.parseInvites();
     } else {
       // we are editing a new object
+      
+      this.workingStart = new Date();
+      this.workingEnd = new Date();
+   
+      this.workingStartTime = this.formatLocalTimeString(this.workingStart);
+      this.workingEndTime = this.formatLocalTimeString(this.workingEnd);
+      
+      this.workingDateRange[0] = this.workingStart.toISOString().substr(0,10);
+
       this.toggleEditable(true);
       this.isNewEvent = true;
       // this.newScheduledEvent = {}
@@ -858,6 +1136,7 @@ export default {
   created() {
     this.getLanguages();
     this.getTopics();
+    this.getProfileList();
 
   }
 };

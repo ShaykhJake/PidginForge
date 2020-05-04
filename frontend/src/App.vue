@@ -40,6 +40,58 @@ export default {
       }
       localStorage.setItem("username", userData.user.username);
     },
+    getLanguages() {
+      let endpoint = `/api/categories/languages/`;
+      try {
+        apiService(endpoint).then(data => {
+          if (data != null) {
+            this.allLanguages = data;
+            localStorage.setItem("languages", JSON.stringify(data))
+            this.error = false;
+          } else {
+            console.log("Something bad happened...");
+            this.error = true;
+          }
+          this.loadingLanguages = false;
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    },
+    getTopics() {
+      let endpoint = `/api/categories/topics/`;
+      try {
+        apiService(endpoint).then(data => {
+          if (data != null) {
+            localStorage.setItem("topics", JSON.stringify(data))
+            this.error = false;
+          } else {
+            console.log("Something bad happened...");
+            this.error = true;
+          }
+          this.loadingLanguages = false;
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    },
+    getUserProfileList() {
+      let endpoint = `/api/users/profilelist/`;
+      try {
+        apiService(endpoint).then(data => {
+          if (data != null) {
+            localStorage.setItem("profilelist", JSON.stringify(data))
+            this.error = false;
+          } else {
+            console.log("Something bad happened...");
+            this.error = true;
+          }
+          this.loadingLanguages = false;
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    },
     initializeUser() {
       apiService(`api/users/profile/`).then(data => {
         this.syncUserData(data);
@@ -53,6 +105,11 @@ export default {
         this.syncUserData(data);
       });
     }
+  },
+  mounted() {
+    this.getLanguages();
+    this.getTopics();
+    this.getUserProfileList();
   },
   created() {
     this.initializeUser();

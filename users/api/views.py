@@ -14,12 +14,22 @@ from users.api.serializers import (
                             UserCheckPassSerializer, 
                             ProfileImageSerializer,
                             UpdateProfileSerializer,
+                            ProfileListSerializer,
                             )
 from rest_framework import generics, status, viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from users.models import Profile, CustomUser
 
 
+
+# USER PROFILE LIST
+@api_view(['GET',])
+def user_profile_list(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            profiles = Profile.objects.all()
+            serializer = ProfileListSerializer(profiles, many=True)
+            return Response(serializer.data)
 
 
 # NEW USER

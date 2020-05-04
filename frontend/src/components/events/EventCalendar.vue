@@ -2,30 +2,50 @@
   <v-row class="fill-height">
     <v-col>
       <v-sheet height="64" color="desertsand">
-        <v-toolbar flat color="desertsand">
-          <v-btn outlined class="mr-4" color="grey darken-2" @click="setToday">
+        <v-toolbar flat color="desertsand" class="pa-0">
+          <v-btn outlined class="mr-3 d-none d-sm-flex" color="grey darken-2" @click="setToday">
             Today
           </v-btn>
+          <v-btn outlined small class="mr-2 d-flex d-sm-none" color="grey darken-2" @click="setToday">
+            Today
+          </v-btn>
+
+          <v-spacer></v-spacer>
           <v-btn fab text small color="grey darken-2" @click="prev">
             <v-icon small>mdi-chevron-left</v-icon>
           </v-btn>
+          <v-toolbar-title>{{ title }}</v-toolbar-title>
           <v-btn fab text small color="grey darken-2" @click="next">
             <v-icon small>mdi-chevron-right</v-icon>
           </v-btn>
-          <v-toolbar-title>{{ title }}</v-toolbar-title>
+      
           <v-spacer></v-spacer>
-          <v-btn outlined class="primary--text" @click="selectedEvent={}; showEventEditor=true">Add Event<v-icon right>mdi-plus-box</v-icon></v-btn>
+          <v-btn outlined class="primary--text d-none d-sm-flex" @click="selectedEvent={}; showEventEditor=true">Add Event<v-icon right>mdi-plus-box</v-icon></v-btn>
+          <v-btn icon fab class="primary--text d-flex d-sm-none" @click="selectedEvent={}; showEventEditor=true"><v-icon right>mdi-plus-box</v-icon></v-btn>
           <v-spacer></v-spacer>
           <v-menu bottom right>
             <template v-slot:activator="{ on }">
               <v-btn
                 outlined
                 color="grey darken-2"
+                class="d-none d-sm-flex"
                 v-on="on"
               >
                 <span>{{ typeToLabel[type] }}</span>
                 <v-icon right>mdi-menu-down</v-icon>
               </v-btn>
+              <v-btn
+                outlined
+                small
+                color="grey darken-2"
+                class="d-flex d-sm-none"
+                v-on="on"
+              >
+                <span>{{ typeToLabel[type] }}</span>
+                <v-icon right>mdi-menu-down</v-icon>
+              </v-btn>
+
+
             </template>
             <v-list>
               <v-list-item @click="type = 'day'">
@@ -43,6 +63,8 @@
             </v-list>
           </v-menu>
         </v-toolbar>
+
+
       </v-sheet>
       <v-sheet height="600">
         <v-calendar
@@ -59,7 +81,7 @@
           @change="updateRange"
         ></v-calendar>
         <v-menu
-          v-if="selectedElement"
+          v-if="selectedElement && selectedOpen"
           v-model="selectedOpen"
           :close-on-content-click="false"
           :activator="selectedElement"
@@ -95,35 +117,35 @@
 
             </v-toolbar>
             <v-card-text color="desertsand">
-              Added by {{ selectedEvent.curator['username'] }} on {{ selectedEvent.curationdate }}<hr>
-               <v-chip x-small outlined class="primary primary--text mr-1">Event Type: {{ selectedEvent.type }}</v-chip>
+              Added by <span class="primary--text font-weight-black">{{ selectedEvent.curator['username'] }}</span> on {{ selectedEvent.curationdate }}<hr>
+               <v-chip x-small outlined class="primary primary--text darken-2 mr-1">Event Type: {{ selectedEvent.event_type }}</v-chip>
                <v-chip x-small outlined class="languages languages--text mr-1">Language Pair: {{ selectedEvent.native_language }} &#8594; {{ selectedEvent.target_language}}</v-chip>
                <v-chip x-small outlined class="topics topics--text mr-1">Topic Area: {{ selectedEvent.topic }}</v-chip>
-               <v-chip x-small outlined class="garbage garbage--text mr-1">Access: {{selectedEvent.access_type }}</v-chip><br>              <hr>
+               <v-chip x-small outlined class="garbage garbage--text mr-1">Access: {{selectedEvent.public ? 'Public' : 'Invite Only' }}</v-chip><br>              <hr>
               <h2> {{ selectedEvent.name }}</h2>
               <p>{{ selectedEvent.caption }}</p>
               Location: {{ selectedEvent.location }}<br>
               Starting: {{ selectedEvent.start }}<br>
               Ending: {{ selectedEvent.end }}<br>
-              Invited #: {{ selectedEvent.guest_list_count }}
-              RSVP'd #: {{ selectedEvent.rsvp_list_count }}
+              Invited: {{ selectedEvent.guest_list.length }}
+              Attending: {{ selectedEvent.rsvp_list_count }}
 
             </v-card-text>
-            <v-card-actions>
+            <v-card-actions class="sandstone">
               <v-btn
                 text
                 color="garbage desertsand--text"
                 @click="selectedOpen = false"
               >
-                Close<v-icon right>mdi-cancel</v-icon>
+                Close<v-icon right>mdi-close</v-icon>
               </v-btn>
-
+              <v-spacer></v-spacer>
               <v-btn
                 text
                 color="primary desertsand--text"
                 @click="showEventEditor = true"
               >
-                Details
+                View Details
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -132,9 +154,12 @@
     </v-col>
     <EventEditor
       v-if="showEventEditor"
-      @updateViewer="updateViewer"
+      @updateEvent="updateEvent"
+      @addNewEvent="addNewEvent"
+      @updateRSVP="updateRSVP"
       :scheduled-event="selectedEvent.curator ? selectedEvent : null"
       :editor-dialog="showEventEditor"
+      @eventDeleted="popDeletedEvent"
       @closeDialog="showEventEditor=false"
     />
   </v-row>
@@ -161,51 +186,10 @@
       selectedEvent: {},
       selectedElement: null,
       selectedOpen: false,
-      eventsList: {},
-
 
       colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green', 'orange', 'grey darken-1'],
       // names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
-      events: [
-            { color: "cyan",
-              name: "fun",
-              type: "conference",
-              start: "2020-4-8 18:45",
-              end: "2020-4-8 19:45",
-              caption: "Gonna have lots of fun",
-              access_type: "Public",
-              curator: "ShaykhJake",
-              curationdate: "2020-4-30",
-              native_language: "English",
-              target_language: "Arabic-MSA",
-              topic: "Economics",
-              user_has_access: "false",
-              follower_count: "5",
-              study_group: "coolrussians",
-
-              details: "Gonna party hard!",
-              hyperlink: "<a href='http://www.google.com' target='_blank'>Link to Event</a>"
-            },
-            { color: "cyan",
-              name: "Important",
-              type: "meeting",
-              start: "2020-4-15 18:45",
-              end: "2020-4-17 19:45",
-              caption: "Gonna have lots of fun",
-              access_type: "Invitation",
-              curator: "Jeff",
-              curationdate: "2020-4-30",
-              native_language: "English",
-              target_language: "Arabic-MSA",
-              topic: "Economics",
-              user_has_access: "false", // this is based on whether the event is public, user has been invited, or user is part of a group
-              follower_count: "5",
-              study_group: "coolrussians",
-
-              details: "Gonna party hard!",
-              hyperlink: "<a href='http://www.google.com' target='_blank'>Link to Event</a>"
-            }
-         ]
+      events: [],
     }),
     components: {
        EventEditor,
@@ -257,7 +241,30 @@
       this.getEventsList();
     },
     methods: {
+      formatLocalDateString(date){
+         // 01, 02, 03, ... 29, 30, 31
+         var dd = (date.getDate() < 10 ? '0' : '') + date.getDate();
+         // 01, 02, 03, ... 10, 11, 12
+         var MM = ((date.getMonth() + 1) < 10 ? '0' : '') + (date.getMonth() + 1);
+         // 1970, 1971, ... 2015, 2016, ...
+         var yyyy = date.getFullYear();
+         // create the format you want
+         return (`${yyyy}-${MM}-${dd}`);
+      },
+      formatLocalDateTimeString(date){
+         // 01, 02, 03, ... 29, 30, 31
+         var dd = (date.getDate() < 10 ? '0' : '') + date.getDate();
+         // 01, 02, 03, ... 10, 11, 12
+         var MM = ((date.getMonth() + 1) < 10 ? '0' : '') + (date.getMonth() + 1);
+         // 1970, 1971, ... 2015, 2016, ...
+         var yyyy = date.getFullYear();
+         
+         var hh = (date.getHours() < 10 ? '0' : '') + date.getHours();
+         var mm = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
 
+         // create the format you want
+         return (`${yyyy}-${MM}-${dd} ${hh}:${mm}`);
+      },
       getEventsList() {
          this.loadingEvents = true;
          let endpoint = `/api/events/eventz/`;
@@ -265,8 +272,9 @@
          apiService(endpoint).then(data => {
             if (data != null) {
                this.eventsList = data;
-               this.events= data;
-               console.log(this.eventsList)
+               this.eventsList.forEach( event => {
+                  this.addNewEvent(event);
+               });
             } else {
                console.log("Something bad happened...");
                this.error = true;
@@ -277,24 +285,27 @@
          console.log(err);
          }
       },
-
       viewDay ({ date }) {
         this.focus = date
         this.type = 'day'
       },
       getEventColor (event) {
       //   let eventType = event.type;
-        var typeToColorMap = {
-           Holiday: "elements",
-           Meeting: "primary",
-           Performance: "blue",
-           Conference: "languages",
-           Studysession: "topics",
-           Lecture: "garbage",
-        }
-         return typeToColorMap[event.event_type] || 'primary'
-
-         // return event.color
+         if(event.event_type){
+         var typeToColorMap = {
+            "holiday": "elements",
+            "meeting": "primary",
+            "performance": "blue",
+            "conference": "languages",
+            "party": "green",
+            "study session": "topics",
+            "lecture": "garbage",
+            "historical event": "calligraphy",
+         }
+            return typeToColorMap[event.event_type.toLowerCase()] || 'primary'
+         } else {
+            return 'primary'
+         }
       },
       setToday () {
         this.focus = this.today
@@ -321,17 +332,59 @@
 
         nativeEvent.stopPropagation()
       },
-      addEvent () {
-         
-      },
       getEvents() {
 
       },
-      updateViewer(newEvent) {
-         this.events.push(newEvent);
+      updateRSVP(rsvp) {
+         let obj = this.events.find((o, i) => {
+            if (o.id === rsvp.event) {
+               this.events.splice(i,1);
+               // arr[i] = { name: 'new string', value: 'this', other: 'that' };
+               o.user_rsvp = rsvp;
+               this.addNewEvent(o);
+               return obj;
+            }
+         });
+      },
+      updateEvent(event) {
+         let obj = this.events.find((o, i) => {
+            if (o.slug === event.slug) {
+               this.events.splice(i,1);
+               // arr[i] = { name: 'new string', value: 'this', other: 'that' };
+               this.addNewEvent(event);
+               return obj; // stop searching
+            }
+         });
+      },
+      addNewEvent(newEvent) {
+         var start = new Date(newEvent.start_datetime)
+         var end = new Date(newEvent.end_datetime)
+         if(newEvent.all_day){
+            // newEvent.start = newEvent.start_datetime.substr(0,10)
+            // newEvent.end = newEvent.start_datetime.substr(0,10)
+            newEvent.start = this.formatLocalDateString(start)
+            newEvent.end = this.formatLocalDateString(end)
+         } else {
+            // newEvent.start = `${newEvent.start_datetime.substr(0,10)} ${newEvent.start_datetime.substring(11,16)}`;
+            // console.log(newEvent.start)
+            // newEvent.end = `${newEvent.end_datetime.substr(0,10)} ${newEvent.end_datetime.substring(11,16)}`
+            // console.log(newEvent.end)
+            newEvent.start=this.formatLocalDateTimeString(start)
+            newEvent.end=this.formatLocalDateTimeString(end)
+         }
+         this.events.push(newEvent);         
+      },
+      popDeletedEvent(slug){
+         let obj = this.events.find((o, i) => {
+            if (o.slug === slug) {
+               this.events.splice(i,1);
+               // arr[i] = { name: 'new string', value: 'this', other: 'that' };
+               return obj; // stop searching
+            }
+         });
       },
       updateRange ({ start, end }) {
-         console.log(this.events)
+         // console.log(this.events)
         this.start = start
         this.end = end
       },

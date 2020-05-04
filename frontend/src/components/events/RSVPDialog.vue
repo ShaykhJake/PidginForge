@@ -12,8 +12,8 @@
     <v-card-text class="desertsand calligraphy--text px-2">
        <v-form v-model="valid">
          <v-select
-            v-model="RSVP.status"
-            :items="['Yes', 'No']"
+            v-model="RSVP.attending"
+            :items="['Yes', 'Maybe', 'No']"
             label="Will you attend?"
             placeholder="Will you attend?"
             outlined
@@ -74,7 +74,8 @@
     </v-card-text>
     <v-card-actions class="sandstone">
       <v-btn @click="closeDialog" class="garbage desertsand--text">Cancel<v-icon right>mdi-cancel</v-icon></v-btn>
-      <v-btn :disabled="!valid" class="primary">Submit<v-icon right>mdi-send</v-icon></v-btn>
+      <v-spacer></v-spacer>
+      <v-btn :disabled="!valid" @click="submitRSVP" class="primary">Submit<v-icon right>mdi-send</v-icon></v-btn>
     </v-card-actions>
   </v-card>
   </v-dialog>
@@ -85,26 +86,28 @@ export default {
   name: "RSVPDialog",
   components: {},
   props: {
+    event: Number,
     rsvpList: Array,
     showDialog: Boolean,
-    userRSVP: {
+    userRsvp: {
        type: Object,
        required: false,
     }
   },
   data: () => ({
     loading: true,
+    submittingRSVP: false,
     RSVP: {},
     valid: false,
-   rules: {
+    rules: {
       requiredComment: value =>
-        (value || "").length > 5 ||
-        "You must provide a comment of at least 6 characters.",
+      (value || "").length > 5 ||
+      "You must provide a comment of at least 6 characters.",
 
       requiredStatus: typevalue =>
-        (typevalue || "").length > 0 ||
-        "You must choose a status type.",
-    },
+      (typevalue || "").length > 0 ||
+      "You must choose a status type.",
+   },
   }),
 
 
@@ -114,22 +117,52 @@ export default {
     closeDialog() {
       this.$emit("closeDialog");
     },
-    getProfileSnippet() {
-      this.loading = true;
-      let endpoint = `/api/users/snippet/${this.curatorObject.username}`;
-      apiService(endpoint).then(data => {
-        if (data) {
 
-          this.loading = false;
-        } else {
-           console.log("error")
-        }
-      });
-    },
-   },
+    submitRSVP() {
+      this.submittingRSVP = true;
+      // Check for and format dates:
+      let endpoint = `/api/events/rsvpz/`;
+      let method = "POST";
+      if(this.RSVP.id){
+         method = "PATCH"
+         endpoint = `/api/events/rsvpz/${this.RSVP.id}/`
+      }
+      var payload = {
+         attending: this.RSVP.attending,
+         event: this.event, // lookup by ID
+         comment: this.RSVP.comment,
+      }
+      console.log(payload)
+      try {
+         apiService(endpoint, method, payload).then(data => {
+         console.log(data);
+         if (!data) {
+            this.submittingRSVP = false;
+            console.log("Error")
+         } else if (data.id) {
+            this.$emit("updateRSVP", data)
+            this.submittingRSVP = false;
+            this.closeDialog();
+         } else {
+            console.log(data)
+            console.log("There was a major problem with the request.");
+            // console.log(data.message);
+            this.submittingRSVP = false;
+         }
+         this.submittingRSVP = false;
+         });
+      } catch(err) {
+         console.log(err);
+         this.submittingRSVP = false;
+      }
+
+    }
+
+  },
+
    mounted (){
-      if(this.userRSVP){
-         this.RSVP = this.userRSVP;
+      if(this.userRsvp){
+         this.RSVP = this.userRsvp;
       } else {
          this.RSVP = {}
       }

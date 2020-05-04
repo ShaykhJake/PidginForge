@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from users.models import CustomUser, Profile
 from events.models import (
-                     CalendarEvent, 
-                     UserInvite, 
+                     CalendarEvent,
                      EventRSVP, 
                      EventAttendee, 
                      EventComment, 
@@ -10,6 +9,7 @@ from events.models import (
                      )
 from categories.models import Language, TopicTag
 from categories.api.serializers import LanguageSerializer, TopicTagSerializer, MethodTagSerializer
+from rest_framework.generics import get_object_or_404
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,30 +18,53 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     user_profile = ProfileSerializer(read_only=True)
+    slug_field='username'
 
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'user_profile']
 
-class RSVPSerializer(serializers.ModelSerializer):
-    invited_user = UserSerializer(read_only=True)
 
+class RSVPSerializer(serializers.ModelSerializer):
+    # invited_user = serializers.SlugRelatedField(
+    #     # queryset = CustomUser.objects.all(),
+    #     read_only = True,
+    #     slug_field ='username'
+    # )
+    invited_user = UserSerializer()
     class Meta:
         model = EventRSVP
         fields = '__all__'
+
+
+
 
 class CalendarEventSerializer(serializers.ModelSerializer):
     curator = UserSerializer(read_only=True)
 
     curationdate = serializers.SerializerMethodField()
     updated = serializers.SerializerMethodField()
-    start = serializers.SerializerMethodField()
-    end = serializers.SerializerMethodField()
-    guest_list_count = serializers.SerializerMethodField()
+    start_datetime = serializers.DateTimeField()
+    end_datetime = serializers.DateTimeField()
+
     rsvp_list_count = serializers.SerializerMethodField()
     rsvp_list = serializers.SerializerMethodField()
+    user_rsvp = serializers.SerializerMethodField()
     # guest_list = serializers.SerializerMethodField()
     # rsvp_list = serializers.SerializerMethodField()
+
+    guest_list = serializers.SlugRelatedField(
+        queryset = CustomUser.objects.all(),
+        many=True,
+        read_only=False,
+        slug_field='username'
+    )
+
+    native_language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name'
+    )
 
     native_language = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
@@ -72,25 +95,26 @@ class CalendarEventSerializer(serializers.ModelSerializer):
     def get_updated(self, instance):
         return instance.updated.strftime("%B %d, %Y")
 
-    def get_start(self, instance):
-        return instance.start.strftime("%Y-%m-%d %H:%M")
-    
-    def get_end(self, instance):
-        return instance.end.strftime("%Y-%m-%d %H:%M")
-
     def get_rsvp_list_count(self, instance):
         rsvps = instance.rsvp.all()
         return rsvps.count()
     
     def get_rsvp_list(self, instance):
         request = self.context.get("request")
-        rsvps = EventRSVP.objects.filter(event=instance)
-        return RSVPSerializer(rsvps, context = {"request": request}, many=True).data
+        rsvps = instance.rsvp.all()
+        serializer = RSVPSerializer(rsvps, context={'request': request}, many=True)
+        return serializer.data
+
+    def get_user_rsvp(self, instance):
+        request = self.context.get("request")
+        user_rsvp = instance.rsvp.filter(invited_user=request.user)
+        if user_rsvp:
+            serializer = RSVPSerializer(user_rsvp[0], context={'request': request})
+            return serializer.data
+        else:
+            return False
 
 
-    def get_guest_list_count(self, instance):
-        invites = instance.user_invite.all()
-        return invites.count()
 
 
 # class TranslationSnippetSerializer(serializers.ModelSerializer):

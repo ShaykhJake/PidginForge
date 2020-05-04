@@ -40,6 +40,14 @@ class StudyGroup(models.Model):
    def __str__(self):
       return self.name
 
+@receiver(pre_save, sender=StudyGroup)
+def add_slug_to_studygroup(sender, instance, *args, **kwargs):
+   if instance and not instance.slug:
+      slugstring = instance.name
+      slug = slugify(slugstring)
+      random_string = generate_random_string()
+      instance.slug = slug + "-" + random_string
+
 class GroupMember(models.Model):
    MEMBER_TYPES = [
       # Admin can make changes to the group itself
@@ -58,11 +66,3 @@ class GroupMember(models.Model):
    member_type = models.PositiveIntegerField(max_length=1, choices=MEMBER_TYPES, default=2)
    join_date = models.DateTimeField(auto_now_add=True, editable=False)
    active = models.BooleanField(default=True) 
-
-@receiver(pre_save, sender=StudyGroup)
-def add_slug_to_studygroup(sender, instance, *args, **kwargs):
-   if instance and not instance.slug:
-      slugstring = instance.name
-      slug = slugify(slugstring)
-      random_string = generate_random_string()
-      instance.slug = slug + "-" + random_string

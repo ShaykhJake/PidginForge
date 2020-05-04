@@ -27,39 +27,28 @@ class CalendarEvent(models.Model):
    native_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="event_native_language")
    target_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="event_target_language")
    topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, related_name="event_topic")
-   
-   start = models.DateTimeField(editable=True)
-   end = models.DateTimeField(editable=True)
+   all_day = models.BooleanField(default=False)   
+   start_datetime = models.DateTimeField(editable=True)
+   end_datetime = models.DateTimeField(editable=True)
+
    location = models.CharField(max_length=128, default="", null=True)
 
    public = models.BooleanField(default=True)
+   guest_list = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="invited_event_guest")
    parent_event = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="recurrence")
 
+
    def __str__(self):
-      return self.name + " " + self.start.strftime("%m/%d/%Y")
+      return self.name + " " + self.start_datetime.strftime("%m/%d/%Y")
 
 @receiver(pre_save, sender=CalendarEvent)
 def add_slug_to_calendarevent(sender, instance, *args, **kwargs):
    if instance and not instance.slug:
-      slugstring = instance.name + "_" + instance.start.strftime("%m/%d/%Y")
+      slugstring = instance.name + "_" + instance.start_datetime.strftime("%m/%d/%Y")
       slug = slugify(slugstring)
       random_string = generate_random_string()
       instance.slug = slug + "-" + random_string
 
-class UserInvite(models.Model):
-   invited_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, related_name="event_invited_user")
-   event = models.ForeignKey(CalendarEvent, on_delete=models.CASCADE, null=False, related_name="user_invite")
-
-   def __str__(self):
-      # return self.invited_user.username + " - " + self.event.name
-      return self.invited_user.username + " was invited to " + self.event.name + " on " + self.event.start.strftime("%m/%d/%Y") + " at " + self.event.start.strftime("%H:%M")
-
-# class StudyGroupInvite(models.Model):
-#    invited_user = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, null=False, related_name="event_invited_group")
-#    event = models.ForeignKey(CalendarEvent, on_delete=models.CASCADE, null=False, related_name="group_invite")
-
-# class ClassInvite(models.Model):
-#    pass
 
 class EventRSVP(models.Model):
    RSVP_RESPONSE = [
@@ -71,7 +60,9 @@ class EventRSVP(models.Model):
    event = models.ForeignKey(CalendarEvent, on_delete=models.CASCADE, null=False, related_name="rsvp")
    attending = models.CharField(max_length=10, choices=RSVP_RESPONSE, default='Yes', null=False)
    comment = models.CharField(max_length=255, default="", null=False)
- 
+   curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+   updated = models.DateTimeField(auto_now=True, editable=False)
+
    def __str__(self):
       # return self.invited_user.username + " - " + self.event.name
       return self.invited_user.username + " RSVPd to " + self.event.name

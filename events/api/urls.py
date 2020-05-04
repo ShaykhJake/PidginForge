@@ -3,6 +3,8 @@ from rest_framework.authtoken import views
 from rest_framework.routers import DefaultRouter
 from events.api.views import (
     CalendarEventViewSet,
+    RSVPViewSet,
+
     # markup_togglepublish,
     # markup_togglevote,
     # markup_fork,
@@ -15,9 +17,13 @@ app_name = 'events'
 calendar_event_router = DefaultRouter()
 calendar_event_router.register(r"eventz", CalendarEventViewSet)
 
+rsvp_router = DefaultRouter()
+rsvp_router.register(r"rsvpz", RSVPViewSet)
+
 
 urlpatterns = [
     path("", include(calendar_event_router.urls)),
+    path("", include(rsvp_router.urls)),
     # path('youtube/save/', youtube_togglesaved, name="youtube_togglesaved"),
     # path('youtube/hide/', youtube_togglehidden, name="youtube_togglehidden"),
     # path('youtube/check/', youtube_check, name="youtube_check"),

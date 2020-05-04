@@ -16,6 +16,15 @@ class UserDisplaySerializer(serializers.ModelSerializer):
         # bob = Profile.objects.filter(user=model)
         fields = ['username','email']
 
+class ProfileListSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ['username', 'biography', 'avatar', 'points']
+
+    def get_username(self, instance):
+        return instance.user.username
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserDisplaySerializer(read_only=True)

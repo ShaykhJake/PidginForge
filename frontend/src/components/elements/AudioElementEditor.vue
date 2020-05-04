@@ -66,7 +66,7 @@
                 </v-row>
               </v-col>
               <v-col cols="12">
-                <v-alert :hidden="!alertActive" :type="alertType" dense>
+                <v-alert v-if="alertActive" :type="alertType" dense>
                   {{ alertMessage }}
                 </v-alert>
               </v-col>
@@ -238,7 +238,7 @@ export default {
     success: false,
     fitParent: true,
     alertType: "success",
-    alertMessage: "It's all good!",
+    alertMessage: "",
     alertActive: false,
     allLanguages: [],
     loadingLanguages: false,
@@ -311,40 +311,53 @@ export default {
       }
     },
     getLanguages() {
-      this.loadingLanguages = true;
-      let endpoint = `/api/categories/languages/`;
-      try {
-        apiService(endpoint).then(data => {
-          if (data != null) {
-            this.allLanguages = data;
-            this.error = false;
-          } else {
-            console.log("Something bad happened...");
-            this.error = true;
-          }
-          this.loadingLanguages = false;
-        });
-      } catch (err) {
-        console.log(err);
+      var localLanguages = localStorage.getItem("languages");
+      if(localLanguages.length > 1){
+        console.log("Shop local!")
+        this.allLanguages = JSON.parse(localLanguages)
+      } else {
+        this.loadingLanguages = true;
+        let endpoint = `/api/categories/languages/`;
+        try {
+          apiService(endpoint).then(data => {
+            if (data != null) {
+              this.allLanguages = data;
+              this.error = false;
+            } else {
+              console.log("Something bad happened...");
+              this.error = true;
+            }
+            this.loadingLanguages = false;
+          });
+        } catch (err) {
+          console.log(err);
+        }
+
       }
     },
 
     getTopics() {
-      this.loadingTopics = true;
-      let endpoint = `/api/categories/topics/`;
-      try {
-        apiService(endpoint).then(data => {
-          if (data != null) {
-            this.allTopics = data;
-            this.error = false;
-          } else {
-            console.log("Something bad happened...");
-            this.error = true;
-          }
-          this.loadingTopics = false;
-        });
-      } catch (err) {
-        console.log(err);
+      var localTopics = localStorage.getItem("topics");
+      if(localTopics.length > 1){
+        console.log("Shop local!")
+        this.allTopics = JSON.parse(localTopics)
+      } else {
+        this.loadingTopics = true;
+        let endpoint = `/api/categories/topics/`;
+        try {
+          apiService(endpoint).then(data => {
+            if (data != null) {
+              this.allTopics = data;
+              this.error = false;
+            } else {
+              console.log("Something bad happened...");
+              this.error = true;
+            }
+            this.loadingTopics = false;
+          });
+        } catch (err) {
+          console.log(err);
+        }
       }
     },
     parseDuration(duration) {

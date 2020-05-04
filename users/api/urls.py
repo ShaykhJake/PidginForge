@@ -13,6 +13,7 @@ from users.api.views import (
     get_snippet,
     user_togglefollow,
     user_togglehide,
+    user_profile_list,
     # get_user_token_view,
     )   
 from rest_framework.authtoken import views
@@ -32,6 +33,7 @@ urlpatterns = [
     path('changeemail/', change_email, name="changeemail"),
     path('checkusername/', check_username_available, name="checkusername"),
     path('changeusername/', change_username, name="changeusername"),
+    path('profilelist/', user_profile_list, name="user_profile_list"),
     path('profile/update/', update_user_profile, name="updateprofile"),
     path('profile/', get_user_profile, name="getprofile"),
     path('follow/', user_togglefollow, name="user_togglefollow"),
