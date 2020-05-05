@@ -1,4 +1,4 @@
-DEVMODE = False
+DEVMODE = True
 """
 Django settings for pidginforge project.
 
