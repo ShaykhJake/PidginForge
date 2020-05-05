@@ -1,7 +1,7 @@
 <template>
   <v-row class="fill-height">
     <v-col>
-      <v-sheet height="120" color="desertsand">
+      <v-sheet height="110" color="desertsand">
         <v-toolbar flat color="desertsand" class="pa-0">
           <v-btn outlined class="mr-3 d-none d-sm-flex" color="grey darken-2" @click="setToday">
             Today
@@ -94,14 +94,14 @@
         </v-toolbar>
       </v-sheet>
 
-      <v-sheet height="650">
+      <v-sheet height="750">
         <v-calendar
-          class="pt-1"
           ref="calendar"
           v-model="focus"
           color="primary"
           :events="displayedEvents"
           :event-color="getEventColor"
+          :event-overlap-mode="mode"
           :now="today"
           :type="type"
           @click:event="showEvent"
@@ -158,7 +158,7 @@
               Location: {{ selectedEvent.location }}<br>
               Starting: {{ selectedEvent.start }}<br>
               Ending: {{ selectedEvent.end }}<br>
-              Invited: {{ selectedEvent.public ? 'Public' : selectedEvent.guest_list.length }}
+              Invited: {{ selectedEvent.public ? 'Public' : selectedEvent.guest_list.length }}<br>
               Attending: {{ selectedEvent.rsvp_list_count }}
 
             </v-card-text>
@@ -269,7 +269,7 @@
       selectedEvent: {},
       selectedElement: null,
       selectedOpen: false,
-
+      mode: 'stack',
       colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green', 'orange', 'grey darken-1'],
       // names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
       events: [],
@@ -556,5 +556,27 @@
 </script>
 
 <style>
+.my-event {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: 2px;
+    background-color: #1867c0;
+    color: #ffffff;
+    border: 1px solid #1867c0;
+    font-size: 12px;
+    padding: 3px;
+    cursor: pointer;
+    margin-bottom: 1px;
+    left: 4px;
+    margin-right: 8px;
+    position: relative;
+}
+
+.with-time {
+        position: absolute;
+        right: 4px;
+        margin-right: 0px;
+    }
 
 </style>

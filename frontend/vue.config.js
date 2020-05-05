@@ -8,7 +8,6 @@ module.exports = {
   outputDir: "../static/dist/",
   
   // Production
-  // publicPath: "dist/",
   publicPath: "https://jakesdesk-media.s3.amazonaws.com/static/dist/",
 
   //Development
