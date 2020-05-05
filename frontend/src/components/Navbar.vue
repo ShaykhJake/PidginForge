@@ -53,6 +53,7 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-btn
+            v-if="false"
             disabled
             small
             fab
@@ -86,6 +87,7 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-btn
+            v-if="false"
             disabled
             small
             fab

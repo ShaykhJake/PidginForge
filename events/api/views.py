@@ -110,7 +110,7 @@ class CalendarEventViewSet(viewsets.ModelViewSet):
       queryset = CalendarEvent.objects.filter(Q(public = True) |
                                     Q(guest_list = request.user) |
                                     Q(curator = request.user)
-                                    )
+                                    ).order_by("-start_datetime")
 
       serializer_context = { "request": request}
       

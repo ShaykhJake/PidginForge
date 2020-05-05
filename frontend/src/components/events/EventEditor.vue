@@ -43,9 +43,11 @@
                         </p>
                         <h1>{{ newScheduledEvent.name }}</h1>
                         <p>{{ newScheduledEvent.caption }}</p>
-                        Start Date/Time: <strong>{{ displayStartDateTime }}</strong><br>
+                        <hr>
+                        Start Date/Time: <strong>{{ displayStartDateTime }}{{ newScheduledEvent.all_day ? ' (all-day event)' : ''}}</strong><br>
                         End Date/Time: <strong>{{ displayEndDateTime }}</strong><br>
                         Location: <strong>{{ newScheduledEvent.location }}</strong><br>
+                        <hr>
                      </v-col>
                   </v-row>
             </v-col>
@@ -301,7 +303,7 @@
                            :input-value="data.selected"
                            close
                            @click="data.select"
-                           @click:close="remove(data.item)"
+                           @click:close="removeGuest(data.item)"
                         >
                            <v-avatar left>
                               <v-img :src="data.item.avatar"></v-img>
@@ -526,10 +528,10 @@
         </v-row>
          <v-row dense v-if="!isNewEvent">
            <v-col>
-               <v-btn v-if="isCurator && !editing" @click="toggleEditable(true)" class="mr-2 primary desertsand--text mr-2">Edit<v-icon right>mdi-pencil</v-icon></v-btn>
-               <v-btn v-if="isCurator" class="mr-2 garbage desertsand--text" @click="deleteConfirmDialog=true">Delete Event<v-icon right>mdi-trash-can</v-icon></v-btn>
-               <v-btn v-if="!isCurator" class="primary desertsand--text mr-2">Save<v-icon right>mdi-heart</v-icon></v-btn>
-               <v-btn v-if="!isCurator" @click="showRSVPDialog = true" class="elements desertsand--text mr-2">RSVP
+               <v-btn v-if="isCurator && !editing" @click="toggleEditable(true)" class="mr-2 primary desertsand--text mr-2 mt-1">Edit<v-icon right>mdi-pencil</v-icon></v-btn>
+               <v-btn v-if="isCurator" class="mr-2 garbage desertsand--text mt-1" @click="deleteConfirmDialog=true">Delete Event<v-icon right>mdi-trash-can</v-icon></v-btn>
+               <v-btn v-if="!isCurator" class="primary desertsand--text mr-2 mt-1">Save<v-icon right>mdi-heart</v-icon></v-btn>
+               <v-btn v-if="!isCurator" @click="showRSVPDialog = true" class="elements desertsand--text mr-2 mt-1">RSVP
                   <v-badge
                      :content="newScheduledEvent.rsvp_list_count"
                      color="elements darken-2"
@@ -537,8 +539,9 @@
                      <v-icon right>mdi-message-reply-text</v-icon>
                   </v-badge>
                </v-btn>
-               <v-btn v-if="!isCurator" class="topics desertsand--text mr-2">Export<v-icon right>mdi-calendar-export</v-icon></v-btn>
-
+               <v-btn v-if="isCurator" class="elements desertsand--text mr-2 mt-1" @click="createRecurrence">Create Recurrence<v-icon right>mdi-redo</v-icon></v-btn>
+               <v-btn class="topics desertsand--text mr-2 mt-1" @click="exportEvent">Export<v-icon right>mdi-calendar-export</v-icon></v-btn>
+               
                <v-dialog
                   v-model="deleteConfirmDialog"
                   width="290px"
@@ -600,6 +603,12 @@
       @closeDialog="showRSVPDialog=false"
       @updateRSVP="updateRSVP"
     />
+    <iCalDownloader
+      v-if="showExportDialog"
+      :show-dialog="showExportDialog"
+      :export-list="exportList"
+      @closeDialog="showExportDialog=false"
+     />
   </v-dialog>
 </template>
 <script>
@@ -618,7 +627,7 @@ import {
 } from "tiptap-extensions";
 import { default as Alignment } from "@/components/tiptaptoo/Alignment.js";
 import { default as TextDirection } from "@/components/tiptaptoo/TextDirection.js";
-
+import iCalDownloader from "@/components/events/iCalDownloader.vue";
 
 export default {
   name: "EventEditor",
@@ -626,6 +635,7 @@ export default {
     EditorContent,
     EditorMenuBar,
     RSVPDialog,
+    iCalDownloader,
 
   },
   props: {
@@ -686,6 +696,9 @@ export default {
     success: false,
     allLanguages: [],
     loadingTypes: false,
+
+    exportList: [],
+    showExportDialog: false,
 
     loadingLanguages: false,
     loadingTopics: false,
@@ -822,7 +835,6 @@ export default {
          return false
       }
    },
-
     editorFontClass(){
       return `font-size:${this.editorFontSize}em`
     },
@@ -834,10 +846,18 @@ export default {
     // }
   },
   methods: {
+   exportEvent(){
+       this.exportList = [this.newScheduledEvent,];
+       this.showExportDialog = true;
+    },
    updateRSVP(rsvp){
       this.$emit("updateRSVP", rsvp)
       this.closeDialog()
    },
+   removeGuest (item) {
+        const index = this.newScheduledEvent.guest_list.indexOf(item.username)
+        if (index >= 0) this.newScheduledEvent.guest_list.splice(index, 1)
+    },
    isSingleDay(){
       if(this.workingDateRange && this.workingDateRange > 1){
          const startDate = new Date(this.workingDateRange[0]);
@@ -1062,6 +1082,9 @@ export default {
          guest_list: this.newScheduledEvent.guest_list,
          all_day: this.allDayEvent,
       }
+      if (this.newScheduledEvent.parent_event){
+         payload.parent_event = this.newScheduledEvent.parent_event
+      };
       // console.log(payload)
       try {
          apiService(endpoint, method, payload).then(data => {
@@ -1085,7 +1108,15 @@ export default {
          this.submittingEvent = false;
       }
 
-    }
+    },
+    createRecurrence() {
+      var duplicate = this.newScheduledEvent;
+      duplicate.parent_event = this.newScheduledEvent.id;
+      duplicate.slug = "";
+      this.newScheduledEvent = duplicate;
+      this.toggleEditable(true);
+      this.isNewEvent = true;
+   },
   },
   mounted() {
     if(this.scheduledEvent){

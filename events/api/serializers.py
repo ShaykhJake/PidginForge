@@ -42,10 +42,9 @@ class RSVPSerializer(serializers.ModelSerializer):
 class CalendarEventSerializer(serializers.ModelSerializer):
     curator = UserSerializer(read_only=True)
 
-    curationdate = serializers.SerializerMethodField()
-    updated = serializers.SerializerMethodField()
-    start_datetime = serializers.DateTimeField()
-    end_datetime = serializers.DateTimeField()
+    # curationdate = serializers.DateTimeField()
+    # start_datetime = serializers.DateTimeField()
+    # end_datetime = serializers.DateTimeField()
 
     rsvp_list_count = serializers.SerializerMethodField()
     rsvp_list = serializers.SerializerMethodField()
@@ -88,12 +87,6 @@ class CalendarEventSerializer(serializers.ModelSerializer):
         model = CalendarEvent
         fields = '__all__'
         # fields = ['id', 'curator', 'translations', 'curationdate', 'updated', 'user_vote', 'upvote_count', 'downvote_count', 'published']
-
-    def get_curationdate(self, instance):
-        return instance.curationdate.strftime("%B %d, %Y")
-    
-    def get_updated(self, instance):
-        return instance.updated.strftime("%B %d, %Y")
 
     def get_rsvp_list_count(self, instance):
         rsvps = instance.rsvp.all()

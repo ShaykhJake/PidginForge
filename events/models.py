@@ -10,6 +10,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 from core.utils import generate_random_string
+import uuid
 
 
 class CalendarEvent(models.Model):
@@ -22,7 +23,7 @@ class CalendarEvent(models.Model):
    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
    caption = models.CharField(max_length=320, default="", null=False)
    details = JSONField(null=True, blank=True)
-
+   uid = models.CharField(max_length=260, default=uuid.uuid4())
    event_type = models.CharField(max_length=140, default="Meeting", null=False)
    native_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="event_native_language")
    target_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="event_target_language")
@@ -48,6 +49,12 @@ def add_slug_to_calendarevent(sender, instance, *args, **kwargs):
       slug = slugify(slugstring)
       random_string = generate_random_string()
       instance.slug = slug + "-" + random_string
+
+@receiver(pre_save, sender=CalendarEvent)
+def add_uid_to_calendarevent(sender, instance, *args, **kwargs):
+   if instance and not instance.uid:
+      uid = uuid.uuid4()
+      instance.uid = uid
 
 
 class EventRSVP(models.Model):

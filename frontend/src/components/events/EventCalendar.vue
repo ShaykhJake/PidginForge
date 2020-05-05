@@ -1,12 +1,12 @@
 <template>
   <v-row class="fill-height">
     <v-col>
-      <v-sheet height="64" color="desertsand">
+      <v-sheet height="100" color="desertsand">
         <v-toolbar flat color="desertsand" class="pa-0">
           <v-btn outlined class="mr-3 d-none d-sm-flex" color="grey darken-2" @click="setToday">
             Today
           </v-btn>
-          <v-btn outlined small class="mr-2 d-flex d-sm-none" color="grey darken-2" @click="setToday">
+          <v-btn outlined dense small class="mr-0 d-flex d-sm-none" color="grey darken-2" @click="setToday">
             Today
           </v-btn>
 
@@ -14,14 +14,11 @@
           <v-btn fab text small color="grey darken-2" @click="prev">
             <v-icon small>mdi-chevron-left</v-icon>
           </v-btn>
-          <v-toolbar-title>{{ title }}</v-toolbar-title>
+          <v-toolbar-title class="px-1">{{ title }}</v-toolbar-title>
           <v-btn fab text small color="grey darken-2" @click="next">
             <v-icon small>mdi-chevron-right</v-icon>
           </v-btn>
       
-          <v-spacer></v-spacer>
-          <v-btn outlined class="primary--text d-none d-sm-flex" @click="selectedEvent={}; showEventEditor=true">Add Event<v-icon right>mdi-plus-box</v-icon></v-btn>
-          <v-btn icon fab class="primary--text d-flex d-sm-none" @click="selectedEvent={}; showEventEditor=true"><v-icon right>mdi-plus-box</v-icon></v-btn>
           <v-spacer></v-spacer>
           <v-menu bottom right>
             <template v-slot:activator="{ on }">
@@ -64,14 +61,46 @@
           </v-menu>
         </v-toolbar>
 
+        <v-toolbar dense flat color="calligraphy desertsand--text">
+          <v-switch
+              v-model="filtered"
+              label="Filter"
+              color="topics"
+              class="mt-4 mr-2"
+            ></v-switch>
 
+          <v-btn @click="showFilterDialog=true" small outlined v-if="filtered" class="d-none d-sm-flex topics--text text--lighten-1">Settings
+            <v-badge
+              color="topics darken-2 desertsand--text"
+              :content="filteredEvents.length > 0 ? filteredEvents.length : '0'"
+            >
+              <v-icon>mdi-filter</v-icon>
+            </v-badge>
+          </v-btn>
+          <v-btn @click="showFilterDialog=true" small icon v-if="filtered" class="d-flex d-sm-none topics--text text--lighten-1">
+            <v-badge
+              color="topics darken-2 desertsand--text"
+              :content="filteredEvents.length > 0 ? filteredEvents.length : '0'"
+            >
+              <v-icon>mdi-filter</v-icon>
+            </v-badge>
+            
+          </v-btn>
+          
+          <v-spacer></v-spacer>
+          <v-btn small outlined class="d-none d-sm-flex primary--text" @click="selectedEvent={}; showEventEditor=true">Add Event<v-icon right>mdi-plus-box</v-icon></v-btn>
+          <v-btn small icon class="d-flex d-sm-none primary--text mr-1" @click="selectedEvent={}; showEventEditor=true"><v-icon>mdi-plus-box</v-icon></v-btn>
+
+        </v-toolbar>
       </v-sheet>
-      <v-sheet height="600">
+
+      <v-sheet height="650">
         <v-calendar
+          class="pt-1"
           ref="calendar"
           v-model="focus"
           color="primary"
-          :events="events"
+          :events="displayedEvents"
           :event-color="getEventColor"
           :now="today"
           :type="type"
@@ -162,16 +191,59 @@
       @eventDeleted="popDeletedEvent"
       @closeDialog="showEventEditor=false"
     />
+    <FilterDialog
+      v-if="showFilterDialog"
+      @updateFilter="updateFilter"
+      :filter-settings="filterSettings"
+      v-bind:filterSettings.sync="filterSettings"
+      :show-dialog="showFilterDialog"
+      @closeDialog="showFilterDialog=false"
+    />
+    <v-col cols="12">
+      <h2>Timeline View</h2>
+      <v-timeline dense>
+        <v-timeline-item
+          v-for="timelineEvent in displayedEvents"
+          :key="timelineEvent.id"
+          small
+        >
+          <template v-slot:icon>
+            <v-avatar>
+              <img :src="timelineEvent.curator.user_profile.avatar">
+            </v-avatar>
+          </template>
+          <template v-slot:opposite>
+            <span>{{ timelineEvent.start }}</span>
+          </template>
+          <v-card class="elevation-2">
+            <v-card-title 
+              :class="`calligraphy desertsand--text subtitle-2 py-1`"
+             >
+              {{ prettyDate(timelineEvent.start_datetime) }}: {{ timelineEvent.name }}</v-card-title>
+            <v-card-text class="desertsand">
+              {{timelineEvent.caption}}<br><br>
+              {{timelineEvent.location}} @ 5:00pm<br>
+              </v-card-text>
+              <v-card-actions dense class="calligraphy py-1">
+                <v-btn @click="selectedEvent = timelineEvent; showEventEditor = true" text small class="primary--text">View Details</v-btn>
+              </v-card-actions>
+          </v-card>
+        </v-timeline-item>
+      </v-timeline>
+    </v-col>
   </v-row>
+
 </template>
 
 <script>
    import { apiService } from "@/common/api.service.js";
   import EventEditor from "@/components/events/EventEditor.vue";
+  import FilterDialog from "@/components/events/FilterDialog.vue";
 
   export default {
     data: () => ({
       showEventEditor: false,
+      showFilterDialog: false,
       focus: '',
       type: 'month',
       typeToLabel: {
@@ -182,6 +254,15 @@
       },
       start: null,
       end: null,
+      filtered: false,
+      filterSettings: {
+        eventCurator: [],
+        eventType: [],
+        targetLanguage: [],
+        nativeLanguage: [],
+        byRSVP: false,
+        topic: [],
+      },
       today : new Date().toISOString().substr(0, 10),
       selectedEvent: {},
       selectedElement: null,
@@ -193,6 +274,7 @@
     }),
     components: {
        EventEditor,
+       FilterDialog,
     },
     computed: {
       title () {
@@ -235,10 +317,57 @@
           timeZone: 'UTC', month: 'long',
         })
       },
-    },
-    mounted () {
-      this.$refs.calendar.checkChange();
-      this.getEventsList();
+      displayedEvents(){
+        if(this.filtered){
+          return this.filteredEvents;
+        } else {
+          return this.events;
+        }
+      },
+      filteredEvents() {
+        console.log("Hello")
+        var filter = this.filterSettings;
+        return this.events.filter(event => {
+          if(filter.byRSVP){
+            if(!event.user_rsvp || event.user_rsvp.attending === "Yes"){
+              console.log("No results for RSVPs")
+              return false
+            }
+          }
+          if(filter.eventCurator.length > 0){
+            if(!filter.eventCurator.includes(event.curator.username)){
+              console.log("No results for curators")
+              return false
+            }
+          }
+          if(filter.eventType.length > 0){
+            if(!filter.eventType.includes(event.event_type.toLowerCase())){
+              console.log("No results for types")
+              return false
+            }
+          }
+          if(filter.targetLanguage.length > 0){
+            if(!filter.eventType.includes(event.target_language)){
+              console.log("No results for target language")
+              return false
+            }
+          }
+          if(filter.nativeLanguage.length > 0){
+            if(!filter.eventType.includes(event.native_language)){
+              console.log("No results for native language")
+              return false
+            }
+          }
+          if(filter.topic.length > 0){
+            if(!filter.eventType.includes(event.topic)){
+              console.log("No results for topics")
+              return false
+            }
+          }
+
+          return true;
+        })
+      },
     },
     methods: {
       formatLocalDateString(date){
@@ -285,9 +414,22 @@
          console.log(err);
          }
       },
+      prettyDate(ISOString){
+        var date = new Date(ISOString);
+        return date.toLocaleDateString();
+      },
+      filteredCount(){
+        let list = this.filteredElements;
+        return list.length;
+      },
+
       viewDay ({ date }) {
         this.focus = date
         this.type = 'day'
+      },
+      updateFilter(newFilter){
+        this.filterSettings = newFilter;
+        // console.log(this.filterSettings)
       },
       getEventColor (event) {
       //   let eventType = event.type;
@@ -307,6 +449,7 @@
             return 'primary'
          }
       },
+
       setToday () {
         this.focus = this.today
       },
@@ -401,6 +544,11 @@
           ? `${a.getFullYear()}-${a.getMonth() + 1}-${a.getDate()} ${a.getHours()}:${a.getMinutes()}`
           : `${a.getFullYear()}-${a.getMonth() + 1}-${a.getDate()}`
       },
+    },
+    mounted () {
+      this.$refs.calendar.checkChange();
+      this.getEventsList();
+
     },
   }
 </script>
