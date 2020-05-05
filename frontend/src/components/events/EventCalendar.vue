@@ -1,7 +1,7 @@
 <template>
   <v-row class="fill-height">
     <v-col>
-      <v-sheet height="100" color="desertsand">
+      <v-sheet height="120" color="desertsand">
         <v-toolbar flat color="desertsand" class="pa-0">
           <v-btn outlined class="mr-3 d-none d-sm-flex" color="grey darken-2" @click="setToday">
             Today
@@ -132,17 +132,19 @@
               </v-btn>
               <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
               <v-spacer></v-spacer>
-              <v-btn icon class="desertsand--text">
-                <v-icon v-if="selectedElement.user_has_saved">mdi-heart-broken</v-icon>
-                <v-icon v-else>mdi-heart</v-icon>
-              </v-btn>
+              <div v-if="false">
+                <v-btn icon class="desertsand--text">
+                  <v-icon v-if="selectedElement.user_has_saved">mdi-heart-broken</v-icon>
+                  <v-icon v-else>mdi-heart</v-icon>
+                </v-btn>
 
-              <v-btn icon disabled>
-                <v-icon>mdi-eye-off</v-icon>
-              </v-btn>
-              <v-btn icon disabled>
-                <v-icon>mdi-flag</v-icon>
-              </v-btn>
+                <v-btn icon disabled>
+                  <v-icon>mdi-eye-off</v-icon>
+                </v-btn>
+                <v-btn icon disabled>
+                  <v-icon>mdi-flag</v-icon>
+                </v-btn>
+              </div>
 
             </v-toolbar>
             <v-card-text color="desertsand">
@@ -156,14 +158,14 @@
               Location: {{ selectedEvent.location }}<br>
               Starting: {{ selectedEvent.start }}<br>
               Ending: {{ selectedEvent.end }}<br>
-              Invited: {{ selectedEvent.guest_list.length }}
+              Invited: {{ selectedEvent.public ? 'Public' : selectedEvent.guest_list.length }}
               Attending: {{ selectedEvent.rsvp_list_count }}
 
             </v-card-text>
             <v-card-actions class="sandstone">
               <v-btn
                 text
-                color="garbage desertsand--text"
+                color="garbage"
                 @click="selectedOpen = false"
               >
                 Close<v-icon right>mdi-close</v-icon>
@@ -171,7 +173,7 @@
               <v-spacer></v-spacer>
               <v-btn
                 text
-                color="primary desertsand--text"
+                color="primary"
                 @click="showEventEditor = true"
               >
                 View Details
@@ -222,7 +224,7 @@
               {{ prettyDate(timelineEvent.start_datetime) }}: {{ timelineEvent.name }}</v-card-title>
             <v-card-text class="desertsand">
               {{timelineEvent.caption}}<br><br>
-              {{timelineEvent.location}} @ 5:00pm<br>
+              Location/Platform: {{timelineEvent.location}}<br>
               </v-card-text>
               <v-card-actions dense class="calligraphy py-1">
                 <v-btn @click="selectedEvent = timelineEvent; showEventEditor = true" text small class="primary--text">View Details</v-btn>

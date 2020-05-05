@@ -228,8 +228,9 @@
                         </v-dialog>
                      </v-col>
                   </v-row>
-               
-                  <v-select
+            
+
+                  <v-autocomplete
                     v-model="newScheduledEvent.event_type"
                     name="eventtype"
                     :items="allTypes"
@@ -239,9 +240,9 @@
                     required
                     :loading="loadingTypes"
                     outlined
-                  ></v-select>
+                  ></v-autocomplete>
 
-                  <v-select
+                  <v-autocomplete
                     v-model="newScheduledEvent.native_language"
                     name="nativelanguage"
                     :items="allLanguages"
@@ -251,9 +252,9 @@
                     required
                     :loading="loadingLanguages"
                     outlined
-                  ></v-select>
+                  ></v-autocomplete>
 
-                  <v-select
+                  <v-autocomplete
                     v-model="newScheduledEvent.target_language"
                     name="targetlanguage"
                     :items="allLanguages"
@@ -263,9 +264,9 @@
                     required
                     :loading="loadingLanguages"
                     outlined
-                  ></v-select>
+                  ></v-autocomplete>
 
-                  <v-select
+                  <v-autocomplete
                     v-model="newScheduledEvent.topic"
                     name="eventtopic"
                     :items="allTopics"
@@ -275,7 +276,7 @@
                     required
                     :loading="loadingTopics"
                     outlined
-                  ></v-select>
+                  ></v-autocomplete>
                   <div justify="center">
                   Event Access:
                   <v-radio-group v-model="newScheduledEvent.public" row>
