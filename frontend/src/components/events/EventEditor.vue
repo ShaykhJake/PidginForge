@@ -29,8 +29,8 @@
                         </v-avatar>
                      </v-col>
                      <v-col>
-                        Added by {{ newScheduledEvent.curator['username'] }} 
-                        on {{ newScheduledEvent.curation_date || 'December 7, 1941' }}
+                        Added by <span class="primary--text font-weight-black">{{ newScheduledEvent.curator['username'] }} </span> 
+                        on {{ prettyDate(newScheduledEvent.curationdate) }}
                      </v-col>
                   </v-row>
                   <v-row>
@@ -847,6 +847,10 @@ export default {
     // }
   },
   methods: {
+   prettyDate(ISOString){
+        var date = new Date(ISOString);
+        return date.toLocaleDateString();
+   },
    exportEvent(){
        this.exportList = [this.newScheduledEvent,];
        this.showExportDialog = true;
