@@ -12,7 +12,7 @@
       </v-row>
       <v-row wrap dense>
         <v-col cols="12" sm="6" lg="4" xl="3">
-          <v-card class="mx-auto desertsand" max-width="320">
+          <v-card class="mx-auto desertsand" max-width="310">
             <v-card-text>
               <div>Create or Curate New Elements</div>
               <p class="headline text--primary">
@@ -35,7 +35,11 @@
                 <v-btn class="mb-2 primary" block large @click="loadAudioEditor"
                   >Audio <v-icon right>audiotrack</v-icon></v-btn
                 >
-                <v-btn class="mb-2 primary" block @click="textEditorDialog=true" large
+                <v-btn
+                  class="mb-2 primary"
+                  block
+                  @click="textEditorDialog = true"
+                  large
                   >Text <v-icon right>text_fields</v-icon></v-btn
                 >
                 <v-btn class="mb-2 primary" block :disabled="true" large
@@ -47,7 +51,7 @@
         </v-col>
 
         <v-col cols="12" sm="6" lg="4" xl="3">
-          <v-card class="mx-auto desertsand" max-width="340">
+          <v-card class="mx-auto desertsand" max-width="310">
             <v-card-text>
               <div>Create or Curate New Lessons</div>
               <p class="headline text--primary">
@@ -65,9 +69,14 @@
                 <v-btn
                   block
                   class="mb-2 elements desertsand--text"
-                  :disabled="true"
+                  :to="{
+                    name: 'Lesson-Builder',
+                    params: {
+                      elementslug: null
+                    }
+                  }"
                   large
-                  >Content-Based</v-btn
+                  >Lesson Builder</v-btn
                 >
                 <v-btn
                   block
@@ -104,7 +113,7 @@
         </v-col>
 
         <v-col cols="12" sm="6" lg="4" xl="3">
-          <v-card class="mx-auto desertsand" max-width="315">
+          <v-card class="mx-auto desertsand" max-width="310">
             <v-card-text>
               <div>Further Curate & Improve Your Work</div>
               <p class="headline text--primary">
@@ -171,7 +180,7 @@
         </v-col>
 
         <v-col cols="12" sm="6" lg="4" xl="3">
-          <v-card class="mx-auto desertsand" max-width="315">
+          <v-card class="mx-auto desertsand" max-width="310">
             <v-card-text>
               <div>Help Care for Orphaned Objects</div>
               <p class="headline text--primary">
@@ -282,8 +291,6 @@ export default {
       import(
         /* webpackPrefetch: true */ "@/components/elements/TextElementEditor.vue"
       )
-
-
   },
   data() {
     return {
@@ -304,8 +311,7 @@ export default {
       loadingTranscription: true,
       violations: 0,
       loadingViolations: true,
-      textEditorDialog: false,
-
+      textEditorDialog: false
     };
   },
   props: {},

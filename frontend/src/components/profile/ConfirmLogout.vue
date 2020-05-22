@@ -12,7 +12,10 @@
         </v-card-title>
         <v-card-actions class="sandstone">
           <div align="center">
-            <v-btn class="garbage desertsand--text mr-2" @click="$emit('closeDialog')">
+            <v-btn
+              class="garbage desertsand--text mr-2"
+              @click="$emit('closeDialog')"
+            >
               Cancel<v-icon right>mdi-cancel</v-icon>
             </v-btn>
             <v-btn class="primary desertsand--text" @click="finishLogout">
@@ -34,7 +37,7 @@ export default {
     };
   },
   props: {
-    showDialog: Boolean,
+    showDialog: Boolean
   },
   methods: {
     finishLogout() {

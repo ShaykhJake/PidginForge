@@ -1,7 +1,6 @@
 <template>
   <v-container>
-     <EventCalendar />
-
+    <EventCalendar />
   </v-container>
 </template>
 
@@ -10,15 +9,12 @@ import EventCalendar from "@/components/events/EventCalendar.vue";
 export default {
   name: "Events",
   data() {
-    return {
-    }
+    return {};
   },
-   components: {
-    EventCalendar,
+  components: {
+    EventCalendar
   }
-}
+};
 </script>
 
-<style>
-
-</style>
+<style></style>

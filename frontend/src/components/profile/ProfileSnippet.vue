@@ -1,76 +1,76 @@
 <template>
   <v-dialog v-model="profileDialog" width="275">
-  <v-card class="desertsand">
-    <v-card-title class="pa-0">
-      <v-img :src="curatorObject.user_profile.image">
-        <v-btn
-          icon
-          fab
-          small
-          class="calligraphy white--text"
-          @click="closeDialog"
-          ><v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-img>
-    </v-card-title>
-
-    <v-card-text class="pt-2 pl-4 desertsand calligraphy--text">
-      <v-row dense>
-        <v-col align="center">
-          <h2>{{ curatorObject.username }}</h2>
-          <v-chip outlined small class="primary primary--text">{{
-            userPointsText
-          }}</v-chip>
-          <v-chip outlined small class="languages languages--text"
-            >Native: {{ profile.language }}</v-chip
-          >
-          <v-chip outlined small class="languages languages--text"
-            >Learning: Django, French</v-chip
-          >
-        </v-col>
-        <v-col>
-          <p>
-            <span class="font-weight-bold">User Bio:</span>
-            {{ profile.biography }}
-          </p>
-
-          <v-btn block class="my-1 primary desertsand--text"
-            >View Curated Works</v-btn
-          >
-
+    <v-card class="desertsand">
+      <v-card-title class="pa-0">
+        <v-img :src="curatorObject.user_profile.image">
           <v-btn
-            block
-            v-if="!isProfileOwner"
-            @click="toggleFollow"
-            class="my-1 saves desertsand--text"
-            :loading="following"
-          >
-            <v-badge color="blue" :content="profile.followers_count">
-              <span v-if="!profile.user_has_followed">
-                Follow<v-icon right>mdi-heart</v-icon>
-              </span>
-              <span v-else>
-                Unfollow<v-icon right>mdi-heart-broken</v-icon>
-              </span>
-            </v-badge>
+            icon
+            fab
+            small
+            class="calligraphy white--text"
+            @click="closeDialog"
+            ><v-icon>mdi-close</v-icon>
           </v-btn>
+        </v-img>
+      </v-card-title>
 
-          <v-btn
-            block
-            v-if="!isProfileOwner"
-            @click="toggleHide"
-            class="my-1 garbage desertsand--text"
-            :loading="hiding"
-          >
-            <span v-if="!profile.user_has_hidden">
-              Hide<v-icon right>mdi-eye-off</v-icon>
-            </span>
-            <span v-else> Unhide<v-icon right>mdi-eye</v-icon> </span>
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-card-text>
-  </v-card>
+      <v-card-text class="pt-2 pl-4 desertsand calligraphy--text">
+        <v-row dense>
+          <v-col align="center">
+            <h2>{{ curatorObject.username }}</h2>
+            <v-chip outlined small class="primary primary--text">{{
+              userPointsText
+            }}</v-chip>
+            <v-chip outlined small class="languages languages--text"
+              >Native: {{ profile.language }}</v-chip
+            >
+            <v-chip outlined small class="languages languages--text"
+              >Learning: Django, French</v-chip
+            >
+          </v-col>
+          <v-col>
+            <p>
+              <span class="font-weight-bold">User Bio:</span>
+              {{ profile.biography }}
+            </p>
+
+            <v-btn block class="my-1 primary desertsand--text"
+              >View Curated Works</v-btn
+            >
+
+            <v-btn
+              block
+              v-if="!isProfileOwner"
+              @click="toggleFollow"
+              class="my-1 saves desertsand--text"
+              :loading="following"
+            >
+              <v-badge color="blue" :content="profile.followers_count">
+                <span v-if="!profile.user_has_followed">
+                  Follow<v-icon right>mdi-heart</v-icon>
+                </span>
+                <span v-else>
+                  Unfollow<v-icon right>mdi-heart-broken</v-icon>
+                </span>
+              </v-badge>
+            </v-btn>
+
+            <v-btn
+              block
+              v-if="!isProfileOwner"
+              @click="toggleHide"
+              class="my-1 garbage desertsand--text"
+              :loading="hiding"
+            >
+              <span v-if="!profile.user_has_hidden">
+                Hide<v-icon right>mdi-eye-off</v-icon>
+              </span>
+              <span v-else> Unhide<v-icon right>mdi-eye</v-icon> </span>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
   </v-dialog>
 </template>
 <script>
@@ -80,7 +80,7 @@ export default {
   components: {},
   props: {
     profileDialog: Boolean,
-    curatorObject: Object,
+    curatorObject: Object
   },
   data: () => ({
     loading: true,
@@ -94,7 +94,9 @@ export default {
     },
     isProfileOwner() {
       // return this.question.author.username === this.requestUser;
-      return this.curatorObject.username === window.localStorage.getItem("username");
+      return (
+        this.curatorObject.username === window.localStorage.getItem("username")
+      );
       // return true;
     }
   },
@@ -150,21 +152,21 @@ export default {
       this.hiding = true;
       let endpoint = `api/users/hide/`;
       try {
-        apiService(endpoint, "POST", { username: this.userObject.username }).then(
-          data => {
-            if (data != null) {
-              if (data.success == true) {
-                this.profile.user_has_hidden = !this.profile.user_has_hidden;
-                console.log("This profile has been hidden");
-              } else {
-                this.alertType = "error";
-              }
+        apiService(endpoint, "POST", {
+          username: this.userObject.username
+        }).then(data => {
+          if (data != null) {
+            if (data.success == true) {
+              this.profile.user_has_hidden = !this.profile.user_has_hidden;
+              console.log("This profile has been hidden");
             } else {
               this.alertType = "error";
             }
-            this.hiding = false;
+          } else {
+            this.alertType = "error";
           }
-        );
+          this.hiding = false;
+        });
       } catch (err) {
         console.log(err);
       }

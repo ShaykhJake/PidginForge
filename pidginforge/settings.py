@@ -1,4 +1,4 @@
-DEVMODE = False
+DEVMODE = True
 """
 Django settings for pidginforge project.
 
@@ -71,6 +71,8 @@ INSTALLED_APPS = [
     'elements',
     'malapropos',
     'events',
+    'lessons',
+    'vocab',
 ]
 
 MIDDLEWARE = [

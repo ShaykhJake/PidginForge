@@ -163,15 +163,15 @@ export default {
 };
 </script>
 <style type="text/css">
-  .responsive {
-    width: 100%;
-    height: 0;
-    padding-bottom: 56.25%;
-    position: relative;
-  }
-  .responsive iframe {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-  }
+.responsive {
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%;
+  position: relative;
+}
+.responsive iframe {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
 </style>

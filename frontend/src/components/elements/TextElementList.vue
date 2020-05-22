@@ -5,9 +5,9 @@
         <v-card>
           <v-card-text class="desertsand calligraphy--text">
             There are no text elements which match your language/topic
-            preferences. You may need to update your profile to add
-            learning languages and topics...or maybe we just don't
-            have enough content yet!
+            preferences. You may need to update your profile to add learning
+            languages and topics...or maybe we just don't have enough content
+            yet!
           </v-card-text>
         </v-card>
       </v-col>
@@ -21,7 +21,9 @@
         <textElementMicro
           :textElement="textElement"
           :hidden="textElement.user_has_hidden"
-          @hideElement="textElement.user_has_hidden = !textElement.user_has_hidden"
+          @hideElement="
+            textElement.user_has_hidden = !textElement.user_has_hidden
+          "
         />
       </v-col>
     </v-row>
@@ -58,20 +60,20 @@ export default {
   props: {
     preferenceFilter: {
       required: false,
-      default: false,
+      default: false
     }
   },
   computed: {
     filteredElements() {
-      if (this.preferenceFilter){
+      if (this.preferenceFilter) {
         return this.textElements.filter(element => {
-          return !element.filtered
-        })
+          return !element.filtered;
+        });
       } else {
         return this.textElements;
       }
     },
-    filteredCount(){
+    filteredCount() {
       return this.filteredElements.length;
     }
   },

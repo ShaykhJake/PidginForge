@@ -65,12 +65,6 @@ class CalendarEventSerializer(serializers.ModelSerializer):
         slug_field='name'
     )
 
-    native_language = serializers.SlugRelatedField(
-        queryset = Language.objects.all(),
-        read_only=False,
-        slug_field='name'
-    )
-
     target_language = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
         read_only=False,

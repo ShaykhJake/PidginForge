@@ -4,10 +4,9 @@
       <v-col cols="12">
         <v-card>
           <v-card-text class="desertsand calligraphy--text">
-            There are no questions which match your language/topic
-            preferences. You may need to update your profile to add
-            learning languages and topics...or maybe we just don't
-            have enough content yet!
+            There are no questions which match your language/topic preferences.
+            You may need to update your profile to add learning languages and
+            topics...or maybe we just don't have enough content yet!
           </v-card-text>
         </v-card>
       </v-col>
@@ -50,20 +49,20 @@ export default {
   props: {
     preferenceFilter: {
       required: false,
-      default: false,
+      default: false
     }
   },
   computed: {
     filteredQuestions() {
-      if (this.preferenceFilter){
+      if (this.preferenceFilter) {
         return this.questions.filter(question => {
-          return !question.filtered
-        })
+          return !question.filtered;
+        });
       } else {
         return this.questions;
       }
     },
-    filteredCount(){
+    filteredCount() {
       return this.filteredQuestions.length;
     }
   },

@@ -64,11 +64,9 @@
               element-type="Markup"
               text-typography="body-1"
             />
-            
           </v-col>
           <v-col cols="12" class="overline" v-if="!markup.published">
-            ...this markup is currently in draft and not visible to
-            others...
+            ...this markup is currently in draft and not visible to others...
           </v-col>
           <v-col cols="12" class="overline" v-if="markup.forkparent">
             ...this markup was forked from
@@ -85,9 +83,7 @@
                 small
                 color="elements desertsand--text"
                 @click="
-                  userHasMarkup
-                    ? (forkOverwriteDialog = true)
-                    : forkMarkup
+                  userHasMarkup ? (forkOverwriteDialog = true) : forkMarkup
                 "
               >
                 Fork
@@ -110,9 +106,9 @@
                     >Delete Your Markup?</v-card-title
                   >
                   <v-card-text class="desertsand calligraphy--text pt-1">
-                    You've already started a markup for this source item.
-                    In order to fork a new markup, you must first delete
-                    your old. Confirm delete and proceed with fork?
+                    You've already started a markup for this source item. In
+                    order to fork a new markup, you must first delete your old.
+                    Confirm delete and proceed with fork?
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer></v-spacer>
@@ -178,8 +174,8 @@
                 <v-card class="calligraphy desertsand--text">
                   <v-card-title class="headline">Unsaved Changes</v-card-title>
                   <v-card-text class="desertsand calligraphy--text pt-1">
-                    You have made changes to your markup. Would you like to
-                    save them, or throw them away?
+                    You have made changes to your markup. Would you like to save
+                    them, or throw them away?
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer></v-spacer>
@@ -267,168 +263,168 @@
             >
               <div class="desertsand--text">
                 <v-toolbar dense flat class="calligraphy">
-                    <v-btn
-                      small
-                      icon
-                      color="sandstone"
-                      :class="{ 'is-active': isActive.bold() }"
-                      @click="commands.bold"
-                    >
-                      <v-icon>
-                        mdi-format-bold
-                      </v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{ 'is-active': isActive.italic() }"
-                      @click="commands.italic"
-                    >
-                      <v-icon>
-                        mdi-format-italic
-                      </v-icon>
-                    </v-btn>
-                    <v-divider class="mx-1" inset vertical></v-divider>
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{ 'is-active': isActive.paragraph() }"
-                      @click="commands.paragraph"
-                    >
-                      <v-icon>
-                        mdi-format-paragraph
-                      </v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{ 'is-active': isActive.heading({ level: 1 }) }"
-                      @click="commands.heading({ level: 1 })"
-                    >
-                      <v-icon>
-                        mdi-format-header-1
-                      </v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{ 'is-active': isActive.heading({ level: 2 }) }"
-                      @click="commands.heading({ level: 2 })"
-                    >
-                      <v-icon>
-                        mdi-format-header-2
-                      </v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{ 'is-active': isActive.heading({ level: 3 }) }"
-                      @click="commands.heading({ level: 3 })"
-                    >
-                      <v-icon>
-                        mdi-format-header-3
-                      </v-icon>
-                    </v-btn>
+                  <v-btn
+                    small
+                    icon
+                    color="sandstone"
+                    :class="{ 'is-active': isActive.bold() }"
+                    @click="commands.bold"
+                  >
+                    <v-icon>
+                      mdi-format-bold
+                    </v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{ 'is-active': isActive.italic() }"
+                    @click="commands.italic"
+                  >
+                    <v-icon>
+                      mdi-format-italic
+                    </v-icon>
+                  </v-btn>
+                  <v-divider class="mx-1" inset vertical></v-divider>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{ 'is-active': isActive.paragraph() }"
+                    @click="commands.paragraph"
+                  >
+                    <v-icon>
+                      mdi-format-paragraph
+                    </v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{ 'is-active': isActive.heading({ level: 1 }) }"
+                    @click="commands.heading({ level: 1 })"
+                  >
+                    <v-icon>
+                      mdi-format-header-1
+                    </v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{ 'is-active': isActive.heading({ level: 2 }) }"
+                    @click="commands.heading({ level: 2 })"
+                  >
+                    <v-icon>
+                      mdi-format-header-2
+                    </v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{ 'is-active': isActive.heading({ level: 3 }) }"
+                    @click="commands.heading({ level: 3 })"
+                  >
+                    <v-icon>
+                      mdi-format-header-3
+                    </v-icon>
+                  </v-btn>
 
-                    <v-divider class="mx-1" inset vertical></v-divider>
+                  <v-divider class="mx-1" inset vertical></v-divider>
 
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{
-                        'is-active': isActive.alignment({ orientation: 'left' })
-                      }"
-                      @click="commands.alignment({ orientation: 'left' })"
-                    >
-                      <v-icon>
-                        mdi-format-align-left
-                      </v-icon>
-                    </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{
+                      'is-active': isActive.alignment({ orientation: 'left' })
+                    }"
+                    @click="commands.alignment({ orientation: 'left' })"
+                  >
+                    <v-icon>
+                      mdi-format-align-left
+                    </v-icon>
+                  </v-btn>
 
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{
-                        'is-active': isActive.alignment({
-                          orientation: 'center'
-                        })
-                      }"
-                      @click="commands.alignment({ orientation: 'center' })"
-                    >
-                      <v-icon>
-                        mdi-format-align-center
-                      </v-icon>
-                    </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{
+                      'is-active': isActive.alignment({
+                        orientation: 'center'
+                      })
+                    }"
+                    @click="commands.alignment({ orientation: 'center' })"
+                  >
+                    <v-icon>
+                      mdi-format-align-center
+                    </v-icon>
+                  </v-btn>
 
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{
-                        'is-active': isActive.alignment({
-                          orientation: 'right'
-                        })
-                      }"
-                      @click="commands.alignment({ orientation: 'right' })"
-                    >
-                      <v-icon>
-                        mdi-format-align-right
-                      </v-icon>
-                    </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{
+                      'is-active': isActive.alignment({
+                        orientation: 'right'
+                      })
+                    }"
+                    @click="commands.alignment({ orientation: 'right' })"
+                  >
+                    <v-icon>
+                      mdi-format-align-right
+                    </v-icon>
+                  </v-btn>
 
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{
-                        'is-active': isActive.text_direction({
-                          direction: 'ltr'
-                        })
-                      }"
-                      @click="commands.text_direction({ direction: 'ltr' })"
-                    >
-                      <v-icon>
-                        mdi-format-textdirection-l-to-r
-                      </v-icon>
-                    </v-btn>
-                    <v-btn
-                      icon
-                      small
-                      color="sandstone"
-                      :class="{
-                        'is-active': isActive.text_direction({
-                          direction: 'rtl'
-                        })
-                      }"
-                      @click="commands.text_direction({ direction: 'rtl' })"
-                    >
-                      <v-icon>
-                        mdi-format-textdirection-r-to-l
-                      </v-icon>
-                    </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{
+                      'is-active': isActive.text_direction({
+                        direction: 'ltr'
+                      })
+                    }"
+                    @click="commands.text_direction({ direction: 'ltr' })"
+                  >
+                    <v-icon>
+                      mdi-format-textdirection-l-to-r
+                    </v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="sandstone"
+                    :class="{
+                      'is-active': isActive.text_direction({
+                        direction: 'rtl'
+                      })
+                    }"
+                    @click="commands.text_direction({ direction: 'rtl' })"
+                  >
+                    <v-icon>
+                      mdi-format-textdirection-r-to-l
+                    </v-icon>
+                  </v-btn>
 
-                    <v-divider class="mx-1" inset vertical></v-divider>
+                  <v-divider class="mx-1" inset vertical></v-divider>
 
-                    <v-btn
-                      icon
-                      small
-                      color="primary"
-                      :class="{ 'is-active': isActive.highlighter() }"
-                      @click="commands.highlighter"
-                    >
-                      <v-icon>
-                        mdi-marker
-                      </v-icon>
-                    </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="primary"
+                    :class="{ 'is-active': isActive.highlighter() }"
+                    @click="commands.highlighter"
+                  >
+                    <v-icon>
+                      mdi-marker
+                    </v-icon>
+                  </v-btn>
 
-                    <v-divider class="mx-1" inset vertical></v-divider>
+                  <v-divider class="mx-1" inset vertical></v-divider>
 
                   <v-overflow-btn
                     @change="unsavedChanges = true"
@@ -448,16 +444,23 @@
                 </v-toolbar>
               </div>
             </editor-menu-bar>
-            <editor-content :editor="editor" :style="editorFontClass" class="editor-box" id="markupeditorbox" />
+            <editor-content
+              :editor="editor"
+              :style="editorFontClass"
+              class="editor-box"
+              id="markupeditorbox"
+            />
             <v-card-actions>
               <v-btn icon @click="changeEditorFontSize('down')">
-                    <v-icon>mdi-magnify-minus</v-icon>
+                <v-icon>mdi-magnify-minus</v-icon>
               </v-btn>
-                Text Size
+              Text Size
               <v-btn icon @click="changeEditorFontSize('up')">
-                  <v-icon>mdi-magnify-plus</v-icon>
+                <v-icon>mdi-magnify-plus</v-icon>
               </v-btn>
-              <v-btn icon @click="printText"><v-icon>mdi-printer</v-icon></v-btn>
+              <v-btn icon @click="printText"
+                ><v-icon>mdi-printer</v-icon></v-btn
+              >
             </v-card-actions>
           </v-col>
         </v-row>
@@ -590,7 +593,7 @@ export default {
         onUpdate: () => {
           this.unsavedChanges = true;
           // console.log("Unsaved changes");
-        },
+        }
       })
     };
   },
@@ -606,8 +609,8 @@ export default {
         return false;
       }
     },
-    editorFontClass(){
-      return `font-size:${this.editorFontSize}em`
+    editorFontClass() {
+      return `font-size:${this.editorFontSize}em`;
     },
     numberOfMarkups() {
       if (this.sourceObject.markups) {
@@ -626,9 +629,9 @@ export default {
   methods: {
     getLanguages() {
       var localLanguages = localStorage.getItem("languages");
-      if(localLanguages.length > 1){
-        console.log("Shop local!")
-        this.allLanguages = JSON.parse(localLanguages)
+      if (localLanguages.length > 1) {
+        console.log("Shop local!");
+        this.allLanguages = JSON.parse(localLanguages);
       } else {
         this.loadingLanguages = true;
         let endpoint = `/api/categories/languages/`;
@@ -646,15 +649,14 @@ export default {
         } catch (err) {
           console.log(err);
         }
-
       }
     },
 
-    printText(){
-        var html = document.getElementById("markupeditorbox").innerHTML
-        var a = window.open('', '', 'height=300, width=300');
-        var dateStamp = new Date();
-        a.document.write(
+    printText() {
+      var html = document.getElementById("markupeditorbox").innerHTML;
+      var a = window.open("", "", "height=300, width=300");
+      var dateStamp = new Date();
+      a.document.write(
         `
           <html>
           <head>
@@ -687,17 +689,17 @@ export default {
           </html>
           <style>
           `
-        );
-        a.print();
+      );
+      a.print();
     },
-    changeEditorFontSize(direction){
-      if(direction==="up"){
-        if(this.editorFontSize < 3.5){
-          this.editorFontSize += 0.15
+    changeEditorFontSize(direction) {
+      if (direction === "up") {
+        if (this.editorFontSize < 3.5) {
+          this.editorFontSize += 0.15;
         }
       } else {
-        if(this.editorFontSize > 0.5){
-          this.editorFontSize -= 0.15
+        if (this.editorFontSize > 0.5) {
+          this.editorFontSize -= 0.15;
         }
       }
     },
@@ -786,9 +788,9 @@ export default {
         console.log(payload);
         apiService(endpoint, "POST", payload).then(data => {
           if (data) {
-            console.log(data)
+            console.log(data);
             this.markup = data;
-            console.log(this.markup.content)
+            console.log(this.markup.content);
             this.sourceObject.user_markup = this.markup.id;
             this.markupLoaded = true;
             // this.isNewMarkup = true;
@@ -889,18 +891,18 @@ export default {
       let endpoint = `/api/elements/markup/fork/`;
       let payload = {
         sourceid: this.sourceObject.id,
-        forkparent: this.markup.id,
+        forkparent: this.markup.id
       };
       apiService(endpoint, "POST", payload).then(data => {
         if (data) {
-          this.forkOverwriteDialog = false; 
+          this.forkOverwriteDialog = false;
           this.loadMarkup(data.id);
           this.sourceObject.user_markup = data.id;
           // this.refetchSourceElement();
         } else {
           console.log("There was a problem");
         }
-        this.forkOverwriteDialog = false; 
+        this.forkOverwriteDialog = false;
         this.submittingFork = false;
       });
     },
@@ -938,8 +940,8 @@ export default {
   height: 300px;
   overflow-x: hidden;
   overflow-x: auto;
-  font-size:1.5em;
-  font-family:Arial, Helvetica, sans-serif;
+  font-size: 1.5em;
+  font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;
 }
 

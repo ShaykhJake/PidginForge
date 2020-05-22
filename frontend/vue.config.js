@@ -1,19 +1,19 @@
 const BundleTracker = require("webpack-bundle-tracker");
 
-
 module.exports = {
   // on Windows you might want to set publicPath: "http://127.0.0.1:8080/"
-  
+
   // Set the following directory to a place where Django can easily find it:
   outputDir: "../static/dist/",
-  
+
   // Production
-  publicPath: "https://jakesdesk-media.s3.amazonaws.com/static/dist/",
+  // publicPath: "https://jakesdesk-media.s3.amazonaws.com/static/dist/",
 
   //Development
-  // publicPath: "http://0.0.0.0:8080/",
-  
+  publicPath: "http://0.0.0.0:8080/",
 
+  // runtimeCompiler: true,
+  
   chainWebpack: config => {
     config
       .plugin("BundleTracker")
@@ -35,7 +35,6 @@ module.exports = {
     //     },
     // });
 
-
     config.resolve.alias.set("__STATIC__", "../");
 
     config.devServer
@@ -53,10 +52,9 @@ module.exports = {
   css: {
     extract: {
       // filename: "bundle.css",
-      filename: "[name].[hash:8].css",
+      filename: "[name].[hash:8].css"
       // chunkFilename: "bundle.css",
       // chunkFilename: "[id].[hash:8].css"
     }
-  },
-
+  }
 };

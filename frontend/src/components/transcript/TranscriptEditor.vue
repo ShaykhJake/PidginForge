@@ -476,20 +476,26 @@
                         mdi-timer
                       </v-icon>
                     </v-btn>
-
                   </v-toolbar>
                 </div>
               </editor-menu-bar>
-              <editor-content :editor="editor" :style="editorFontClass" class="editor-box" id="transcripteditorbox" />
+              <editor-content
+                :editor="editor"
+                :style="editorFontClass"
+                class="editor-box"
+                id="transcripteditorbox"
+              />
               <v-card-actions>
                 <v-btn icon @click="changeEditorFontSize('down')">
-                      <v-icon>mdi-magnify-minus</v-icon>
+                  <v-icon>mdi-magnify-minus</v-icon>
                 </v-btn>
-                  Text Size
+                Text Size
                 <v-btn icon @click="changeEditorFontSize('up')">
-                    <v-icon>mdi-magnify-plus</v-icon>
+                  <v-icon>mdi-magnify-plus</v-icon>
                 </v-btn>
-                <v-btn icon @click="printText"><v-icon>mdi-printer</v-icon></v-btn>
+                <v-btn icon @click="printText"
+                  ><v-icon>mdi-printer</v-icon></v-btn
+                >
               </v-card-actions>
               <div v-text="jsonText"></div>
               <div v-text="htmlText"></div>
@@ -664,8 +670,8 @@ export default {
         window.localStorage.getItem("username")
       );
     },
-    editorFontClass(){
-      return `font-size:${this.editorFontSize}em`
+    editorFontClass() {
+      return `font-size:${this.editorFontSize}em`;
     },
     userTranscriptLoaded() {
       return this.transcript.id === this.elementObject.user_transcript;
@@ -684,13 +690,12 @@ export default {
     }
   },
 
-  
   methods: {
-    printText(){
-        var html = document.getElementById("transcripteditorbox").innerHTML
-        var a = window.open('', '', 'height=300, width=300');
-        var dateStamp = new Date();
-        a.document.write(
+    printText() {
+      var html = document.getElementById("transcripteditorbox").innerHTML;
+      var a = window.open("", "", "height=300, width=300");
+      var dateStamp = new Date();
+      a.document.write(
         `
           <html>
           <head>
@@ -720,20 +725,22 @@ export default {
               }
             </style>
             <body>
-                <div class="header">(Source Title: ${this.elementObject.title})</div>
+                <div class="header">(Source Title: ${
+                  this.elementObject.title
+                })</div>
                 <div class="content">${html}</div>
                 <div class="footer">(PidginForge on ${dateStamp.toLocaleString()})</div>
             </body>  
           </html>
           <style>
           `
-        );
-        a.print();
+      );
+      a.print();
     },
     triggerTimeStamp() {
       this.$emit("triggerTimeStamp");
     },
-    
+
     recordTimeStamp(currenttime) {
       if (this.editing) {
         var newstamp = parseInt(currenttime);
@@ -809,14 +816,14 @@ export default {
         console.log(err);
       }
     },
-    changeEditorFontSize(direction){
-      if(direction==="up"){
-        if(this.editorFontSize < 3.5){
-          this.editorFontSize += 0.15
+    changeEditorFontSize(direction) {
+      if (direction === "up") {
+        if (this.editorFontSize < 3.5) {
+          this.editorFontSize += 0.15;
         }
       } else {
-        if(this.editorFontSize > 0.5){
-          this.editorFontSize -= 0.15
+        if (this.editorFontSize > 0.5) {
+          this.editorFontSize -= 0.15;
         }
       }
     },
@@ -888,7 +895,7 @@ export default {
         // this.$refs.scripteditor.loadTranscript(transcriptid);
       }
     },
-    
+
     async submitSave() {
       // CREATE A NEW TRANSCRIPT...
       this.submittingSave = true;
@@ -1011,8 +1018,8 @@ export default {
   height: 300px;
   overflow-x: hidden;
   overflow-x: auto;
-  font-size:1.5em;
-  font-family:Arial, Helvetica, sans-serif;
+  font-size: 1.5em;
+  font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;
 }
 

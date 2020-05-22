@@ -62,7 +62,10 @@
                     class="mb-2 orange lighten-2 black--text"
                     :to="{
                       name: 'Media-Viewer',
-                      params: { elementtype: 'YouTube', elementslug: existingSlug }
+                      params: {
+                        elementtype: 'YouTube',
+                        elementslug: existingSlug
+                      }
                     }"
                     >View Existing Video
                     <v-icon right class="black--text"
@@ -270,9 +273,9 @@ export default {
     },
     getLanguages() {
       var localLanguages = localStorage.getItem("languages");
-      if(localLanguages.length > 1){
-        console.log("Shop local!")
-        this.allLanguages = JSON.parse(localLanguages)
+      if (localLanguages.length > 1) {
+        console.log("Shop local!");
+        this.allLanguages = JSON.parse(localLanguages);
       } else {
         this.loadingLanguages = true;
         let endpoint = `/api/categories/languages/`;
@@ -290,15 +293,14 @@ export default {
         } catch (err) {
           console.log(err);
         }
-
       }
     },
 
     getTopics() {
       var localTopics = localStorage.getItem("topics");
-      if(localTopics.length > 1){
-        console.log("Shop local!")
-        this.allTopics = JSON.parse(localTopics)
+      if (localTopics.length > 1) {
+        console.log("Shop local!");
+        this.allTopics = JSON.parse(localTopics);
       } else {
         this.loadingTopics = true;
         let endpoint = `/api/categories/topics/`;

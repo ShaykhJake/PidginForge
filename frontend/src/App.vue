@@ -32,11 +32,13 @@ export default {
   methods: {
     syncUserData(userData) {
       this.userData = userData;
-      if(!this.userData.image){
-        this.userData.image="https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg"
+      if (!this.userData.image) {
+        this.userData.image =
+          "https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg";
       }
-      if(!this.userData.avatar){
-        this.userData.avatar="https://jakesdesk-media.s3.amazonaws.com/media/public/avatars/default.jpg"
+      if (!this.userData.avatar) {
+        this.userData.avatar =
+          "https://jakesdesk-media.s3.amazonaws.com/media/public/avatars/default.jpg";
       }
       localStorage.setItem("username", userData.user.username);
     },
@@ -46,7 +48,7 @@ export default {
         apiService(endpoint).then(data => {
           if (data != null) {
             this.allLanguages = data;
-            localStorage.setItem("languages", JSON.stringify(data))
+            localStorage.setItem("languages", JSON.stringify(data));
             this.error = false;
           } else {
             console.log("Something bad happened...");
@@ -63,7 +65,7 @@ export default {
       try {
         apiService(endpoint).then(data => {
           if (data != null) {
-            localStorage.setItem("topics", JSON.stringify(data))
+            localStorage.setItem("topics", JSON.stringify(data));
             this.error = false;
           } else {
             console.log("Something bad happened...");
@@ -80,7 +82,7 @@ export default {
       try {
         apiService(endpoint).then(data => {
           if (data != null) {
-            localStorage.setItem("profilelist", JSON.stringify(data))
+            localStorage.setItem("profilelist", JSON.stringify(data));
             this.error = false;
           } else {
             console.log("Something bad happened...");
@@ -93,12 +95,14 @@ export default {
       }
     },
     initializeUser() {
-      apiService(`api/users/profile/`).then(data => {
-        this.syncUserData(data);
-        this.loadingUser = false;
-      }).catch(err => {
-        console.log(err);
-      });
+      apiService(`api/users/profile/`)
+        .then(data => {
+          this.syncUserData(data);
+          this.loadingUser = false;
+        })
+        .catch(err => {
+          console.log(err);
+        });
     },
     reloadUserData() {
       apiService(`api/users/profile/`).then(data => {

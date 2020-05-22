@@ -49,7 +49,7 @@ def get_languages(request):
                 print(language.name)
 
             # languages = Language.objects.all().order_by("name")
-            serializer = LanguageSerializer()
+            serializer = LanguageSerializer(languages, many=True)
             return Response(serializer.data)
 
 class ListLanguages(APIView):

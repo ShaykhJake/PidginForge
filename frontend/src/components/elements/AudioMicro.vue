@@ -62,7 +62,8 @@
                 </div>
 
                 <p class="primary--text caption mb-0">
-                  {{ audio.saved_count }} Saves - {{ audio.transcripts.length }} Transcripts - 0 Lessons
+                  {{ audio.saved_count }} Saves -
+                  {{ audio.transcripts.length }} Transcripts - 0 Lessons
                 </p>
               </v-col>
             </v-row>
@@ -96,7 +97,6 @@
                 >
               </v-btn>
 
-
               <v-btn
                 block
                 class="mb-2 garbage desertsand--text"
@@ -110,8 +110,6 @@
                   >Unhide Audio<v-icon right>mdi-eye</v-icon></span
                 >
               </v-btn>
-
-
             </v-overlay>
           </v-fade-transition>
         </v-card>
@@ -145,7 +143,7 @@ export default {
       saving: false,
       snacktext: "",
       snacktimeout: 1500,
-      hiding: false,
+      hiding: false
     };
   },
   computed: {
@@ -157,26 +155,26 @@ export default {
       let hoursText = "";
       let minutesText = "";
       let secondsText = "";
-      if(hours === 0){
-        hoursText = "0"
+      if (hours === 0) {
+        hoursText = "0";
       } else {
-        hoursText = Math.floor(hours)
+        hoursText = Math.floor(hours);
       }
-      if(minutes === 0){
-        minutesText = "00"
+      if (minutes === 0) {
+        minutesText = "00";
       } else if (minutes < 10) {
-        minutesText = `0${Math.floor(minutes)}`
+        minutesText = `0${Math.floor(minutes)}`;
       } else {
-        minutesText = Math.floor(minutes)
+        minutesText = Math.floor(minutes);
       }
-      if(seconds === 0){
-        secondsText = "00"
+      if (seconds === 0) {
+        secondsText = "00";
       } else if (seconds < 10) {
-        secondsText = `0${Math.floor(seconds)}`
+        secondsText = `0${Math.floor(seconds)}`;
       } else {
-        secondsText = Math.floor(seconds)
+        secondsText = Math.floor(seconds);
       }
-      return `${hoursText}:${minutesText}:${secondsText}`
+      return `${hoursText}:${minutesText}:${secondsText}`;
     },
     upClass() {
       if (this.audio.user_vote === 1) {
@@ -247,7 +245,7 @@ export default {
       }
     },
     toggleHide() {
-      this.hiding=true;
+      this.hiding = true;
       let endpoint = `api/elements/audio/hide/`;
       try {
         apiService(endpoint, "POST", { pk: this.audio.id }).then(data => {
@@ -261,7 +259,7 @@ export default {
           } else {
             this.alertType = "error";
           }
-          this.hiding=false;
+          this.hiding = false;
         });
       } catch (err) {
         console.log(err);

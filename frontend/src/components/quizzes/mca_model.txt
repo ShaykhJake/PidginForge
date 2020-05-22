@@ -1,0 +1,165 @@
+This model should serve well as a lesson embed, as a course embed, or as an
+overall diagnostic assessment starting point (that would require a bit more):
+
+
+
+      "multiple_choice": {
+          "title":"Test Title",
+          "objective":"testing user retention",
+          "native_language":"English",
+          "target_language":"Arabic-MSA",
+          "topic":"crafts",
+          "test_direction_rtl":"false",
+          "randomize_questions":"true",
+          "retest_attempts": "3", // 0 = off, 1, 2, 3 = infinite
+          "feedback_granularity": "2", // 0= "score", 1="by_question", 2="all"
+          "question_set": [
+            { 
+              "select_type":"multiple",
+              "rich_content": {
+                 "enabled":"false"
+                 "type":"" // Audio/Video/Text/Photo
+                 "content":{} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
+               },
+              "stem":"Which of the following is/are non-essential nutrients?",
+              "stem_rtl":"false",
+              "alternatives_rtl":"false",
+              "alternatives":[
+                { 
+                  "text":"pizza",
+                  "key":"1",
+                  "feedback":"a human can live for at least 100 years without pizza; it is not essential",
+                },
+                { 
+                  "text":"carbohydrates",
+                  "key":"2",
+                  "feedback":"despite what fascists say, the human body does not need carbohydrates",
+                },
+                { 
+                  "text":"fat",
+                  "key":"3",
+                  "feedback":"fat is essential",
+                },
+                { 
+                  "text":"protein",
+                  "key":"4",
+                  "feedback":"protein is essential",
+                },
+              ],
+              "answer_key": ["1", "2",],
+              "explanation": "Only protein and fat are essential; humans can get by without pizza and carbs!",
+            },
+            { 
+              "select_type":"single",
+                            "rich_content": {
+                 "enabled":"false"
+                 "type":"" // Audio/Video/Text/Photo
+                 "content":{} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
+               },
+
+              "stem":"I am a tree.",
+              "stem_rtl":"false",
+              "alternatives_rtl":"false",
+              "alternatives":[
+                { 
+                  "text":"true",
+                  "key":"1",
+                  "feedback":"",
+                },
+                { 
+                  "text":"false",
+                  "key":"2",
+                  "feedback":"",
+                },
+              ],
+              "answer_key": ["2",],
+              "explanation": "I am not a tree, I am a person.",
+            },
+            { 
+              "select_type":"single",
+               "rich_content": {
+                 "enabled":"false"
+                 "type":"" // Audio/Video/Text/Photo
+                 "content":{} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
+               },
+
+              "stem":"شو اسمك يا كريم؟",
+              "stem_rtl":"true",
+              "alternatives_rtl":"true",
+              "alternatives":[
+                { 
+                  "text":"كريم",
+                  "key":"1",
+                  "feedback":"",
+                },
+                { 
+                  "text":"يعقوب",
+                  "key":"2",
+                  "feedback":"",
+                },
+                { 
+                  "text":"عبدلله",
+                  "key":"3",
+                  "feedback":"",
+                },
+                { 
+                  "text":"ما فيه اسم",
+                  "key":"4",
+                  "feedback":"",
+                },
+
+              ],
+              "answer_key": ["1",],
+              "explanation": "You should know that your name is كريم!",
+            },
+          ]
+      },
+      "constructed_response": [
+      ],
+      "cloze": [
+      ],
+      "translation": [
+      ],
+      "transcription": [
+      ],      
+    }
+
+        For entire Activity:
+          Title: (can be n/a if embedded) string
+          Objective: string
+          Test Native Language: string
+          Test Target/Learning Language: string
+          Test Direction RTL: boolean
+          Randomize Question Order: boolean
+          Allow Users to Take More than Once (how many times?): boolean
+            How many times: Array[ 1, 2, 3, infinite]
+          Feedback: Array[Score Only, Score & Questions, All]
+
+        For each Question:
+          Stem (make this a simple text object)
+            Stem content type:
+              - Allow Audio? (definitely a future pursuit)
+              - Allow Photo? (definitely a future pursuit)
+              - Allow Video? (definitely a future pursuit)
+            Stem content:
+              - If text: ProseMirror JSON
+              - If Audio: {
+                    url for audio
+                    start/stop time (loop time)
+                  }
+              - If Video: {
+                    youtubeID
+                    start/stop/loop time
+                  }
+              - If photo: {
+                    URL
+                  }
+          Text Direction
+          Include Arrows to Change Order
+          Answer Explanation
+          For each alternative set:
+            Randomize Order?
+            Text Direction
+            For each alternative:
+              Correct or not
+              Ordering

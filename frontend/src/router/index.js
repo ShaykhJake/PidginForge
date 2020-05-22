@@ -5,8 +5,8 @@ import Home from "../views/Home.vue";
 import Events from "../views/Events.vue";
 import NotFound from "../views/NotFound.vue";
 import QuestionViewer from "../views/QuestionViewer.vue";
-// import YouTubeViewer from "../views/YouTubeViewer.vue";
-// import AudioViewer from "../views/AudioViewer.vue";
+import LessonBuilder from "../components/lessons/LessonBuilder.vue";
+import LessonViewer from "../views/LessonViewer.vue";
 import MediaElementViewer from "../views/MediaElementViewer.vue";
 import TextElementViewer from "../views/TextElementViewer.vue";
 import Curate from "../views/Curate.vue";
@@ -59,6 +59,18 @@ export default new VueRouter({
       path: "/text/:elementslug",
       name: "Text-Viewer",
       component: TextElementViewer,
+      props: true
+    },
+    {
+      path: "/lessons/builder/:lessonslug?",
+      name: "Lesson-Builder",
+      component: LessonBuilder,
+      props: true
+    },
+    {
+      path: "/lessons/viewer/:lessonslug",
+      name: "Lesson-Viewer",
+      component: LessonViewer,
       props: true
     },
     {

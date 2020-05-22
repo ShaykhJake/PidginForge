@@ -8,11 +8,10 @@
         <v-card-text class="desertsand calligraphy--text">
           <v-row wrap dense>
             <v-col cols="12">
-              <p>Current username: <strong>{{ currentUsername }}</strong></p>
-              <v-form
-                ref="form"
-                v-model="valid"
-              >
+              <p>
+                Current username: <strong>{{ currentUsername }}</strong>
+              </p>
+              <v-form ref="form" v-model="valid">
                 <v-text-field
                   v-model="username1"
                   :rules="[rules.required, rules.nospace]"
@@ -35,8 +34,8 @@
                 ></v-text-field>
               </v-form>
               <v-alert :value="error" dense type="error"
-                >That username is already in use; please try
-                a different one.</v-alert
+                >That username is already in use; please try a different
+                one.</v-alert
               >
               <v-alert :value="changeerror" dense type="error">{{
                 changeErrorMessage
@@ -87,7 +86,7 @@ export default {
   name: "ChangeUsername",
   props: {
     currentUsername: String,
-    showDialog: Boolean,
+    showDialog: Boolean
   },
   data() {
     return {
@@ -190,7 +189,7 @@ export default {
       this.success = false;
       this.available = false;
       this.$emit("closeDialog");
-    },
+    }
   }
 };
 </script>

@@ -35,7 +35,9 @@
               <v-col cols="12" class="text-justify"> </v-col>
               <v-col cols="12" class="pa-0 text-center">
                 <p class="overline font-weight-light mb-1">
-                  <span class="languages--text"> {{ textElement.language }} </span>
+                  <span class="languages--text">
+                    {{ textElement.language }}
+                  </span>
                   |<span class="topics--text"> {{ textElement.topic }}</span> |
                   ><br />
                 </p>
@@ -61,7 +63,9 @@
                 </div>
 
                 <p class="primary--text caption mb-0">
-                  {{ textElement.saved_count }} Saves - {{ textElement.translations.length || 0 }} Translations - 0 Lessons
+                  {{ textElement.saved_count }} Saves -
+                  {{ textElement.translations.length || 0 }} Translations - 0
+                  Lessons
                 </p>
               </v-col>
             </v-row>
@@ -94,7 +98,6 @@
                 >
               </v-btn>
 
-
               <v-btn
                 block
                 class="mb-2 garbage desertsand--text"
@@ -108,8 +111,6 @@
                   >Unhide Text<v-icon right>mdi-eye</v-icon></span
                 >
               </v-btn>
-
-
             </v-overlay>
           </v-fade-transition>
         </v-card>
@@ -132,9 +133,7 @@ export default {
   props: {
     textElement: Object
   },
-  components: {
-
-  },
+  components: {},
   data() {
     return {
       loading: false,
@@ -143,7 +142,7 @@ export default {
       saving: false,
       snacktext: "",
       snacktimeout: 1500,
-      hiding: false,
+      hiding: false
     };
   },
   computed: {
@@ -192,7 +191,8 @@ export default {
           if (data != null) {
             if (data.success == true) {
               // this.$emit("hideElement")
-              this.textElement.user_has_saved = !this.textElement.user_has_saved;
+              this.textElement.user_has_saved = !this.textElement
+                .user_has_saved;
               if (this.textElement.user_has_saved) {
                 this.textElement.saved_count += 1;
                 this.snackbar = true;
@@ -216,7 +216,7 @@ export default {
       }
     },
     toggleHide() {
-      this.hiding=true;
+      this.hiding = true;
       let endpoint = `api/elements/text/hide/`;
       try {
         apiService(endpoint, "POST", { pk: this.textElement.id }).then(data => {
@@ -230,7 +230,7 @@ export default {
           } else {
             this.alertType = "error";
           }
-          this.hiding=false;
+          this.hiding = false;
         });
       } catch (err) {
         console.log(err);

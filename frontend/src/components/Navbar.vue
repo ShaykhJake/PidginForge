@@ -12,15 +12,15 @@
             :to="{ name: 'Home' }"
             exact
           >
-          <a>
-            <v-avatar>
-              <img
-                src="https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"
-                class="logo-img"
-                alt=""
-              />
-            </v-avatar>
-          </a>
+            <a>
+              <v-avatar>
+                <img
+                  src="https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"
+                  class="logo-img"
+                  alt=""
+                />
+              </v-avatar>
+            </a>
           </v-btn>
         </template>
         <span>Home</span>
@@ -117,33 +117,43 @@
         <span>Events Calendar</span>
       </v-tooltip>
 
-
-
       <v-btn text fab class="calligraphy mt-2" @click="drawer = !drawer">
         <v-avatar>
-          <v-img class="elevation-6" :src="userData.avatar ? userData.avatar : 'https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg' "></v-img>
+          <v-img
+            class="elevation-6"
+            :src="
+              userData.avatar
+                ? userData.avatar
+                : 'https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg'
+            "
+          ></v-img>
         </v-avatar>
       </v-btn>
-
     </v-app-bar>
 
-    <v-navigation-drawer floating temporary right app v-model="drawer" class="calligraphy" xs12>
+    <v-navigation-drawer
+      floating
+      temporary
+      right
+      app
+      v-model="drawer"
+      class="calligraphy"
+      xs12
+    >
       <v-container fluid class="pa-0">
         <v-row>
           <v-col>
             <v-container fluid>
-
               <v-card dense class="center mt-0" mx-0>
-                <v-img :src="userData.image ? userData.image : '' ">
-                </v-img>
+                <v-img :src="userData.image ? userData.image : ''"> </v-img>
                 <v-card-title class="sandstone calligraphy--text py-2">
                   {{ userData.user.username }}
                 </v-card-title>
                 <v-card-text class="desertsand pt-2">
                   User Points: {{ userData.points }}
-                  <hr>
+                  <hr />
                   Followers: {{ userData.follower_count }}
-                  <hr>
+                  <hr />
                   Vocab Stack: 0
                 </v-card-text>
                 <v-card-actions class="sandstone">
@@ -164,7 +174,7 @@
                         fab
                         class="primary"
                         v-on="on"
-                        @click="profileUpdateDialog=true"
+                        @click="profileUpdateDialog = true"
                       >
                         <v-icon>settings</v-icon>
                       </v-btn>
@@ -179,7 +189,7 @@
                         fab
                         class="primary"
                         v-on="on"
-                        @click="confirmLogoutDialog=true"
+                        @click="confirmLogoutDialog = true"
                       >
                         <v-icon>mdi-exit-run</v-icon>
                       </v-btn>
@@ -216,15 +226,14 @@
       v-if="profileUpdateDialog"
       :show-dialog="profileUpdateDialog"
       :user-data="userData"
-      @closeDialog="profileUpdateDialog=false"
+      @closeDialog="profileUpdateDialog = false"
       @emitUserDataChange="emitUserDataChange"
     />
-    <ConfirmLogout 
+    <ConfirmLogout
       v-if="confirmLogoutDialog"
       :show-dialog="confirmLogoutDialog"
-      @closeDialog="confirmLogoutDialog=false"
+      @closeDialog="confirmLogoutDialog = false"
     />
-
   </nav>
 </template>
 

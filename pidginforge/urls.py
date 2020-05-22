@@ -42,6 +42,8 @@ urlpatterns = [
     path("api/elements/", include("elements.api.urls")),
     path("api/malapropos/", include("malapropos.api.urls")),
     path("api/events/", include("events.api.urls")),
+    path("api/lessons/", include("lessons.api.urls")),
+    path("api/vocab/", include("vocab.api.urls")),
     path("api/", include("questions.api.urls")),
     path("api/categories/", include("categories.api.urls")),
     re_path('rest-auth/registration/account-confirm-email/(?P<key>.+)/', confirm_email, name='account_confirm_email'),

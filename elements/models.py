@@ -304,7 +304,6 @@ def add_slug_to_textelement(sender, instance, *args, **kwargs):
 
 
 
-
 # class WebElement(models.Model):
 # class DocumentElement(models.Model):
 

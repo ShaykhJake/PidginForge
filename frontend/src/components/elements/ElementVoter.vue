@@ -98,14 +98,13 @@ export default {
       } else if (this.elementType === "Text") {
         endpoint = `/api/elements/text/vote/`;
         payload.slug = this.slug;
-        payload.id = this.elementid; 
+        payload.id = this.elementid;
         payload.vote = votetype;
       } else if (this.elementType === "Markup") {
         endpoint = `/api/elements/markup/vote/`;
-        payload.id = this.elementid; 
+        payload.id = this.elementid;
         payload.vote = votetype;
-      } 
-
+      }
 
       if (endpoint) {
         apiService(endpoint, "POST", payload).then(data => {

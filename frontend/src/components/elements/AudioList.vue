@@ -5,19 +5,15 @@
         <v-card>
           <v-card-text class="desertsand calligraphy--text">
             There are no audio elements which match your language/topic
-            preferences. You may need to update your profile to add
-            learning languages and topics...or maybe we just don't
-            have enough content yet!
+            preferences. You may need to update your profile to add learning
+            languages and topics...or maybe we just don't have enough content
+            yet!
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
     <v-row wrap dense v-if="filteredCount">
-      <v-col
-        cols="12"
-        v-for="audio in filteredElements"
-        :key="audio.id"
-      >
+      <v-col cols="12" v-for="audio in filteredElements" :key="audio.id">
         <AudioMicro
           :audio="audio"
           :hidden="audio.user_has_hidden"
@@ -58,20 +54,20 @@ export default {
   props: {
     preferenceFilter: {
       required: false,
-      default: false,
+      default: false
     }
   },
   computed: {
     filteredElements() {
-      if (this.preferenceFilter){
+      if (this.preferenceFilter) {
         return this.audios.filter(element => {
-          return !element.filtered
-        })
+          return !element.filtered;
+        });
       } else {
         return this.audios;
       }
     },
-    filteredCount(){
+    filteredCount() {
       return this.filteredElements.length;
     }
   },
