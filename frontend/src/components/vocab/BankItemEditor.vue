@@ -51,6 +51,12 @@
                            </v-col>
                         </v-row>
 
+                        <v-row v-if="noL1Results && !showingL1WordList">
+                           <v-col align="center">
+                              <span class="overline">... no results (hint: add some) ...</span>
+                           </v-col>
+                        </v-row>
+
                         <v-autocomplete
                            v-model="selectedL1Word"
                            v-if="showingL1WordList"
@@ -78,8 +84,8 @@
                                     
                                     <v-list-item-subtitle>
                                        Language(s):
-                                       <v-chip small outlined class="languages" v-for="(language, index) in data.item.languages" :key="index">
-                                          {{ language }}      
+                                       <v-chip small outlined class="languages">
+                                          {{ data.item.language }}      
                                        </v-chip>
                                     </v-list-item-subtitle>
 
@@ -91,15 +97,16 @@
                               </template>
                            </template>
                         </v-autocomplete>
-                        <span v-if="showingL1WordList" class="overline">Don't like what you see?</span>
-                        <v-btn small v-if="showingL1WordList" block class="languages desertsand--text" @click="newTerm1Dialog=true">Add New Term<v-icon right>mdi-plus-box-outline</v-icon></v-btn>
+
+                        <span v-if="showingL1WordList || noL1Results" class="overline">Don't like what you see?</span>
+                        <v-btn small v-if="showingL1WordList || noL1Results" block class="languages desertsand--text" @click="newTerm1Dialog=true">Add New Term<v-icon right>mdi-plus-box-outline</v-icon></v-btn>
 
                         <AddNewTerm 
                            v-if="newTerm1Dialog"
                            @closeDialog="newTerm1Dialog=false"
                            @pushNewTerm="selectNewTerm1"
                            :dialog="newTerm1Dialog"
-                           :language="nativeLanguage"
+                           :language="sourceLanguage"
                         />
 
                      </v-card-text>
@@ -166,8 +173,8 @@
                                        
                                        <v-list-item-subtitle>
                                           Language(s):
-                                          <v-chip small outlined class="languages" v-for="(language, index) in data.item.languages" :key="index">
-                                             {{ language }}      
+                                          <v-chip small outlined class="languages">
+                                             {{ data.item.language }}      
                                           </v-chip>
                                        </v-list-item-subtitle>
 
@@ -185,7 +192,7 @@
                               </template>
                            </v-autocomplete>
 
-                           <v-btn small v-if="showingPairings" block class="languages desertsand--text mb-2" @click="curateNewPairing">Add New Pairing <v-icon right>mdi-plus-box-outline</v-icon></v-btn>
+                           <v-btn small v-if="showingPairings" block class="topics desertsand--text mb-2" @click="curateNewPairing">Add New Pairing <v-icon right>mdi-plus-box-outline</v-icon></v-btn>
 
                            <v-autocomplete
                               v-if="curatingNewPair"
@@ -228,7 +235,7 @@
 
                            <v-row v-if="noL2Results && !showingL2WordList">
                               <v-col align="center">
-                                 <span class="overline">... no words available yet ...</span>
+                                 <span class="overline">... no results (hint: add some) ...</span>
                               </v-col>
                            </v-row>
                            
@@ -257,9 +264,9 @@
                                           v-html="data.item.word"
                                        ></v-list-item-title>
                                        <v-list-item-subtitle>
-                                          Language(s):
-                                          <v-chip small outlined class="languages" v-for="(language, index) in data.item.languages" :key="index">
-                                             {{ language }}      
+                                          Language:
+                                          <v-chip small outlined class="languages">
+                                             {{ data.item.language }}      
                                           </v-chip>
                                        </v-list-item-subtitle>
 
@@ -322,8 +329,8 @@
                                     Curator: {{ l1Details.curator.username }}<br>
                                     Date Created: {{ l1Details.curationdate }}<br>
                                     Language(s):
-                                    <v-chip small outlined class="languages" v-for="(language, index) in l1Details.languages" :key="index">
-                                       {{ language }}      
+                                    <v-chip small outlined class="languages">
+                                       {{ l1Details.language }}      
                                     </v-chip><br>
                                     Lexeme: {{ l1Details.lexeme ? l1Details.lexeme.lemma : '' }}<br>
                                     # of Definitions: {{ l1Details.definitions.length }}<br>
@@ -365,8 +372,8 @@
                                  Curator: {{ l2Details.curator.username }}<br>
                                  Date Created: {{ l2Details.curationdate }}<br>
                                  Language(s):
-                                 <v-chip small outlined class="languages" v-for="(language, index) in l2Details.languages" :key="index">
-                                    {{ language }}      
+                                 <v-chip small outlined class="languages">
+                                    {{ l2Details.language }}      
                                  </v-chip><br>
 
                                  Lexeme: {{ l2Details.lexeme.lemma }}<br>
@@ -383,7 +390,16 @@
                         </v-row>
                      </v-card-text>
                      <v-card-actions>
-                        <v-btn small :disabled="!showingL1Details || !showingL2Details" block class="primary desertsand--text" @click="addPairToBank">Add Pair to Bank <v-icon right>mdi-check</v-icon></v-btn>
+                        <v-btn 
+                           small 
+                           :disabled="!showingL1Details || !showingL2Details" 
+                           block class="primary desertsand--text" 
+                           @click="addPairToBank"
+                           :loading="submittingNewPair"
+                        >
+                           Add Pair to Bank <v-icon right>mdi-check</v-icon>
+                        </v-btn>
+                           
                      </v-card-actions>
 
                   </v-card>
@@ -421,7 +437,7 @@ export default {
          type: String,
          required: false,
       },
-      nativeLanguage: {
+      sourceLanguage: {
          type: String,
          required: false,
       },
@@ -452,7 +468,7 @@ export default {
       
       curatingNewPair: false,
       showingTargetWord: false,
-      
+      submittingNewPair: false,
       selectedPairID: null,
       
       loadingPairings: false,
@@ -698,18 +714,19 @@ export default {
                if (data){
                   console.log(data);
                   this.$emit("addPair", data)
+                  this.submittingNewPair = false;
                   // Emit the new Language Pair up to The Vocab Bank
                   // Reset the Modal down to source language
                   // Post a snack to say that the word was added...
                } else {
                   console.log("There was a major problem with the request.");
                   // console.log(data.message);
-                  this.loadingL1Details = false;
+                  this.submittingNewPair = false;
                }
             });
          } catch (err) {
          console.log(err);
-            this.loadingL1Details = false;
+            this.submittingNewPair = false;
          }
       },
       selectPair(pairID){
@@ -720,9 +737,9 @@ export default {
       this.getLanguages();
    },
    mounted(){
-      if(this.nativeLanguage){
-         this.l1Language=this.nativeLanguage;
-         this.loadL1WordList(this.nativeLanguage);
+      if(this.sourceLanguage){
+         this.l1Language=this.sourceLanguage;
+         this.loadL1WordList(this.sourceLanguage);
          this.l2Language=this.targetlanguage;
       
       }

@@ -7,6 +7,7 @@ import NotFound from "../views/NotFound.vue";
 import QuestionViewer from "../views/QuestionViewer.vue";
 import LessonBuilder from "../components/lessons/LessonBuilder.vue";
 import LessonViewer from "../views/LessonViewer.vue";
+import VocabCurator from "../components/vocab/VocabCurator.vue";
 import MediaElementViewer from "../views/MediaElementViewer.vue";
 import TextElementViewer from "../views/TextElementViewer.vue";
 import Curate from "../views/Curate.vue";
@@ -65,6 +66,12 @@ export default new VueRouter({
       path: "/lessons/builder/:lessonslug?",
       name: "Lesson-Builder",
       component: LessonBuilder,
+      props: true
+    },
+    {
+      path: "/curate/vocab/:lexemeslug?",
+      name: "Vocab-Curator",
+      component: VocabCurator,
       props: true
     },
     {

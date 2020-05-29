@@ -110,7 +110,7 @@ class YouTubeElement(models.Model):
 
     # Title Defaults to What's Pulled in From YouTube, but Can be Changed
     title = models.CharField(max_length=150, default="", null=False)
-    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    slug = models.SlugField(max_length=255, allow_unicode=True, unique=True, null=True, blank=True)
 
     # TODO - Consider whether or not to add a start/stop time?
 
@@ -149,7 +149,7 @@ class YouTubeElement(models.Model):
 @receiver(pre_save, sender=YouTubeElement)
 def add_slug_to_youtubeelement(sender, instance, *args, **kwargs):
     if instance and not instance.slug:
-        slug = slugify(instance.title)
+        slug = slugify(instance.title, allow_unicode=True)
         random_string = generate_random_string()
         instance.slug = slug + "-" + random_string
 
@@ -172,7 +172,7 @@ class AudioElement(models.Model):
 
     # Title Defaults to What's Pulled in From YouTube, but Can be Changed
     title = models.CharField(max_length=150, default="", null=False)
-    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    slug = models.SlugField(max_length=255, allow_unicode=True, unique=True, null=True, blank=True)
 
     # TODO - Consider whether or not to add a start/stop time?
 
@@ -211,7 +211,7 @@ class AudioElement(models.Model):
 @receiver(pre_save, sender=AudioElement)
 def add_slug_to_audioelement(sender, instance, *args, **kwargs):
     if instance and not instance.slug:
-        slug = slugify(instance.title)
+        slug = slugify(instance.title, allow_unicode=True)
         random_string = generate_random_string()
         instance.slug = slug + "-" + random_string
 
@@ -261,7 +261,7 @@ class TextElement(models.Model):
    
     #### Content
     title = models.CharField(max_length=150, default="", null=False)
-    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    slug = models.SlugField(max_length=255, allow_unicode=True, unique=True, null=True, blank=True)
 
     content = JSONField(null=True, blank=True)
     rawtext = models.TextField(default='')
@@ -296,7 +296,7 @@ class TextElement(models.Model):
 @receiver(pre_save, sender=TextElement)
 def add_slug_to_textelement(sender, instance, *args, **kwargs):
     if instance and not instance.slug:
-        slug = slugify(instance.title)
+        slug = slugify(instance.title, allow_unicode=True)
         random_string = generate_random_string()
         instance.slug = slug + "-" + random_string
 

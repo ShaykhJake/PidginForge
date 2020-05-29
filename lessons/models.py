@@ -22,13 +22,13 @@ class Lesson(models.Model):
    updated = models.DateTimeField(auto_now=True, editable=False)
 
    title = models.CharField(max_length=140, default="new title", null=False)
-   slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+   slug = models.SlugField(max_length=255, allow_unicode=True, unique=True, null=True, blank=True)
    objective = models.CharField(max_length=402, default="new objective", null=False)
 
    skill_level = models.CharField(max_length=32, default="Other", null=False)
    lesson_type = models.CharField(max_length=64, default="Other", null=False)
 
-   native_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="lesson_native_language")
+   source_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="lesson_native_language")
    target_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="lesson_target_language")
    topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, related_name="lesson_topic")
    
@@ -56,7 +56,7 @@ class Lesson(models.Model):
 def add_slug_to_lesson(sender, instance, *args, **kwargs):
    if instance and not instance.slug:
       slugstring = instance.title
-      slug = slugify(slugstring)
+      slug = slugify(slugstring, allow_unicode=True)
       random_string = generate_random_string()
       instance.slug = slug + "-" + random_string
 

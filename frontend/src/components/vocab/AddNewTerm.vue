@@ -6,36 +6,124 @@
          </v-card-title>
          <v-card-text class="px-2">
             <p class="overline">
-            Add a new term/word (in its inflected form) to the database. This can
+            Add a new term/word (<a @click="inflectedFormInfo=true">in its inflected form</a>) to the database. This can
             be a single word or a phrase.  Start by choosing the languages in which
             this word/term has the same form:
             </p>
+            <v-dialog
+               v-model="inflectedFormInfo"
+               max-width="450"
+               scrollable
+            >
+               <v-card class="desertsand">
+                  <v-card-title
+                     class="headline sandstone calligraphy--text"
+                     primary-title
+                  >
+                     Why Inflected Form?
+                  </v-card-title>
+
+                  <v-card-text>
+                     <p>
+                     Although admittedly inconvenient for curators when
+                     adding words to our PidginForge dictionary, there is a reason
+                     for distinguishing between the inflected form and the lexeme.
+                     </p>
+
+                     <blockquote class="blockquote">
+                     <em>inflection:</em>
+                     a change in the form of a word (typically the ending) to 
+                     express a grammatical function or attribute such as tense, 
+                     mood, person, number, case, and gender.
+                     </blockquote>
+
+                     <blockquote class="blockquote">
+                     <em>lexeme:</em>
+                     a basic lexical unit of a language, consisting of one word or several words, 
+                     considered as an abstract unit, 
+                     and applied to a family of words related by form or meaning
+                     </blockquote>
+
+                     <p>
+                     While it's important to memorize inflected forms, it's even
+                     more important for the linguist to be able to reduce these forms
+                     to their shared lexeme. PidginForge groups these words together
+                     by lexeme as a way to expand the linguist's vocabulary when
+                     doing exercises. 
+                     
+                     </p>
+                     <p>
+                     For example, if we create a vocab card for the lexeme 
+                     "go", it will automatically link to (and test the user with) any
+                     inflected forms that have been declared and linked in the database. The user
+                     may be quizzed on the following pairs: "go", "to go", "he goes", "they went", 
+                     etc. 
+                     </p>
+                     <p>
+                     Let's do some math. Assume that each Arabic verb has more than 10 inflected
+                     (conjugated in this case) forms. You could maintain 1 vocabulary card
+                     for the lexeme, or 10 vocabulary cards for those inflected forms. That might
+                     be okay if you're learning just a few words, but if you have 100 verbs
+                     that you want to learn, a stack of 1000 may be cumbersome.
+                     </p>
+                     <p>
+                     For compound words and idioms, we also follow this rule, but mostly just
+                     to maintain the system PidginForge uses for storing these words. Yet some
+                     idioms and phrases do get conjugated. For example: 
+                     </p>
+                     <p>
+                     "Ball is in your court": this is form is for 2nd person singular, with
+                     the 2nd person possessive pronoun being the variable here. It would be
+                     ineffective if we had separate vocabulary cards in our stacks for 
+                     each and everyone one of those, because it would be hard for a user
+                     to easily maintain those stacks. Instead, we would create a lexeme like
+                     "ball is in (s.o.'s) court" (curators have some artistic license here).
+                     </p>
+                     <p>
+                     Additionally, it is very important that, when doing vocabublary exercises,
+                     that we link to real context; for that real context, we must maintain
+                     the inflected forms.
+                     </p>
+                     <p>
+                     It must be emphasized that we frequently encounter inflected forms
+                     which look exactly like their lexeme. This is okay, but we still need
+                     to create separate entries (one for inflected form, one for lexeme). We 
+                     see this very often with simple nouns: "dog". This is both an inflected form
+                     (singular) and the lexeme into which we also group the plural form "dogs".
+                     </p>
+                     <p>
+                     I'll close by noting: You can add BOTH lexeme cards and inflected form
+                     cards to your vocab card stack; your choice. However, I feel that most people, in
+                     the end, will prefer to group those cards by lexeme, just as a dictionary does.
+                     </p>
+                  </v-card-text>
+
+                  <v-divider></v-divider>
+
+                  <v-card-actions class="sandstone">
+                     <v-spacer></v-spacer>
+                     <v-btn
+                        color="primary"
+                        text
+                        @click="inflectedFormInfo = false"
+                     >
+                        Got It
+                     </v-btn>
+                  </v-card-actions>
+               </v-card>
+            </v-dialog>
             <v-form v-model="valid">
               <v-autocomplete
-                v-model="termLanguages"
+                v-model="termLanguage"
                 :items="allLanguages"
                 dense
                 outlined
-                chips
-                color="blue-grey lighten-2"
+                color="primary"
                 label="Word/Term Language(s)"
-                multiple
                 item-text="name"
                 item-value="name"
                 :rules="[rules.requiredTermLanguage]"
               >
-                <template v-slot:selection="data">
-                  <v-chip
-                    color="primary"
-                    v-bind="data.attrs"
-                    :input-value="data.selected"
-                    close
-                    @click="data.select"
-                    @click:close="removeTermLanguage(data.item)"
-                  >
-                    {{ data.item.name }}
-                  </v-chip>
-                </template>
               </v-autocomplete>
 
                <div :style="termRTL ? 'direction:rtl;' : ''">
@@ -137,8 +225,8 @@
                            
                            <v-list-item-subtitle>
                               Language(s):
-                              <v-chip small outlined class="languages" v-for="(language, index) in data.item.languages" :key="index">
-                                 {{ language }}      
+                              <v-chip small outlined class="languages">
+                                 {{ data.item.language }}      
                               </v-chip>
                            </v-list-item-subtitle>
 
@@ -191,10 +279,11 @@ export default {
    },
    data: () => ({
       newLexemeDialog: false,
-      termLanguages: [],
+      termLanguage: null,
       valid: false,
       curatorNote: null,
       newTerm: null,
+      inflectedFormInfo: false,
       lexemeLanguage: null,
       fetchingLexemeList: false,
       selectedLexeme: null,
@@ -231,9 +320,9 @@ export default {
    },
    computed: {
       termRTL(){
-         if(this.termLanguages && this.termLanguages.length > 0){
+         if(this.termLanguage){
             for(var i = 0; i < this.allLanguages.length; i += 1 ){
-               if(this.allLanguages[i].name === this.termLanguages[0]){
+               if(this.allLanguages[i].name === this.termLanguage){
                   console.log("found it")
                   if(this.allLanguages[i].direction === "RTL"){
                      return true
@@ -253,14 +342,10 @@ export default {
       closeDialog(){
          this.$emit("closeDialog")
       },
-      removeTermLanguage(item) {
-         const index = this.termLanguages.indexOf(item);
-         if (index >= 0) this.termLanguages.splice(index, 1);
-      },
       selectNewLexeme(lexeme){
          this.lexemeList.push(lexeme)
          this.selectedLexeme=lexeme.id;
-         this.lexemeLanguage=lexeme.languages[0]
+         this.lexemeLanguage=lexeme.language
          console.log(lexeme)
       },
       loadLexemeList(language){
@@ -294,7 +379,7 @@ export default {
          let endpoint = `/api/vocab/inflectedformz/`;
          let method = "POST";
          let payload = {
-            languages: this.termLanguages,
+            language: this.termLanguage,
             word: this.newTerm,
             curator_note: this.curatorNote,
             lexeme_id: this.selectedLexeme,
@@ -350,7 +435,7 @@ export default {
    },
    mounted(){
       if(this.language){
-         this.termLanguages.push(this.language);
+         this.termLanguage = this.language;
          this.lexemeLanguage = this.language;
          this.loadLexemeList(this.language);
       }

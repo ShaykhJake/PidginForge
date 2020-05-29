@@ -30,8 +30,12 @@ from lessons.models import LessonVocabBank
 
 from vocab.api.serializers import (
                            LexemeSerializer,
+                           LexemeDefinitionSerializer,
+                           LexemePronunciationSerializer,
                            VocabBankSerializer,
                            InflectedFormSerializer,
+                           InflectedFormDefinitionSerializer,
+                           InflectedFormPronunciationSerializer,
                            InflectedFormPairSerializer,
                             )
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -59,15 +63,18 @@ def get_word_list(request):
    if request.method == 'GET':
       language_param = request.GET.get('language', '')
       if language_param == '':
-         words = InflectedForm.objects.filter(languages = None).order_by("-word")
+         words = InflectedForm.objects.filter(language = None).order_by("-word")
       elif language_param == 'all':
          words = InflectedForm.objects.all().order_by("-word")
       else:
          language = get_object_or_404(Language, name=language_param)
-         words = InflectedForm.objects.filter(languages = language)
+         words = InflectedForm.objects.filter(language = language)
 
       return Response(InflectedFormSerializer(words, many=True).data)
    return Response(resdata)
+
+
+
 
 
 @api_view(['GET'])
@@ -76,12 +83,12 @@ def get_lexeme_list(request):
    if request.method == 'GET':
       language_param = request.GET.get('language', '')
       if language_param == '':
-         words = Lexeme.objects.filter(languages = None).order_by("-lemma")
+         words = Lexeme.objects.filter(language = None).order_by("-lemma")
       elif language_param == 'all':
          words = Lexeme.objects.all().order_by("-lemma")
       else:
          language = get_object_or_404(Language, name=language_param)
-         words = Lexeme.objects.filter(languages = language)
+         words = Lexeme.objects.filter(language = language)
 
       return Response(LexemeSerializer(words, many=True).data)
    return Response(resdata)
@@ -97,12 +104,16 @@ class InflectedFormViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         lexeme_id=self.request.data.get('lexeme_id')
+        lexeme_slug=self.request.data.get('lexemeslug')
         if lexeme_id:
             lexeme = get_object_or_404(Lexeme, pk=lexeme_id)
             serializer.save(curator=self.request.user, lexeme=lexeme)
+        elif lexeme_slug:
+            lexeme = get_object_or_404(Lexeme, slug=lexeme_slug)
+            serializer.save(curator=self.request.user, lexeme=lexeme)
         else:
             serializer.save(curator=self.request.user)
-        self.request.user.user_profile.points += 5
+        self.request.user.user_profile.points += 3
         self.request.user.user_profile.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -130,15 +141,12 @@ def wordpair_list(request, pk):
    for key in wordlist:
       associated_word = get_object_or_404(InflectedForm, pk=key)
       word_object = InflectedFormSerializer(associated_word)
-      languages = []
-      for i in associated_word.languages.all():
-         languages.append(i.name)
       word_package = {
          'id': associated_word.pk,
          'lexeme': associated_word.lexeme.lemma,
          'count': wordlist[key],
          'word': associated_word.word,
-         'languages': languages,
+         'language': associated_word.language,
       }
       resdata.append(word_package)
 
@@ -267,7 +275,7 @@ class InflectedFormPairViewSet(viewsets.ModelViewSet):
 class LexemeViewSet(viewsets.ModelViewSet):
 
     queryset = Lexeme.objects.all().order_by("-curationdate")
-    lookup_field = "pk"
+    lookup_field = "slug"
     serializer_class = LexemeSerializer
     permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
 
@@ -298,94 +306,184 @@ class LexemeViewSet(viewsets.ModelViewSet):
       serializer = LexemeSerializer(queryset, many=True, context=serializer_context) 
       return Response(serializer.data)
 
+class LexemeDefinitionViewSet(viewsets.ModelViewSet):
+    queryset = LexemeDefinition.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = LexemeDefinitionSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
 
-# @api_view(['POST'])
-# def youtube_check(request):
-#    resdata = {}
-#    if request.method == 'POST':
-#       videoid = request.data['videoid']
-#       if videoid:
-#          items = YouTubeElement.objects.filter(videoid=videoid)
-#          if items.count() == 0:
-#             resdata['available'] = True
-#             resdata['message'] = "That youtube does not yet exist in the database!"
-#          else:
-#             resdata['available'] = False
-#             resdata['message'] = "Video already exists in database as..."
-#             resdata['slug'] = items[0].slug
-#             resdata['title'] = items[0].title
-#             # TODO Add in the link to the object that already exists
-#    return Response(resdata)
+    def perform_create(self, serializer):
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # This list is currently factoring in user preferences and filtering by learning languages/topics
+    def list(self, request):
+      userlanguages = request.user.user_profile.learninglanguage.all()
+      usertopics = request.user.user_profile.learningtopics.all()
+      queryset = LexemeDefinition.objects.all().order_by("-curationdate")
+      # queryset = Lexeme.objects.filter(
+      #    suspended = False,
+      # #   language__in = userlanguages,
+      # #   topic__in = usertopics,
+      # ).order_by("-curationdate")
+
+      serializer_context = {"request": request, "userlanguages": userlanguages, "usertopics": usertopics}
+      
+      page = self.paginate_queryset(queryset)
+      if page is not None:
+         serializer = LexemeDefinitionSerializer(page, many=True, context=serializer_context) 
+         return self.get_paginated_response(serializer.data)
+
+      serializer = LexemeDefinitionSerializer(queryset, many=True, context=serializer_context) 
+      return Response(serializer.data)
+
+class InflectedFormDefinitionViewSet(viewsets.ModelViewSet):
+    queryset = InflectedFormDefinition.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = InflectedFormDefinitionSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # This list is currently factoring in user preferences and filtering by learning languages/topics
+    def list(self, request):
+      userlanguages = request.user.user_profile.learninglanguage.all()
+      usertopics = request.user.user_profile.learningtopics.all()
+      queryset = InflectedFormDefinition.objects.all().order_by("-curationdate")
+      # queryset = Lexeme.objects.filter(
+      #    suspended = False,
+      # #   language__in = userlanguages,
+      # #   topic__in = usertopics,
+      # ).order_by("-curationdate")
+
+      serializer_context = {"request": request, "userlanguages": userlanguages, "usertopics": usertopics}
+      
+      page = self.paginate_queryset(queryset)
+      if page is not None:
+         serializer = InflectedFormDefinitionSerializer(page, many=True, context=serializer_context) 
+         return self.get_paginated_response(serializer.data)
+
+      serializer = InflectedFormDefinitionSerializer(queryset, many=True, context=serializer_context) 
+      return Response(serializer.data)
 
 
-# @api_view(['POST'])
-# def youtube_togglesaved(request):
-#    if request.method == 'POST':
-#       resdata = {}
-#       if request.user.is_authenticated:
-#          element = get_object_or_404(YouTubeElement, pk=int(request.data['pk']))
-#          if request.user in element.saved.all():
-#             element.saved.remove(request.user)
-#             element.save()
-#             resdata['message'] = "Successfully removed item from saved list"
-#             resdata['success'] = True
-#          else: 
-#             element.saved.add(request.user)
-#             element.save()
-#             resdata['message'] = "Successfully added item to saved list"
-#             resdata['success'] = True
-#    return Response(resdata)
+@api_view(['GET'])
+def lexeme_definition_list(request, slug):
+   lexeme = get_object_or_404(Lexeme, slug=slug);
+   definitions = lexeme.lexemedefinition_set.all()
+   serializer = LexemeDefinitionSerializer(definitions, many=True)
+   return Response(serializer.data)
 
-# @api_view(['POST'])
-# def youtube_togglehidden(request):
-#    if request.method == 'POST':
-#       resdata = {}
-#       if request.user.is_authenticated:
-#          element = get_object_or_404(YouTubeElement, pk=int(request.data['pk']))
-#          if request.user in element.hidden.all():
-#             element.hidden.remove(request.user)
-#             element.save()
-#             resdata['message'] = "Successfully removed item from hidden list"
-#             resdata['success'] = True
-#          else: 
-#             element.hidden.add(request.user)
-#             element.save()
-#             resdata['message'] = "Successfully added item to hidden list"
-#             resdata['success'] = True
-#    return Response(resdata)
+@api_view(['GET'])
+def lexeme_word_list(request, slug):
+   lexeme = get_object_or_404(Lexeme, slug=slug);
+   words = lexeme.inflectedform_set.all()
+   serializer = InflectedFormSerializer(words, many=True)
+   return Response(serializer.data)
+   # resdata = {}
+   # if request.method == 'GET':
+   #    language_param = request.GET.get('language', '')
+   #    if language_param == '':
+   #       words = InflectedForm.objects.filter(language = None).order_by("-word")
+   #    elif language_param == 'all':
+   #       words = InflectedForm.objects.all().order_by("-word")
+   #    else:
+   #       language = get_object_or_404(Language, name=language_param)
+   #       words = InflectedForm.objects.filter(language = language)
 
-# @api_view(['POST'])
-# def youtube_togglevote(request):
-#    if request.method == 'POST':
-#       resdata = {}
-#       if request.user.is_authenticated:
-#          element = get_object_or_404(YouTubeElement, slug=request.data['slug'])
-#          if request.data['vote'] == "up":
-#             resdata['newuservote'] = 1
-#             if request.user in element.downvote.all():
-#                element.downvote.remove(request.user)
-#                element.save()
-#             if request.user not in element.upvote.all():
-#                element.upvote.add(request.user)
-#                element.save()
-#             resdata['message'] = "Successfully upvoted the youtube element!"
-#             resdata['success'] = True
+   #    return Response(InflectedFormSerializer(words, many=True).data)
+   # return Response(resdata)
 
-#          elif request.data['vote'] == "down":
-#             resdata['newuservote'] = -1
-#             if request.user in element.upvote.all():
-#                element.upvote.remove(request.user)
-#                element.save()
-#             if request.user not in element.downvote.all():
-#                element.downvote.add(request.user)
-#                element.save()
-#             resdata['message'] = "Successfully downvoted the youtube element!"
-#             resdata['success'] = True
-#          resdata['newupcount'] = element.upvote.all().count()
-#          resdata['newdowncount'] = element.downvote.all().count()
-         
-#       return Response(resdata)
 
+class LexemePronunciationViewSet(viewsets.ModelViewSet):
+    queryset = LexemePronunciation.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = LexemePronunciationSerializer
+    parser_classes = (MultiPartParser, FormParser, )
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        print("test")
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, slug):
+       pronunciation = get_object_or_404(LexemePronunciation, pk=id)
+       serializer_context = {"request": request}
+       serializer=LexemePronunciationSerializer(pronunciation, data=request.data, partial=True)
+       if serializer.is_valid():
+         serializer.save()
+       updatedserializer=LexemePronunciationSerializer(pronunciation, context=serializer_context)
+       return Response(updatedserializer.data)
+
+
+    # This list is currently factoring in user preferences and filtering by learning languages/topics
+    def list(self, request):
+      userlanguages = request.user.user_profile.learninglanguage.all()
+      usertopics = request.user.user_profile.learningtopics.all()
+      queryset = LexemePronunciation.objects.all().order_by("-curationdate")
+      # queryset = Lexeme.objects.filter(
+      #    suspended = False,
+      # #   language__in = userlanguages,
+      # #   topic__in = usertopics,
+      # ).order_by("-curationdate")
+
+      serializer_context = {"request": request, "userlanguages": userlanguages, "usertopics": usertopics}
+      
+      page = self.paginate_queryset(queryset)
+      if page is not None:
+         serializer = LexemePronunciationSerializer(page, many=True, context=serializer_context) 
+         return self.get_paginated_response(serializer.data)
+
+      serializer = LexemePronunciationSerializer(queryset, many=True, context=serializer_context) 
+      return Response(serializer.data)
+
+
+@api_view(['GET'])
+def lexeme_pronunciation_list(request, slug):
+   lexeme = get_object_or_404(Lexeme, slug=slug);
+   pronunciations = lexeme.lexemepronunciation_set.all()
+   serializer = LexemePronunciationSerializer(pronunciations, many=True)
+   return Response(serializer.data)
+
+
+class InflectedFormPronunciationViewSet(viewsets.ModelViewSet):
+    queryset = InflectedFormPronunciation.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = InflectedFormPronunciationSerializer
+    parser_classes = (MultiPartParser, FormParser, )
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        print("test")
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, slug):
+       pronunciation = get_object_or_404(InflectedFormPronunciation, pk=id)
+       serializer_context = {"request": request}
+       serializer=InflectedFormPronunciationSerializer(pronunciation, data=request.data, partial=True)
+       if serializer.is_valid():
+         serializer.save()
+       updatedserializer=InflectedFormPronunciationSerializer(pronunciation, context=serializer_context)
+       return Response(updatedserializer.data)
+
+@api_view(['GET'])
+def inflected_form_pronunciation_list(request, pk):
+   inflected_form = get_object_or_404(InflectedForm, pk=pk);
+   pronunciations = inflected_form.inflectedformpronunciation_set.all()
+   serializer = InflectedFormPronunciationSerializer(pronunciations, many=True)
+   return Response(serializer.data)
 
 
 ###### VOCAB BANK VIEWS #######

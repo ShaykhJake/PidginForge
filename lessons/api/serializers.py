@@ -54,7 +54,7 @@ class LessonVocabBankSerializer(serializers.ModelSerializer):
 class LessonSerializer(serializers.ModelSerializer):
     curator = UserSerializer(read_only=True)
 
-    native_language = serializers.SlugRelatedField(
+    source_language = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
         read_only=False,
         slug_field='name'
@@ -97,7 +97,7 @@ class LessonSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if instance.hidden.filter(pk=request.user.pk).exists():
             return True
-        if instance.native_language != request.user.user_profile.nativelanguage:
+        if instance.source_language != request.user.user_profile.nativelanguage:
             return True
         if instance.target_language not in request.user.user_profile.learninglanguage.all():
             return True

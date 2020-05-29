@@ -63,11 +63,19 @@ class LexemeDefinitionSerializer(serializers.ModelSerializer):
     curationdate = serializers.SerializerMethodField()
     updated = serializers.SerializerMethodField()
 
+    lexeme = serializers.SlugRelatedField(
+        queryset = Lexeme.objects.all(),
+        read_only=False,
+        slug_field='slug',
+    )
+
     language = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
         read_only=False,
         slug_field='name',
     )
+
+    direction = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = LexemeDefinition
@@ -80,17 +88,20 @@ class LexemeDefinitionSerializer(serializers.ModelSerializer):
     def get_updated(self, instance):
         return instance.updated.strftime("%B %d, %Y")
 
+    def get_direction(self, instance):
+        return instance.language.direction
+
+
 class LexemePronunciationSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
     curationdate = serializers.SerializerMethodField()
     updated = serializers.SerializerMethodField()
-
-    language = serializers.SlugRelatedField(
-        queryset = Language.objects.all(),
+    lexeme = serializers.SlugRelatedField(
+        queryset = Lexeme.objects.all(),
         read_only=False,
-        slug_field='name',
+        slug_field='slug',
     )
-
+    
     class Meta:
         model = LexemePronunciation
         fields = '__all__'
@@ -123,7 +134,14 @@ class InflectedFormDefinitionSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
     curationdate = serializers.SerializerMethodField()
     updated = serializers.SerializerMethodField()
-    language = LanguageSerializer()
+
+    language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+
+    direction = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = InflectedFormDefinition
@@ -136,11 +154,14 @@ class InflectedFormDefinitionSerializer(serializers.ModelSerializer):
     def get_updated(self, instance):
         return instance.updated.strftime("%B %d, %Y")
 
+    def get_direction(self, instance):
+        return instance.language.direction
+
+
 class InflectedFormPronunciationSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
     curationdate = serializers.SerializerMethodField()
     updated = serializers.SerializerMethodField()
-    language = LanguageSerializer()
 
     class Meta:
         model = InflectedFormPronunciation
@@ -152,6 +173,8 @@ class InflectedFormPronunciationSerializer(serializers.ModelSerializer):
     
     def get_updated(self, instance):
         return instance.updated.strftime("%B %d, %Y")
+
+
 
 class InflectedFormImageSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
@@ -254,28 +277,26 @@ class InflectedFormSentenceSerializer(serializers.ModelSerializer):
         return SentenceSerializer(sentence).data
 
 class SimpleLexemeSerializer(serializers.ModelSerializer):
-    languages = serializers.SlugRelatedField(
+    language = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
         read_only=False,
         slug_field='name',
-        many=True
     )
 
     class Meta:
         model = Lexeme
-        fields = ['id', 'lemma', 'languages']
+        fields = ['id', 'lemma', 'language']
 
 class SimpleInflectedFormSerializer(serializers.ModelSerializer):
     lexeme = SimpleLexemeSerializer(read_only=True)
-    languages = serializers.SlugRelatedField(
+    language = serializers.SlugRelatedField(
         read_only=True,
         slug_field='name',
-        many=True
     )
     word = serializers.CharField(max_length=255, read_only=True)
     class Meta:
         model = InflectedForm
-        fields = ['id', 'languages', 'word', 'lexeme']
+        fields = ['id', 'language', 'word', 'lexeme']
 
 class InflectedFormPairSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
@@ -298,17 +319,16 @@ class InflectedFormPairSerializer(serializers.ModelSerializer):
 
 class InflectedFormCreateSerializer(serializers.ModelSerializer):
     # curator = CuratorSerializer(read_only=True)
-    languages = serializers.SlugRelatedField(
+    language = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
         read_only=False,
         slug_field='name',
-        many=True
     )
 
     class Meta:
         model = InflectedForm
         # fields = '__all__'
-        fields = ['languages', 'word', 'id']
+        fields = ['language', 'word', 'id']
 
   
 
@@ -317,11 +337,10 @@ class InflectedFormSerializer(serializers.ModelSerializer):
     curationdate = serializers.SerializerMethodField(read_only=True)
     updated = serializers.SerializerMethodField(read_only=True)
     
-    languages = serializers.SlugRelatedField(
+    language = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
         read_only=False,
         slug_field='name',
-        many=True
     )
     word = serializers.CharField(max_length=255)
     curator_note = serializers.CharField(max_length=255)
@@ -390,15 +409,15 @@ class LexemeSerializer(serializers.ModelSerializer):
     updated = serializers.SerializerMethodField(read_only=True)
 
     # Required Fields
-    languages = serializers.SlugRelatedField(
+    language = serializers.SlugRelatedField(
         queryset = Language.objects.all(),
         read_only=False,
         slug_field='name',
-        many=True
-    )
+        )
     lemma = serializers.CharField(max_length=255)
 
     # Nested
+    direction = serializers.SerializerMethodField(read_only=True)
     grammars = serializers.SerializerMethodField(read_only=True)
     definitions = serializers.SerializerMethodField(read_only=True)
     pronunciations = serializers.SerializerMethodField(read_only=True)
@@ -424,6 +443,9 @@ class LexemeSerializer(serializers.ModelSerializer):
     def get_grammars(self, instance):
         grammars = LexemeGrammar.objects.filter(lexeme = instance)
         return LexemeGrammarSerializer(grammars, many=True).data
+
+    def get_direction(self, instance):
+        return instance.language.direction
 
     def get_definitions(self, instance):
         definitions = LexemeDefinition.objects.filter(lexeme = instance)

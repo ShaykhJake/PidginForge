@@ -6,17 +6,38 @@ from vocab.api.views import (
         VocabBankViewSet,
         InflectedFormViewSet,
         InflectedFormPairViewSet,
+        LexemeDefinitionViewSet,
+        LexemePronunciationViewSet,
+        InflectedFormDefinitionViewSet,
+        InflectedFormPronunciationViewSet,
         get_lexeme_list,
         get_word_list,
+        
         wordpair_list,
         add_pair_to_vocab_bank,
         remove_pair_from_bank,
+        lexeme_definition_list,
+        lexeme_pronunciation_list,
+        lexeme_word_list,
     )   
 
 app_name = 'vocab'
 
 lexeme_router = DefaultRouter()
 lexeme_router.register(r"lexemez", LexemeViewSet)
+
+lexeme_definition_router = DefaultRouter()
+lexeme_definition_router.register(r"lexemedefinitionz", LexemeDefinitionViewSet)
+
+inflected_definition_router = DefaultRouter()
+inflected_definition_router.register(r"inflecteddefinitionz", InflectedFormDefinitionViewSet)
+
+lexeme_pronunciation_router = DefaultRouter()
+lexeme_pronunciation_router.register(r"lexemepronunciationz", LexemePronunciationViewSet)
+
+inflected_pronunciation_router = DefaultRouter()
+inflected_pronunciation_router.register(r"inflectedpronunciationz", InflectedFormPronunciationViewSet)
+
 
 inflected_form_router = DefaultRouter()
 inflected_form_router.register(r"inflectedformz", InflectedFormViewSet)
@@ -38,9 +59,17 @@ urlpatterns = [
     path("", include(inflected_form_router.urls)),
     path("", include(vocab_bank_router.urls)),
     path("", include(inflected_form_pair_router.urls)),
+    path("", include(lexeme_definition_router.urls)),
+    path("", include(lexeme_pronunciation_router.urls)),
+    path("", include(inflected_definition_router.urls)),
+    path("", include(inflected_pronunciation_router.urls)),
     path('words/wordlist/', get_word_list, name="get_word_list"),
     path('words/pairings/<int:pk>/', wordpair_list, name="wordpair_list"),
     path('lexemes/lexemelist/', get_lexeme_list, name="get_lexeme_list"),
+    path('lexemes/definitionlist/<str:slug>/', lexeme_definition_list, name="lexeme_definition_list"),
+    path('lexemes/pronunciationlist/<str:slug>/', lexeme_pronunciation_list, name="lexeme_pronunciation_list"),
+    path('lexemes/wordlist/<str:slug>/', lexeme_word_list, name="lexeme_word_list"),
     path('addpair/', add_pair_to_vocab_bank, name="add_pair_to_vocab_bank"),
     path('removepair/', remove_pair_from_bank, name="remove_pair_from_bank"),
+    
 ]

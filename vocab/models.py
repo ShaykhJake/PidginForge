@@ -31,12 +31,22 @@ class Lexeme(models.Model):
    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
    updated = models.DateTimeField(auto_now=True, editable=False)
-   languages = models.ManyToManyField(Language)
+   language = models.ForeignKey(Language, on_delete=models.CASCADE, null=False)
    lemma = models.CharField(max_length=255, default="", null=False)
    curator_note = models.CharField(max_length=255, default="", null=False)
+   slug = models.SlugField(allow_unicode=True, max_length=255, unique=True, null=True, blank=True)
    
    def __str__(self):
       return self.lemma
+
+
+@receiver(pre_save, sender=Lexeme)
+def add_slug_to_lesson(sender, instance, *args, **kwargs):
+   if instance and not instance.slug:
+      slugstring = instance.language.name + "-" + instance.lemma
+      slug = slugify(slugstring, allow_unicode=True)
+      random_string = generate_random_string()
+      instance.slug = slug + "-" + random_string
 
 
 class LexemeGrammar(models.Model):
@@ -59,6 +69,9 @@ class LexemeDefinition(models.Model):
    lexeme = models.ForeignKey(Lexeme, on_delete=models.CASCADE, null=False)
    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
    content = models.TextField(default="", null=False)
+   part_of_speech = models.CharField(max_length=255, default="n/a", null=False)
+   source_name = models.CharField(max_length=255, default="n/a", null=True)
+   source_citation = models.TextField(default="n/a", null=True)
 
    def __str__(self):
       return self.lexeme.lemma + ' - ' + self.content
@@ -69,8 +82,7 @@ class LexemePronunciation(models.Model):
    updated = models.DateTimeField(auto_now=True, editable=False)
    text = models.TextField()
    lexeme = models.ForeignKey(Lexeme, on_delete=models.CASCADE, null=False)
-   audio_file = models.FileField()
-   curator_note = models.CharField(max_length=255, default="n/a", null=False)
+   audio_file = models.FileField(null=True, upload_to='vocab/lexemes/pronunciation/%Y/%m/%d')
 
    def __str__(self):
       return self.lexeme.lemma + ' - ' + self.text
@@ -92,7 +104,7 @@ class InflectedForm(models.Model):
    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
    updated = models.DateTimeField(auto_now=True, editable=False)
    lexeme = models.ForeignKey(Lexeme, on_delete=models.SET_NULL, null=True)
-   languages = models.ManyToManyField(Language)
+   language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
    word = models.CharField(max_length=255)
    curator_note = models.CharField(max_length=255, default="", null=False)
 
@@ -118,6 +130,8 @@ class InflectedFormDefinition(models.Model):
    inflected_form = models.ForeignKey(InflectedForm, on_delete=models.CASCADE, null=False)
    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
    definition = models.TextField(default="", null=False)
+   source_name = models.CharField(max_length=255, default="n/a", null=True)
+   source_citation = models.TextField(default="n/a", null=True)
 
    def __str__(self):
       return self.inflected_form.word + ' - ' + self.definition

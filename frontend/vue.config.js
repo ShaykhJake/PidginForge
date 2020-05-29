@@ -1,5 +1,7 @@
 const BundleTracker = require("webpack-bundle-tracker");
+// const WorkerPlugin = require('worker-plugin')
 
+// const WorkerPlugin = require('worker-plugin')
 module.exports = {
   // on Windows you might want to set publicPath: "http://127.0.0.1:8080/"
 
@@ -14,11 +16,34 @@ module.exports = {
 
   // runtimeCompiler: true,
   
+  parallel: false,
+
+  
+
+  configureWebpack: {
+    // loader: 'worker-loader',
+    // options: { inline: true },
+
+    output: {
+      globalObject: "self"
+    },
+    module: {
+      rules: [
+        {
+          test: /\.worker\.js$/,
+          use: [{ loader: 'worker-loader', options: { inline: true } }, { loader: 'babel-loader' }],
+        },
+      ],
+    },
+  },
+
   chainWebpack: config => {
     config
       .plugin("BundleTracker")
       .use(BundleTracker, [{ filename: "./webpack-stats.json" }]);
 
+    config.module.rule('js').exclude.add(/\.worker\.js$/)
+    
     // config.output.filename("bundle.js");
     config.output.filename("[name].[hash:8].bundle.js");
 

@@ -45,9 +45,6 @@ def get_languages(request):
     if request.user.is_authenticated:
         if request.method == "GET":
             languages = Language.objects.all().order_by("name")
-            for language in languages:
-                print(language.name)
-
             # languages = Language.objects.all().order_by("name")
             serializer = LanguageSerializer(languages, many=True)
             return Response(serializer.data)

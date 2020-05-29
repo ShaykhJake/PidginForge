@@ -25,14 +25,15 @@
       </v-icon>
     </template>
     <template v-slot:no-data>
-      <v-btn color="primary" @click="initialize">Reset</v-btn>
+      ... this bank is currently empty ...
+      
     </template>
   </v-data-table>
   <BankItemEditor
     v-if="itemEditorDialog"
     :dialog="itemEditorDialog"
     :vocab-bank-i-d="vocabBankID"
-    :native-language="nativeLanguage"
+    :source-language="sourceLanguage"
     :target-language="targetLanguage"
     @addPair="addPair"
     @closeDialog="itemEditorDialog=false"
@@ -50,7 +51,7 @@ export default {
   },
   props: {
     vocabBankID: Number,
-    nativeLanguage: String,
+    sourceLanguage: String,
     targetLanguage: String,
   },
   data: () => ({
@@ -62,13 +63,13 @@ export default {
     returnCommand: function() {},
     headers: [
       {
-        text: "L1 Word",
+        text: "Source Word",
         align: "start",
         value: "inflected_form_1.word"
       },
-      { text: "L1 Lexeme", value: "inflected_form_1.lexeme.lemma" },
-      { text: "L2 Word", value: "inflected_form_2.word" },
-      { text: "L2 Lexeme", value: "inflected_form_2.lexeme.lemma" },
+      { text: "Source Lexeme", value: "inflected_form_1.lexeme.lemma" },
+      { text: "Target Word", value: "inflected_form_2.word" },
+      { text: "Target Lexeme", value: "inflected_form_2.lexeme.lemma" },
       { text: "Actions", value: "actions", sortable: false }
     ],
     inflectedForms: [],

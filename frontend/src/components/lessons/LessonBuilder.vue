@@ -9,11 +9,11 @@
         <v-row wrap dense>
           <v-col cols="12">
             <v-card>
-              <v-card-title class="desertsand py-1 font-weight-b">
+              <v-card-title class="desertsand py-1 py-1 font-weight-b">
                Metadata
                 <v-spacer />
 
-               <v-btn fab icon class="mx-1 primary--text" @click="showingMetadata=!showingMetadata">
+               <v-btn small icon class="mx-1 primary--text" @click="showingMetadata=!showingMetadata">
                   <v-icon v-if="showingMetadata">mdi-menu-up</v-icon>
                   <v-icon v-else>mdi-menu-down</v-icon>
                </v-btn>
@@ -53,7 +53,7 @@
                      <v-col>
                         <v-autocomplete
                            v-model="lesson.skill_level"
-                           name="nativelanguage"
+                           name="skilllevel"
                            :items="skillLevels"
                            label="Skill Level*"
                            placeholder="Skill Level"
@@ -85,11 +85,11 @@
                   </v-row>
 
                   <v-autocomplete
-                    v-model="lesson.native_language"
-                    name="nativelanguage"
+                    v-model="lesson.source_language"
+                    name="sourcelanguage"
                     :items="allLanguages"
-                    label="Native Learner's Language*"
-                    placeholder="choose a native language"
+                    label="Source Language*"
+                    placeholder="choose a source language"
                     :rules="[rules.requiredLanguage]"
                     required
                     :loading="loadingLanguages"
@@ -101,7 +101,7 @@
                     v-model="lesson.target_language"
                     name="targetlanguage"
                     :items="allLanguages"
-                    label="Acquisition Language*"
+                    label="Target Language*"
                     placeholder="choose a target language"
                     :rules="[rules.requiredLanguage]"
                     required
@@ -136,7 +136,7 @@
                     @change="unsavedChanges=true"
                   ></v-textarea>
                 </v-form>
-                <p v-if="isNewLesson" class="primary--text text--darken-2 mb-0">
+                <p v-if="isNewLesson && !metadataValid" class="primary--text text--darken-2 mb-0">
                   You must submit valid metadata in order to
                   build a new quiz prior to attaching questions.
                 </p>
@@ -223,7 +223,7 @@
           <v-col cols="12" v-if="!isNewLesson">
             <v-card>
               <v-card-title class="desertsand py-1">
-                Content Editor
+                Content
                 <v-spacer />
                 <v-btn
                   small
@@ -591,6 +591,14 @@
        <v-card-title class="calligraphy desertsand--text py-1">
           Quiz Bank
          <v-spacer></v-spacer>
+          <v-btn 
+            v-if="!lesson.primary_vocab" 
+            :loading="creatingBank" 
+            class="primary"
+            @click="createVocabBank"
+          >
+            Add Vocab Bank
+          </v-btn>
 
          <v-btn icon class="mx-1 primary--text" @click="showingQuizBank=!showingQuizBank">
             <v-icon v-if="showingQuizBank">mdi-menu-up</v-icon>
@@ -606,26 +614,24 @@
       <v-card-title class="calligraphy desertsand--text py-1">
          Vocab Bank
          <v-spacer></v-spacer>
-
-         <v-btn icon class="mx-1 primary--text" @click="showingVocabBank=!showingVocabBank">
-            <v-icon v-if="showingVocabBank">mdi-menu-up</v-icon>
-            <v-icon v-else>mdi-menu-down</v-icon>
-         </v-btn>
-
-      </v-card-title>
-      <v-card-text v-show="showingVocabBank" class="calligraphy pa-1">
           <v-btn 
             v-if="!lesson.primary_vocab" 
             :loading="creatingBank" 
             class="primary"
             @click="createVocabBank"
           >
-            Create New Vocab Bank
+            Add Vocab Bank
           </v-btn>
+          <v-btn v-else icon class="mx-1 primary--text" @click="showingVocabBank=!showingVocabBank">
+              <v-icon v-if="showingVocabBank">mdi-menu-up</v-icon>
+              <v-icon v-else>mdi-menu-down</v-icon>
+          </v-btn>
+      </v-card-title>
+      <v-card-text v-show="showingVocabBank" class="calligraphy pa-1">
          <VocabBank
-            v-else
+            v-if="lesson.primary_vocab"
             :vocab-list="vocabList"
-            :native-language="this.lesson.native_language"
+            :source-language="this.lesson.source_language"
             :target-language="this.lesson.target_language"
             :vocab-bank-i-d="lesson.primary_vocab"
             @setLexemeDefinition="setLexemeDefinition"
@@ -887,7 +893,7 @@ export default {
         objective: this.lesson.objective,
         skill_level: this.lesson.skill_level,
         lesson_type: this.lesson.lesson_type,
-        native_language: this.lesson.native_language,
+        source_language: this.lesson.source_language,
         target_language: this.lesson.target_language,
         topic: this.lesson.topic,
         citation: this.lesson.citation, 
@@ -918,7 +924,7 @@ export default {
         objective: this.lesson.objective,
         skill_level: this.lesson.skill_level,
         lesson_type: this.lesson.lesson_type,
-        native_language: this.lesson.native_language,
+        source_language: this.lesson.source_language,
         target_language: this.lesson.target_language,
         topic: this.lesson.topic,
         citation: this.lesson.citation, 
@@ -929,7 +935,7 @@ export default {
       let method = "POST";
       try {
         apiService(endpoint, method, payload).then(data => {
-          if (data) {
+          if (data && data.slug) {
             this.lesson = data;
             this.editor.setContent(this.lesson.content);
             this.building = false;

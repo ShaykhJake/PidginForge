@@ -15,30 +15,17 @@
             </p>
             <v-form v-model="valid">
               <v-autocomplete
-                v-model="lexemeLanguages"
+                v-model="lexemeLanguage"
                 :items="allLanguages"
                 dense
                 outlined
-                chips
-                color="blue-grey lighten-2"
+                color="primary"
                 label="Lexeme Language(s)"
-                multiple
                 item-text="name"
                 item-value="name"
                 :rules="[rules.requiredLexemeLanguage]"
               >
-                <template v-slot:selection="data">
-                  <v-chip
-                    color="primary"
-                    v-bind="data.attrs"
-                    :input-value="data.selected"
-                    close
-                    @click="data.select"
-                    @click:close="removeLexemeLanguage(data.item)"
-                  >
-                    {{ data.item.name }}
-                  </v-chip>
-                </template>
+
               </v-autocomplete>
 
                <div :style="termRTL ? 'direction:rtl;' : ''">
@@ -100,7 +87,7 @@ export default {
    },
    data: () => ({
       valid: false,
-      lexemeLanguages: [],
+      lexemeLanguage: null,
       lemma: null,
       curator_note: null,
       submittingLexeme: false,
@@ -131,9 +118,9 @@ export default {
    },
    computed: {
       termRTL(){
-         if(this.lexemeLanguages.length > 0){
+         if(this.lexemeLanguage){
             for(var i = 0; i < this.allLanguages.length; i += 1 ){
-               if(this.allLanguages[i].name === this.lexemeLanguages[0]){
+               if(this.allLanguages[i].name === this.lexemeLanguage){
                   console.log("found it")
                   if(this.allLanguages[i].direction === "RTL"){
                      return true
@@ -154,8 +141,8 @@ export default {
          this.$emit("closeDialog")
       },
       removeLexemeLanguage(item) {
-         const index = this.lexemeLanguages.indexOf(item);
-         if (index >= 0) this.lexemeLanguages.splice(index, 1);
+         const index = this.lexemeLanguage.indexOf(item);
+         if (index >= 0) this.lexemeLanguage.splice(index, 1);
       },
       loadLexemeList(language){
          this.showingLexemeList = false;
@@ -187,7 +174,7 @@ export default {
          let endpoint = `/api/vocab/lexemez/`;
          let method = "POST";
          let payload = {
-            languages: this.lexemeLanguages,
+            language: this.lexemeLanguage,
             lemma: this.lemma,
             curator_note: this.curator_note,
          }
@@ -242,7 +229,7 @@ export default {
    },
    mounted(){
       if(this.language){
-         this.lexemeLanguages.push(this.language);
+         this.lexemeLanguage = this.language;
       }
    }
 }

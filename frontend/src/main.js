@@ -4,6 +4,11 @@ import VueYouTube from "vue-youtube";
 import router from "./router";
 import App from "./App.vue";
 import VueGoogleApi from "vue-google-api";
+
+import VueWorker from "vue-worker";
+
+// import AudioRecorder from 'vue-audio-recorder';
+// import lamejs from "@/components/recorder/lame.js";
 // import VueHtmlToPaper from "vue-html-to-paper";
 // Vuetify's CSS styles
 // import "vuetify/dist/vuetify.min.css";
@@ -12,6 +17,12 @@ import VueGoogleApi from "vue-google-api";
 Vue.config.productionTip = false;
 Vue.use(vuetify);
 Vue.use(VueYouTube);
+Vue.use(VueWorker);
+
+// Vue.use(AudioRecorder)
+
+// Vue.use(lamejs, '$lamejs');
+
 
 const config = {
   apiKey: "AIzaSyCvx0EIEVg3PdfgZKJaZbvWTpJ82MIFiTM",
