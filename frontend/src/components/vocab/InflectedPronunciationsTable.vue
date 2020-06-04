@@ -1,94 +1,97 @@
 <template>
   <div>
+    <v-row dense>
+      <v-col class="pl-2" cols="6">
+        <span class="body-1 font-weight-black">
+          Pronunciations ({{ pronunciations.length }})
+        </span>
+      </v-col>
+      <v-col cols="6" align="right">
+        <v-btn small color="primary" dark class="mr-2" @click="addItem"
+          >Add Pronunciation
+        </v-btn>
+      </v-col>
+    </v-row>
 
-  <v-data-table
-    :headers="headers"
-    :items="pronunciations"
-    multi-sort
-    dense
-    :sort-by="['language', 'curationdate']"
-    :sort-desc="[false, true]"
-    class="desertsand"
-    :loading="loadingPronunciations"
-    loading-text="...fetching inflected form pronunciations..."
-  >
-    <template v-slot:top>
-      <v-toolbar flat color="desertsand">
-        <v-toolbar-title>Pronunciations</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
-        <v-btn small color="primary" dark class="mb-2" @click="addItem"
-            >Add Pronunciation</v-btn
-        >
-      </v-toolbar>
-    </template>
-
-    <template v-slot:item.audio_file="{ item }">
-      <v-btn v-if="item.audio_file" icon @click="playAudio(item.audio_file)"><v-icon>mdi-volume-high</v-icon></v-btn>
-      <span v-else>no audio</span>
-    </template>
-
-    <template v-slot:item.actions="{ item }">
-      <v-icon 
-         small
-         @click="editItem(item)" 
-         v-if="requestUser === item.curator.username"
+    <div  class="mx-1">
+      <v-row 
+        v-for="(item, index) in pronunciations" 
+        :key="index"
+        flat
+        class="mb-1 desertsand"
+        dense
       >
-        mdi-pencil
-      </v-icon>
-      <v-icon 
-         small 
-         @click="deleteItem(item)" 
-         :loading="deletingPronunciation"
-         v-if="requestUser === item.curator.username"
-      >
-        mdi-delete
-      </v-icon>
-    </template>
-    <template v-slot:no-data>
-      ... this bank is currently empty ...
-      
-    </template>
-  </v-data-table>
+        <v-col class="body-1">
+          <div  class="roundBox">
+            {{ item.text }}
+            <v-btn small v-if="item.audio_file" icon @click="playAudio(item.audio_file)"><v-icon>mdi-volume-high</v-icon></v-btn>
+          </div>
+          <div class="overline">
+            Curated by 
+            <span class="primary--text font-weight-black">
+                {{ item.curator.username }}
+            </span> 
+             on {{ item.curationdate }}
+          </div>
+        </v-col>
+        <v-col cols="1" align="right">
+          <v-icon 
+            small
+            @click="editItem(item)" 
+            v-if="requestUser === item.curator.username"
+          >
+            mdi-pencil
+          </v-icon>
+          <v-icon 
+            small 
+            @click="deleteItem(item)" 
+            :loading="deletingPronunciation"
+            v-if="requestUser === item.curator.username"
+          >
+            mdi-delete
+          </v-icon>
+        </v-col>
+      </v-row>
+    </div>
 
-       <v-dialog v-if="itemEditorDialog" v-model="itemEditorDialog" max-width="500px">
-          <v-card class="desertsand">
-            <v-card-title>
-              <span class="headline">{{ formTitle }}</span>
-            </v-card-title>
 
-            <v-card-text>
+    <v-dialog v-if="itemEditorDialog" v-model="itemEditorDialog" max-width="500px">
+      <v-card class="desertsand">
+        <v-card-title class="sandstone">
+          <span class="headline">{{ formTitle }}</span>
+        </v-card-title>
 
-                 <v-form v-model="valid">
+        <v-card-text>
 
-                    <v-text-field
-                      v-model="editedItem.text"
-                      label="Pronunciation Text*"
-                      placeholder="prŏ-nun-si-ay-shŏn"
-                      outlined
-                      :rules="[rules.requiredPronunciation]"
-                    ></v-text-field>
+              <v-form v-model="valid" class="mt-2">
 
-                    <v-switch v-model="useAudio" label="Attach Audio"></v-switch>
-                    
-                    <AudioRecorder 
-                      v-if="useAudio"
-                      :currentAudio="editedItem.audio_file"
-                      @selectAudio="selectAudio"
-                    />
-                    
-                  </v-form>
+                <v-text-field
+                  v-model="editedItem.text"
+                  label="Pronunciation Text*"
+                  placeholder="prŏ-nun-si-ay-shŏn"
+                  outlined
+                  :rules="[rules.requiredPronunciation]"
+                ></v-text-field>
 
-            </v-card-text>
+                <v-switch v-model="useAudio" label="Attach Audio" class="py-0 my-0"></v-switch>
+                
+                <AudioRecorder 
+                  v-if="useAudio"
+                  :currentAudio="editedItem.audio_file"
+                  @selectAudio="selectAudio"
+                />
+                
+              </v-form>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="garbage desertsand--text" @click="close">Cancel</v-btn>
-              <v-btn color="primary" :disabled="!valid || (useAudio && !audioAttachment)" @click="submitSave" :loading="saving">Save</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+        </v-card-text>
 
+        <v-card-actions class="sandstone">
+          <v-spacer></v-spacer>
+          <v-btn color="garbage desertsand--text" @click="close">Cancel</v-btn>
+          <v-btn color="primary" :disabled="!valid || (useAudio && !audioAttachment)" @click="submitSave" :loading="saving">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-dialog max-width=300 v-model="audioDialog" v-if="audioDialog">
       <v-card>
@@ -308,4 +311,15 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+.roundBox {
+  color: black;
+  background-color: antiquewhite;
+  border-left-style: solid;
+  border-right-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  border-color: grey;
+  padding: 2px 2px 2px 2px;
+}
+</style>

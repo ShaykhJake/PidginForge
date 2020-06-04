@@ -1,10 +1,8 @@
 <template>
-<div>
-   <v-card class="desertsand">
-      <v-card-text class="text-center">
+<div class="desertsand py-3">
 
-         <h3>Attach Audio</h3>
-         <v-radio-group v-model="audioSource" @change="audio.audioURL=null">
+         <h3>Choose Audio Source:</h3>
+         <v-radio-group v-model="audioSource" @change="audio.audioURL=null" class="py-1 mt-1">
             <v-radio label="Upload File" value="file"></v-radio>
             <v-radio label="Record New" value="microphone"></v-radio>
          </v-radio-group>
@@ -25,8 +23,7 @@
          >
          </v-file-input>
 
-         <div v-if="audioSource==='microphone'">
-            <hr>
+         <div v-if="audioSource==='microphone'" style="text-align:center;">
             <span class="overline" v-if="!recording && !processing">Click to Record</span>
             <span class="overline" v-if="recording">Click to Stop</span>
             <br>
@@ -90,9 +87,6 @@
                option.
             </span>
          </div>
-
-      </v-card-text>
-   </v-card>
  
 </div>
 </template>
@@ -202,7 +196,11 @@ export default {
                audioURL: this.recorder.recording.url,
                originalFileName: "pronunciation.mp3",
             }
+            // console.log(audio)
             this.$emit("selectAudio", audio)
+            return true
+         } else if (this.audio.audioURL) {
+            this.$emit("selectAudio", this.audio)
             return true
          } else {
             this.$emit("selectAudio", null)
@@ -212,6 +210,9 @@ export default {
     },
 
    methods: {
+      selectAudio(audio){
+         this.$emit("selectAudio", audio);
+      },
       toggleRecorder () {
         if (!this.isRecording || (this.isRecording && this.isPause)) {
           this.recorder.start(this.postProcess)
@@ -246,10 +247,10 @@ export default {
 
          ctx.clearRect(0, 0, width, height);
 
-         console.log("midpoint:", midPoint)
+         // console.log("midpoint:", midPoint)
          const stepSize = width / volumeArray.length;
          ctx.beginPath();
-         console.log("hello")
+         // console.log("hello")
          ctx.moveTo(0,midPoint);
          ctx.lineWidth=2;
          for(let i = 0; i < volumeArray.length; i++){

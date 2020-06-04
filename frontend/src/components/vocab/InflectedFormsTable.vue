@@ -1,70 +1,113 @@
 <template>
   <div>
 
-  <v-data-table
-    :headers="headers"
-    :items="words"
-    multi-sort
-    :sort-by="['language', 'curationdate']"
-    :sort-desc="[false, true]"
-    class="desertsand"
-    show-expand
-    :loading="loadingWords"
-    loading-text="...fetching lexeme defintions..."
-  >
-    <template v-slot:top>
-      <v-toolbar flat color="desertsand">
-        <v-toolbar-title>Inflected Word Forms</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
-        <v-btn small color="primary" dark class="mb-2" @click="itemEditorDialog=true"
-            >Add Word/Term</v-btn
+    <v-row dense>
+      <v-col class="pl-2" cols="6">
+        <span class="body-1 font-weight-black">
+          Inflected Forms ({{ words.length}})
+        </span>
+        <v-btn icon small @click="showList=!showList">
+          <v-icon class="primary--text" v-if="showList">
+            mdi-chevron-up
+          </v-icon>
+          <v-icon class="primary--text" v-else>
+            mdi-chevron-down
+          </v-icon>
+        </v-btn>
+      </v-col>
+      <v-col cols="6" align="right">
+        <v-btn small color="primary" dark class="mr-2" @click="itemEditorDialog=true"
+          >Add Word/Term
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <div class="mx-1" v-show="showList">
+      <v-row 
+        v-for="(item, index) in words" 
+        :key="index"
+        flat
+        class="mb-1 desertsand"
+        dense
+      >
+
+        <v-col class="body-1">
+          <a @click="expandedItemID===index ? expandedItemID=null : expandedItemID=index">
+            <div :style="`direction: ${item.direction}`" class="roundBox">
+              <span class="title">{{ item.word }}</span>
+            </div>
+          </a>
+          <div class="overline">
+            Curated by 
+            <span class="primary--text font-weight-black">
+                {{ item.curator.username }}
+            </span> 
+             on {{ item.curationdate }}
+          </div>
+        </v-col>
+        <v-col cols="2" align="center">
+          <v-btn icon small @click="expandedItemID===index ? expandedItemID=null : expandedItemID=index">
+            <v-icon class="primary--text" v-if="index === expandedItemID">
+              mdi-chevron-up
+            </v-icon>
+            <v-icon class="primary--text" v-else>
+              mdi-chevron-down
+            </v-icon>
+          </v-btn>
+
+
+          <v-icon 
+            small
+            @click="editItem(item)" 
+            v-if="requestUser === item.curator.username"
+          >
+            mdi-eye-on
+          </v-icon>
+          <v-icon 
+            small
+            @click="editItem(item)" 
+            v-if="requestUser === item.curator.username"
+          >
+            mdi-pencil
+          </v-icon>
+          <v-icon 
+            small 
+            @click="deleteItem(item)" 
+            :loading="deleting"
+            v-if="requestUser === item.curator.username"
+          >
+            mdi-delete
+          </v-icon>
+
+        </v-col>
+        <v-col cols="12" v-show="index === expandedItemID">
+          <div class="listBox ml-5">
+            <InflectedFormsTableItem
+              :word="item"
+              />
+          </div>
+        </v-col>
+      </v-row>
+        <v-overlay
+          absolute
+          :value="loadingWords"
         >
-      </v-toolbar>
-    </template>
+          <v-progress-circular color="primary" indeterminate size="48"></v-progress-circular>
+        </v-overlay>
 
-    <template v-slot:expanded-item="{ headers, item }">
-      <td :colspan="headers.length" :style="`direction: ${item.direction}`">
-        <InflectedFormsTableItem
-          :word="item"
-        />
-      </td>
-    </template>
+    </div>
 
 
-    <template v-slot:item.actions="{ item }">
-      <v-icon 
-         small
-         @click="editItem(item)" 
-         v-if="requestUser === item.curator.username"
-      >
-        mdi-pencil
-      </v-icon>
-      <v-icon 
-         small 
-         @click="deleteItem(item)" 
-         :loading="deletingWord"
-         v-if="requestUser === item.curator.username"
-      >
-        mdi-delete
-      </v-icon>
-    </template>
-    <template v-slot:no-data>
-      ... this bank is currently empty ...
-      
-    </template>
-  </v-data-table>
 
-       <v-dialog v-model="itemEditorDialog" max-width="500px">
-          <v-card>
-            <v-card-title>
+       <v-dialog v-model="itemEditorDialog" v-if="itemEditorDialog" max-width="500px">
+          <v-card class="desertsand">
+            <v-card-title class="sandstone">
               <span class="headline">{{ formTitle }}</span>
             </v-card-title>
 
             <v-card-text>
               <v-container>
                  <v-form v-model="valid">
-
                   <div :style="termRTL ? 'direction:rtl;' : ''">
                      <v-text-field
                         v-model="editedItem.word"
@@ -72,6 +115,7 @@
                         outlined
                         :reverse="termRTL"
                         :rules="[rules.requiredWord]"
+                        class="title"
                      ></v-text-field>
                   </div>
 
@@ -88,7 +132,7 @@
               </v-container>
             </v-card-text>
 
-            <v-card-actions>
+            <v-card-actions class="sandstone">
               <v-spacer></v-spacer>
               <v-btn color="garbage desertsand--text" @click="close">Cancel</v-btn>
               <v-btn color="primary" :disabled="!valid" @click="save">Save</v-btn>
@@ -118,10 +162,11 @@ export default {
     allLanguages: [],
     itemEditorDialog: false,
     loadingWords: false,
-    deletingWord: false,
+    deleting: false,
     saving: false,
-
+    expandedItemID: null,
     valid: false,
+    showList: true,
 
     returnCommand: function() {},
     headers: [
@@ -167,7 +212,7 @@ export default {
        return localStorage.getItem("username");
     }, 
     formTitle() {
-      return this.editedIndex === -1 ? "Add Word/Term" : "Edit Word/Term";
+      return this.editedIndex === -1 ? "Add Inflected Word/Term" : "Edit Inflected Word/Term";
     },
 
    termRTL(){
@@ -252,11 +297,11 @@ export default {
         try {
           apiService(endpoint, method).then(() => {
                 this.words.splice(index, 1);
-                this.deletingWord = false;
+                this.deleting = false;
           });
         } catch (err) {
         console.log(err);
-          this.deletingWord = false;
+          this.deleting = false;
         }
       }
       // Sent DELETE message to API to fully remove...
@@ -376,4 +421,31 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+.dropbox {
+  height: 150px;
+  overflow: auto;
+  resize: vertical;
+}
+
+.roundBox {
+  color: black;
+  background-color: antiquewhite;
+  border-left-style: solid;
+  border-right-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  border-color: grey;
+  padding: 2px 2px 2px 2px;
+}
+
+.listBox {
+  color: black;
+  background-color: beige;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  border-color: grey;
+  padding: 2px 2px 2px 2px;
+}
+</style>

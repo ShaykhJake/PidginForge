@@ -5,7 +5,6 @@ import router from "./router";
 import App from "./App.vue";
 import VueGoogleApi from "vue-google-api";
 
-import VueWorker from "vue-worker";
 
 // import AudioRecorder from 'vue-audio-recorder';
 // import lamejs from "@/components/recorder/lame.js";
@@ -17,7 +16,6 @@ import VueWorker from "vue-worker";
 Vue.config.productionTip = false;
 Vue.use(vuetify);
 Vue.use(VueYouTube);
-Vue.use(VueWorker);
 
 // Vue.use(AudioRecorder)
 

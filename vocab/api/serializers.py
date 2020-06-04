@@ -197,6 +197,12 @@ class SentenceTranslationSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
     curationdate = serializers.SerializerMethodField()
     updated = serializers.SerializerMethodField()
+    direction = serializers.SerializerMethodField()
+    language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only = False,
+        slug_field='name',
+    )
 
     class Meta:
         model = SentenceTranslation
@@ -208,6 +214,9 @@ class SentenceTranslationSerializer(serializers.ModelSerializer):
     
     def get_updated(self, instance):
         return instance.updated.strftime("%B %d, %Y")
+
+    def get_direction(self, instance):
+        return instance.language.direction
 
 class SentenceAudioSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
@@ -226,14 +235,19 @@ class SentenceAudioSerializer(serializers.ModelSerializer):
         return instance.updated.strftime("%B %d, %Y")
 
 
-
 class SentenceSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
     curationdate = serializers.SerializerMethodField()
     updated = serializers.SerializerMethodField()
     translations = serializers.SerializerMethodField()
+    inflectedforms = serializers.SerializerMethodField()
     audio = serializers.SerializerMethodField()
-    language = LanguageSerializer()
+    language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only = False,
+        slug_field='name',
+    )
+    direction = serializers.SerializerMethodField()
 
     class Meta:
         model = Sentence
@@ -249,20 +263,29 @@ class SentenceSerializer(serializers.ModelSerializer):
     def get_translations(self, instance):
         translations = SentenceTranslation.objects.filter(sentence = instance)
         return SentenceTranslationSerializer(translations, many=True).data
-    
+
+    def get_inflectedforms(self, instance):
+        inflectedforms = InflectedFormSentence.objects.filter(sentence = instance)
+        words = []
+        for i in inflectedforms:
+            words.append(i.inflected_form)
+        return SimpleInflectedFormSerializer(words, many=True).data
+
     def get_audio(self, instance):
         audio = SentenceAudio.objects.filter(sentence = instance)
         return SentenceAudioSerializer(audio, many=True).data
+
+    def get_direction(self, instance):
+        return instance.language.direction
 
 class InflectedFormSentenceSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
     curationdate = serializers.SerializerMethodField()
     updated = serializers.SerializerMethodField()
-    sentences = serializers.SerializerMethodField()
+    full_sentence = serializers.SerializerMethodField()
     
-
     class Meta:
-        model = Sentence
+        model = InflectedFormSentence
         fields = '__all__'
         # fields = ['id', 'curator', 'translations', 'curationdate', 'updated', 'user_vote', 'upvote_count', 'downvote_count', 'published']
 
@@ -272,7 +295,7 @@ class InflectedFormSentenceSerializer(serializers.ModelSerializer):
     def get_updated(self, instance):
         return instance.updated.strftime("%B %d, %Y")
 
-    def get_sentences(self, instance):
+    def get_full_sentence(self, instance):
         sentence = Sentence.objects.get(pk = instance.sentence.pk)
         return SentenceSerializer(sentence).data
 
@@ -342,6 +365,7 @@ class InflectedFormSerializer(serializers.ModelSerializer):
         read_only=False,
         slug_field='name',
     )
+    direction = serializers.SerializerMethodField(read_only=True)
     word = serializers.CharField(max_length=255)
     curator_note = serializers.CharField(max_length=255)
 
@@ -370,6 +394,9 @@ class InflectedFormSerializer(serializers.ModelSerializer):
         grammars = InflectedFormGrammar.objects.filter(inflected_form = instance)
         return InflectedFormGrammarSerializer(grammars, many=True).data
 
+    def get_direction(self, instance):
+        return instance.language.direction
+
     def get_definitions(self, instance):
         definitions = InflectedFormDefinition.objects.filter(inflected_form = instance)
         return InflectedFormDefinitionSerializer(definitions, many=True).data
@@ -388,10 +415,10 @@ class InflectedFormSerializer(serializers.ModelSerializer):
 
     def get_sentences(self, instance):
         inflected_sentences = InflectedFormSentence.objects.filter(inflected_form = instance)
-        sentences = []
-        for inflected_sentence in inflected_sentences:
-            sentences.append(inflected_sentence.sentence)
-        return SentenceSerializer(sentences, many=True).data
+        # sentences = []
+        # for inflected_sentence in inflected_sentences:
+        #     sentences.append(inflected_sentence.sentence)
+        return InflectedFormSentenceSerializer(inflected_sentences, many=True).data
 
     def get_word_pair_count(self, instance):
         pair1 = instance.inflected_form_pair_1.all()
@@ -417,7 +444,7 @@ class LexemeSerializer(serializers.ModelSerializer):
     lemma = serializers.CharField(max_length=255)
 
     # Nested
-    direction = serializers.SerializerMethodField(read_only=True)
+    
     grammars = serializers.SerializerMethodField(read_only=True)
     definitions = serializers.SerializerMethodField(read_only=True)
     pronunciations = serializers.SerializerMethodField(read_only=True)

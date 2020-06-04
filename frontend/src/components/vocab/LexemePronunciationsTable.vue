@@ -1,65 +1,86 @@
 <template>
   <div>
 
-  <v-data-table
-    :headers="headers"
-    :items="pronunciations"
-    multi-sort
-    dense
-    :sort-by="['language', 'curationdate']"
-    :sort-desc="[false, true]"
-    class="desertsand"
-    :loading="loadingPronunciations"
-    loading-text="...fetching lexeme pronunciations..."
-  >
-    <template v-slot:top>
-      <v-toolbar flat color="desertsand">
-        <v-toolbar-title>Lexeme Pronunciations</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
-        <v-btn small color="primary" dark class="mb-2" @click="addItem"
-            >Add Pronunciation</v-btn
+    <v-row dense>
+      <v-col class="pl-2" cols="6">
+        <span class="body-1 font-weight-black">
+          Pronunciations ({{ pronunciations.length}})
+        </span>
+        <v-btn icon small @click="showList=!showList">
+          <v-icon class="primary--text" v-if="showList">
+            mdi-chevron-up
+          </v-icon>
+          <v-icon class="primary--text" v-else>
+            mdi-chevron-down
+          </v-icon>
+        </v-btn>
+      </v-col>
+      <v-col cols="6" align="right">
+        <v-btn small color="primary" dark class="mr-2" @click="itemEditorDialog=true"
+          >Add Pronunciation
+        </v-btn>
+      </v-col>
+    </v-row>
+
+
+      <div  class="mx-1" v-show="showList">
+        <v-row 
+          v-for="(item, index) in pronunciations" 
+          :key="index"
+          flat
+          class="mb-1 desertsand"
+          dense
         >
-      </v-toolbar>
-    </template>
+          <v-col class="body-1">
+            <div  class="roundBox">
+              {{ item.text }}
+              <v-btn small v-if="item.audio_file" icon @click="playAudio(item.audio_file)"><v-icon>mdi-volume-high</v-icon></v-btn>
+            </div>
+            <div class="overline">
+              Curated by 
+              <span class="primary--text font-weight-black">
+                  {{ item.curator.username }}
+              </span> 
+              on {{ item.curationdate }}
+            </div>
+          </v-col>
+          <v-col cols="1" align="right">
+            <v-icon 
+              small
+              @click="editItem(item)" 
+              v-if="requestUser === item.curator.username"
+            >
+              mdi-pencil
+            </v-icon>
+            <v-icon 
+              small 
+              @click="deleteItem(item)" 
+              :loading="deleting"
+              v-if="requestUser === item.curator.username"
+            >
+              mdi-delete
+            </v-icon>
+          </v-col>
+        </v-row>
 
-    <template v-slot:item.audio_file="{ item }">
-      <v-btn v-if="item.audio_file" icon @click="playAudio(item.audio_file)"><v-icon>mdi-volume-high</v-icon></v-btn>
-      <span v-else>no audio</span>
-    </template>
+        <v-overlay
+          absolute
+          :value="loadingPronunciations"
+        >
+          <v-progress-circular color="primary" indeterminate size="48"></v-progress-circular>
+        </v-overlay>
 
-    <template v-slot:item.actions="{ item }">
-      <v-icon 
-         small
-         @click="editItem(item)" 
-         v-if="requestUser === item.curator.username"
-      >
-        mdi-pencil
-      </v-icon>
-      <v-icon 
-         small 
-         @click="deleteItem(item)" 
-         :loading="deletingPronunciation"
-         v-if="requestUser === item.curator.username"
-      >
-        mdi-delete
-      </v-icon>
-    </template>
-    <template v-slot:no-data>
-      ... this bank is currently empty ...
-      
-    </template>
-  </v-data-table>
+      </div>
 
        <v-dialog v-if="itemEditorDialog" v-model="itemEditorDialog" max-width="500px">
           <v-card class="desertsand">
-            <v-card-title>
+            <v-card-title class="sandstone">
               <span class="headline">{{ formTitle }}</span>
             </v-card-title>
 
             <v-card-text>
 
-                 <v-form v-model="valid">
+                 <v-form v-model="valid" class="mt-2">
 
                     <v-text-field
                       v-model="editedItem.text"
@@ -69,7 +90,7 @@
                       :rules="[rules.requiredPronunciation]"
                     ></v-text-field>
 
-                    <v-switch v-model="useAudio" label="Attach Audio"></v-switch>
+                    <v-switch v-model="useAudio" label="Attach Audio" class="py-0 my-0"></v-switch>
                     
                     <AudioRecorder 
                       v-if="useAudio"
@@ -81,7 +102,7 @@
 
             </v-card-text>
 
-            <v-card-actions>
+            <v-card-actions class="sandstone">
               <v-spacer></v-spacer>
               <v-btn color="garbage desertsand--text" @click="close">Cancel</v-btn>
               <v-btn color="primary" :disabled="!valid || (useAudio && !audioAttachment)" @click="submitSave" :loading="saving">Save</v-btn>
@@ -122,7 +143,7 @@ export default {
     allLanguages: [],
 
     audio: {},
-    
+    showList: true,
     audioAttachment: null,
     audioFile: null,
     newFileLoaded: false,
@@ -133,7 +154,7 @@ export default {
     audioDialog:false,
     selectedAudio: null,
     loadingPronunciations: false,
-    deletingPronunciation: false,
+    deleting: false,
     saving: false,
 
     valid: false,
@@ -141,13 +162,14 @@ export default {
     // returnCommand: function() {},
     headers: [
       {
-        text: "Curator",
+        text: "Audio",
         align: "start",
-        value: "curator.username"
+        value: "audio_file"
       },
-      { text: "Date Added", value: "curationdate" },
+      
       { text: "Pronunciation", value: "text" },
-      { text: "Audio", value: "audio_file" },
+      { text: "Curator", value: "curator.username" },
+      { text: "Date Added", value: "curationdate" },
       { text: "Actions", value: "actions", sortable: false }
     ],
       rules: {
@@ -251,11 +273,11 @@ export default {
         try {
           apiService(endpoint, method).then(() => {
                 this.pronunciations.splice(index, 1);
-                this.deletingPronunciation = false;
+                this.deleting = false;
           });
         } catch (err) {
         console.log(err);
-          this.deletingPronunciation = false;
+          this.deleting = false;
         }
       }
       // Sent DELETE message to API to fully remove...
@@ -327,4 +349,15 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+.roundBox {
+  color: black;
+  background-color: antiquewhite;
+  border-left-style: solid;
+  border-right-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  border-color: grey;
+  padding: 2px 2px 2px 2px;
+}
+</style>

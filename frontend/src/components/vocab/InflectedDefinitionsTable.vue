@@ -1,121 +1,136 @@
 <template>
   <div>
 
-  <v-data-table
-    :headers="headers"
-    :items="definitions"
-    multi-sort
-    :sort-by="['language', 'curationdate']"
-    :sort-desc="[false, true]"
-    class="desertsand"
-    show-expand
-    :loading="loadingDefinitions"
-    loading-text="...fetching inflected forms defintions..."
-  >
-    <template v-slot:top>
-      <v-toolbar flat color="desertsand">
-        <v-toolbar-title>Inflected Form Definitions</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
-        <v-btn small color="primary" dark class="mb-2" @click="itemEditorDialog=true"
-            >Add Inflected Form Definition</v-btn
-        >
-      </v-toolbar>
-    </template>
+   <v-row dense>
+      <v-col class="pl-2" cols="6">
+        <span class="body-1 font-weight-black">
+          Definitions ({{ definitions.length}})
+        </span>
+      </v-col>
+      <v-col cols="6" align="right">
+        <v-btn small color="primary" dark class="mr-2" @click="itemEditorDialog=true"
+          >Add Definition
+        </v-btn>
+      </v-col>
+    </v-row>
 
-    <template v-slot:expanded-item="{ headers, item }">
-      <td :colspan="headers.length" :style="`direction: ${item.direction}`">{{ item.definition }}</td>
-    </template>
-
-
-    <template v-slot:item.actions="{ item }">
-      <v-icon 
-         small
-         @click="editItem(item)" 
-         v-if="requestUser === item.curator.username"
+    <div class="mx-1">
+      <v-row 
+        v-for="(item, index) in definitions" 
+        :key="index"
+        flat
+        class="mb-1 desertsand"
+        dense
       >
-        mdi-pencil
-      </v-icon>
-      <v-icon 
-         small 
-         @click="deleteItem(item)" 
-         :loading="deletingDefinition"
-         v-if="requestUser === item.curator.username"
-      >
-        mdi-delete
-      </v-icon>
-    </template>
-    <template v-slot:no-data>
-      ... this bank is currently empty ...
-      
-    </template>
-  </v-data-table>
+        <v-col class="body-1">
+          <div :style="`direction: ${item.direction}`" class="roundBox">
+            {{ item.definition }}
+          </div>
+          <div class="overline mt-1">
+            <v-chip x-small class="languages languages--text" outlined>
+              {{ item.language }}
+            </v-chip>
 
-       <v-dialog v-model="itemEditorDialog" max-width="500px">
-          <v-card>
-            <v-card-title>
-              <span class="headline">{{ formTitle }}</span>
-            </v-card-title>
+            Curated by 
+            <span class="primary--text font-weight-black">
+                {{ item.curator.username }}
+            </span> 
+             on {{ item.curationdate }}
+          </div>
+        </v-col>
+        <v-col cols="1" align="right">
+          <v-icon 
+            small
+            @click="editItem(item)" 
+            v-if="requestUser === item.curator.username"
+          >
+            mdi-eye-on
+          </v-icon>
+          <v-icon 
+            small
+            @click="editItem(item)" 
+            v-if="requestUser === item.curator.username"
+          >
+            mdi-pencil
+          </v-icon>
+          <v-icon 
+            small 
+            @click="deleteItem(item)" 
+            :loading="deleting"
+            v-if="requestUser === item.curator.username"
+          >
+            mdi-delete
+          </v-icon>
+        </v-col>
+      </v-row>
+    </div>
 
-            <v-card-text>
-              <v-container>
-                 <p class="overline">
-                    Choose the language for the <strong>definition text</strong>.
-                  </p>
-                 <v-form v-model="valid">
-                  <v-autocomplete
-                     v-model="editedItem.language"
-                     :items="allLanguages"
-                     dense
-                     outlined
-                     color="primary"
-                     label="Word/Term Language(s)"
-                     item-text="name"
-                     item-value="name"
-                     :rules="[rules.requiredLanguage]"
-                  >
-                  </v-autocomplete>
 
-                  <div :style="termRTL ? 'direction:rtl;' : ''">
-                     <v-textarea
-                        v-model="editedItem.definition"
-                        label="Definition Text"
-                        outlined
-                        :reverse="termRTL"
-                        :rules="[rules.requiredDefinition]"
-                     ></v-textarea>
-                  </div>
+    <v-dialog v-model="itemEditorDialog" v-if="itemEditorDialog" max-width="500px">
+      <v-card class="desertsand">
+        <v-card-title class="sandstone">
+          <span class="headline">{{ formTitle }}</span>
+        </v-card-title>
 
-                  <h3>Source Citation (optional)</h3>
-                  <v-text-field
-                     v-model="editedItem.source_name"
-                     label="Source Short Name"
-                     outlined
-                     hint="e.g. 'Hans Wehr', 'Websters', etc"
-                     persistent-hint
+        <v-card-text>
+          <v-container>
+              <p class="overline">
+                Choose the language for the <strong>definition text</strong>.
+              </p>
+              <v-form v-model="valid">
+              <v-autocomplete
+                  v-model="editedItem.language"
+                  :items="allLanguages"
+                  dense
+                  outlined
+                  color="primary"
+                  label="Word/Term Language(s)"
+                  item-text="name"
+                  item-value="name"
+                  :rules="[rules.requiredLanguage]"
+              >
+              </v-autocomplete>
 
-                  ></v-text-field>
-
+              <div :style="termRTL ? 'direction:rtl;' : ''">
                   <v-textarea
-                     v-model="editedItem.source_citation"
-                     label="Source Full Citation"
-                     outlined
-                     hint="e.g. 'Hans Wehr Dictionary of Modern Written Arabic, 4th Edition'"
-                     persistent-hint
-
+                    v-model="editedItem.definition"
+                    label="Definition Text"
+                    outlined
+                    :reverse="termRTL"
+                    :rules="[rules.requiredDefinition]"
                   ></v-textarea>
+              </div>
 
-                  </v-form>
-              </v-container>
-            </v-card-text>
+              <h3>Source Citation (optional)</h3>
+              <v-text-field
+                  v-model="editedItem.source_name"
+                  label="Source Short Name"
+                  outlined
+                  hint="e.g. 'Hans Wehr', 'Websters', etc"
+                  persistent-hint
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="garbage desertsand--text" @click="close">Cancel</v-btn>
-              <v-btn color="primary" :disabled="!valid" @click="save">Save</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+              ></v-text-field>
+
+              <v-textarea
+                  v-model="editedItem.source_citation"
+                  label="Source Full Citation"
+                  outlined
+                  hint="e.g. 'Hans Wehr Dictionary of Modern Written Arabic, 4th Edition'"
+                  persistent-hint
+
+              ></v-textarea>
+
+              </v-form>
+          </v-container>
+        </v-card-text>
+
+        <v-card-actions class="sandstone">
+          <v-spacer></v-spacer>
+          <v-btn color="garbage desertsand--text" @click="close">Cancel</v-btn>
+          <v-btn color="primary" :disabled="!valid" @click="save">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
 
   </div>
@@ -141,7 +156,7 @@ export default {
     itemEditorDialog: false,
 
     loadingDefinitions: false,
-    deletingDefinition: false,
+    deleting: false,
     saving: false,
 
     valid: false,
@@ -234,39 +249,6 @@ export default {
 
   methods: {
 
-    // addDefinition(command, newLexeme) {
-    //   this.dialog = true;
-    //   this.returnCommand = command;
-    //   this.editedItem = {
-    //     inflected_form: this.inflectedid,
-    //     language: "",
-    //     definition: "",
-    //   };
-    // },
-
-    // loadDefinitions(lexemeslug){
-    //   this.loadingDefinitions = true;
-      
-    //   let endpoint = `/api/vocab/lexemes/definitionlist/${lexemeslug}/`;
-    //   let method = "GET";
-    //   try {
-    //     apiService(endpoint, method).then(data => {
-    //         if (data){
-    //           console.log(data);
-    //           this.definitions = data;
-    //           this.loadingDefinitions = false;
-    //         } else {
-    //           console.log("There was a major problem with the request.");
-    //           // console.log(data.message);
-    //           this.loadingDefinitions = false;
-    //         }
-    //     });
-    //   } catch (err) {
-    //   console.log(err);
-    //     this.loadingDefinitions = false;
-    //   }
-    // },
-
     editItem(item) {
       this.editedIndex = this.definitions.indexOf(item);
       this.editedItem = Object.assign({}, item);
@@ -281,31 +263,16 @@ export default {
         try {
           apiService(endpoint, method).then(() => {
                 this.definitions.splice(index, 1);
-                this.deletingDefinition = false;
+                this.deleting = false;
           });
         } catch (err) {
         console.log(err);
-          this.deletingDefinition = false;
+          this.deleting = false;
         }
       }
       // Sent DELETE message to API to fully remove...
     },
-   //  deletePair(pairID){
-   //      let endpoint = `/api/vocab/inflectedpairz/${pairID}`;
-   //      let method = "DELETE";
-   //      try {
-   //        apiService(endpoint, method).then(data => {
-   //            if (data){
-   //              console.log(data);
-   //            } else {
-   //              console.log("There was a major problem with the request.");
-   //            }
-   //        });
-   //      } catch (err) {
-   //        console.log(err);
-   //      }
-
-   //  },
+   
      submitNew(item){
       this.saving = true;
       let endpoint = `/api/vocab/inflecteddefinitionz/`;
@@ -391,36 +358,47 @@ export default {
       //   };
       }
     },
-      getLanguages() {
-         var localLanguagesFull = localStorage.getItem("languages_full");
-         if (localLanguagesFull) {
-            console.log("Shop local!");
-            this.allLanguages = JSON.parse(localLanguagesFull);
+    getLanguages() {
+        var localLanguagesFull = localStorage.getItem("languages_full");
+        if (localLanguagesFull) {
+          console.log("Shop local!");
+          this.allLanguages = JSON.parse(localLanguagesFull);
 
-         } else {
-            this.loadingLanguages = true;
-            let endpoint = `/api/categories/languages_full/`;
-            try {
-               apiService(endpoint).then(data => {
-               if (data != null) {
-                  this.allLanguages = data;
+        } else {
+          this.loadingLanguages = true;
+          let endpoint = `/api/categories/languages_full/`;
+          try {
+              apiService(endpoint).then(data => {
+              if (data != null) {
+                this.allLanguages = data;
 
-                  this.error = false;
-               } else {
-                  console.log("Something bad happened...");
-                  this.error = true;
-               }
-               this.loadingLanguages = false;
-               });
-            } catch (err) {
-               console.log(err);
-            }
-         }
-      },
+                this.error = false;
+              } else {
+                console.log("Something bad happened...");
+                this.error = true;
+              }
+              this.loadingLanguages = false;
+              });
+          } catch (err) {
+              console.log(err);
+          }
+        }
+    },
    },
 
   
 };
 </script>
 
-<style></style>
+<style scoped>
+.roundBox {
+  color: black;
+  background-color: antiquewhite;
+  border-left-style: solid;
+  border-right-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  border-color: grey;
+  padding: 2px 2px 2px 2px;
+}
+</style>

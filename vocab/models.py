@@ -158,13 +158,13 @@ class InflectedFormImage(models.Model):
    image_file = models.ImageField(upload_to='vocab/inflected_forms/images/%Y/%m/%d')
    curator_note = models.CharField(max_length=255, default="", null=True)
 
+
 ### SENTENCES 
 class Sentence(models.Model):
    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
    updated = models.DateTimeField(auto_now=True, editable=False)
    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
-   topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
    text = models.TextField(default="", null=False)
    curator_note = models.CharField(max_length=255, default="", null=True)
 
@@ -188,7 +188,7 @@ class SentenceAudio(models.Model):
    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
    updated = models.DateTimeField(auto_now=True, editable=False)
    sentence = models.ForeignKey(Sentence, on_delete=models.CASCADE, null=True)
-   audiofile = models.FileField(upload_to='vocab/sentences/audio/%Y/%m/%d')
+   audio_file = models.FileField(upload_to='vocab/sentences/audio/%Y/%m/%d')
    curator_note = models.CharField(max_length=255, default="", null=True)
 
 class InflectedFormSentence(models.Model):
@@ -200,6 +200,7 @@ class InflectedFormSentence(models.Model):
 
    def __str__(self):
       return self.inflected_form.word + ' - ' + self.sentence.text
+
 
 
 

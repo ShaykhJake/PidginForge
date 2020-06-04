@@ -33,6 +33,10 @@ from vocab.api.serializers import (
                            LexemeDefinitionSerializer,
                            LexemePronunciationSerializer,
                            VocabBankSerializer,
+                           SentenceSerializer,
+                           SentenceAudioSerializer,
+                           SentenceTranslationSerializer,
+                           InflectedFormSentenceSerializer,
                            InflectedFormSerializer,
                            InflectedFormDefinitionSerializer,
                            InflectedFormPronunciationSerializer,
@@ -339,6 +343,41 @@ class LexemeDefinitionViewSet(viewsets.ModelViewSet):
       serializer = LexemeDefinitionSerializer(queryset, many=True, context=serializer_context) 
       return Response(serializer.data)
 
+class SentenceViewSet(viewsets.ModelViewSet):
+    queryset = Sentence.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = SentenceSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_sentence_search(request, pk):
+   word = get_object_or_404(InflectedForm, pk=pk);
+   if word.pk:
+      sentences = Sentence.objects.filter(
+                  language=word.language, text__contains=word.word
+               )
+      serializer = SentenceSerializer(sentences, many=True)
+      return Response(serializer.data)
+   return Response(status=status.HTTP_404_NOT_FOUND)
+
+class InflectedSentenceViewSet(viewsets.ModelViewSet):
+    queryset = InflectedFormSentence.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = InflectedFormSentenceSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class InflectedFormDefinitionViewSet(viewsets.ModelViewSet):
     queryset = InflectedFormDefinition.objects.all().order_by("-curationdate")
     lookup_field = "pk"
@@ -500,3 +539,40 @@ class VocabBankViewSet(viewsets.ModelViewSet):
         self.request.user.user_profile.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
+class SentenceAudioViewSet(viewsets.ModelViewSet):
+    queryset = SentenceAudio.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = SentenceAudioSerializer
+    parser_classes = (MultiPartParser, FormParser, )
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        print("test")
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+   
+    def partial_update(self, request, pk):
+       audio = get_object_or_404(SentenceAudio, pk=pk)
+       serializer_context = {"request": request}
+       serializer=SentenceAudioSerializer(audio, data=request.data, partial=True)
+       if serializer.is_valid():
+         serializer.save()
+       updatedserializer=SentenceAudioSerializer(audio, context=serializer_context)
+       return Response(updatedserializer.data)
+
+
+class SentenceTranslationViewSet(viewsets.ModelViewSet):
+    queryset = SentenceTranslation.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = SentenceTranslationSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
