@@ -1,5 +1,5 @@
 <template>
-  <div class="lesson-micro" v-if="lesson && !lesson.user_has_hidden">
+  <div class="lesson-micro" v-if="lesson">
     <v-hover>
       <template v-slot:default="{ hover }">
         <v-card class="pa-0 desertsand">

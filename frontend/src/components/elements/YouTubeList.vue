@@ -13,7 +13,7 @@
         </v-col>
       </v-row>
       <v-row wrap dense v-if="filteredCount">
-        <v-col cols="12" v-for="video in filteredElements" :key="video.id">
+        <v-col cols="12"  sm="6" md="4" lg="3" v-for="video in filteredElements" :key="video.id">
           <YouTubeMicro
             :you-tube-element="video"
             :hidden="video.user_has_hidden"

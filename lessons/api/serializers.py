@@ -97,9 +97,9 @@ class LessonSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if instance.hidden.filter(pk=request.user.pk).exists():
             return True
-        if instance.source_language != request.user.user_profile.nativelanguage:
+        if instance.source_language not in request.user.user_profile.learninglanguage.all():
             return True
-        if instance.target_language not in request.user.user_profile.learninglanguage.all():
+        if instance.target_language != request.user.user_profile.nativelanguage:
             return True
         elif instance.topic not in request.user.user_profile.learningtopics.all():
             return True

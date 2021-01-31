@@ -43,7 +43,12 @@
                   >Text <v-icon right>text_fields</v-icon></v-btn
                 >
                 <v-btn class="mb-2 primary" block :disabled="true" large
-                  >Vocab<v-icon right>credit_card</v-icon></v-btn
+                  >Lexemes & Terms<v-icon right>mdi-card-text-outline</v-icon></v-btn
+                >
+                <v-btn class="mb-2 primary" block 
+                  @click="$router.push({name: 'Stacks-Viewer'})"
+                  large
+                  >Vocab Card Stacks<v-icon right>mdi-cards</v-icon></v-btn
                 >
               </v-container>
             </v-card-actions>

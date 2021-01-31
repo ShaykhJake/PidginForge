@@ -14,13 +14,24 @@
         <v-toolbar-title>Vocab Bank</v-toolbar-title>
         <v-divider class="mx-4" inset vertical></v-divider>
         <v-spacer></v-spacer>
-        <v-btn small color="primary" dark class="mb-2" @click="itemEditorDialog=true"
-            >Add Word Pair(s)</v-btn
+        <v-btn 
+          small 
+          color="primary" 
+          dark class="mb-2" 
+          @click="itemEditorDialog=true"
+          v-if="vocabBank.curator && requestUser===vocabBank.curator.username"
+        >
+        Add Word Pair(s)</v-btn
         >
       </v-toolbar>
     </template>
     <template v-slot:item.actions="{ item }">
-      <v-icon small @click="deleteItem(item)" :loading="deletingPair">
+      <v-icon 
+        small 
+        v-if="vocabBank.curator && requestUser===vocabBank.curator.username"
+        @click="deleteItem(item)" 
+        :loading="deletingPair"
+      >
         mdi-delete
       </v-icon>
     </template>
@@ -177,7 +188,10 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "Add Lexeme" : "Edit Lexeme";
-    }
+    },
+    requestUser(){
+        return localStorage.getItem("username");
+    }, 
   },
 
   watch: {
@@ -187,8 +201,9 @@ export default {
   },
 
   mounted() {
-    console.log(this.vocabBankID)
+    // console.log(this.vocabBankID)
     this.loadVocabBank(this.vocabBankID);
+    console.log(this.vocabBankID);
   },
   created() {
     // this.initialize();
@@ -246,13 +261,12 @@ export default {
     },
     loadVocabBank(bank){
       this.loadingBank = true;
-      
       let endpoint = `/api/vocab/bank/${bank}/`;
       let method = "GET";
       try {
         apiService(endpoint, method).then(data => {
             if (data){
-              console.log(data);
+              // console.log(data);
               this.vocabBank = data;
               this.loadingBank = false;
             } else {
@@ -278,7 +292,7 @@ export default {
       try {
         apiService(endpoint, method, payload).then(data => {
             if (data){
-              console.log(data);
+              // console.log(data);
               this.vocabBankID = data.vocab_bank_id;
               this.loadVocabBank(this.vocabBankID);
               this.creatingBank = false;
@@ -307,7 +321,7 @@ export default {
         try {
           apiService(endpoint, method, payload).then(data => {
               if (data){
-                console.log(data);
+                // console.log(data);
                 
                 
                 this.deletingPair = false;
@@ -330,7 +344,7 @@ export default {
         try {
           apiService(endpoint, method).then(data => {
               if (data){
-                console.log(data);
+                // console.log(data);
               } else {
                 console.log("There was a major problem with the request.");
               }
@@ -356,7 +370,7 @@ export default {
         this.lexemes.push(this.editedItem);
       }
       if (this.returnCommand) {
-        console.log(this.returnCommand);
+        // console.log(this.returnCommand);
         let lexemePackage = {
           editedItem: this.editedItem,
           returnCommand: this.returnCommand

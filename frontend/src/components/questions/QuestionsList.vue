@@ -12,7 +12,7 @@
       </v-col>
     </v-row>
     <v-row dense wrap v-if="filteredQuestions">
-      <v-col cols="12" v-for="question in filteredQuestions" :key="question.id">
+      <v-col cols="12"  sm="6" md="4" lg="3" v-for="question in filteredQuestions" :key="question.id">
         <QuestionMicro :question="question" />
       </v-col>
     </v-row>

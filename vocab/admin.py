@@ -16,8 +16,10 @@ from vocab.models import (
                         SentenceTranslation,
                         SentenceAudio,
                         LexemePair,
+                        LexemePairLearning,
                         InflectedFormPair,
                         VocabBank,
+                        CardStack,
                         )
 
 
@@ -39,5 +41,7 @@ admin.site.register(InflectedFormSentence)
 admin.site.register(SentenceTranslation)
 admin.site.register(SentenceAudio)
 admin.site.register(LexemePair)
+admin.site.register(LexemePairLearning)
 admin.site.register(InflectedFormPair)
 admin.site.register(VocabBank)
+admin.site.register(CardStack)

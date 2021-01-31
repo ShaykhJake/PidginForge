@@ -6,11 +6,6 @@
           <v-card-text class="pa-0">
             <v-row dense class="ma-0 pa-0">
               <v-col cols="12" class="pa-0">
-                <v-img
-                  src="https://jakesdesk-media.s3.amazonaws.com/media/public/question_files/defaultquestion.jpg"
-                  class="cardimg"
-                >
-                </v-img>
               </v-col>
             </v-row>
           </v-card-text>

@@ -17,8 +17,10 @@ from vocab.models import  (
                         SentenceTranslation,
                         SentenceAudio,
                         LexemePair,
+                        LexemePairLearning,
                         InflectedFormPair,
                         VocabBank,
+                        CardStack,
                         )
 from categories.models import Language, TopicTag
 from categories.api.serializers import LanguageSerializer, TopicTagSerializer, MethodTagSerializer
@@ -308,18 +310,18 @@ class SimpleLexemeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lexeme
-        fields = ['id', 'lemma', 'language']
+        fields = ['id', 'lemma', 'language', 'slug']
+
 
 class SimpleInflectedFormSerializer(serializers.ModelSerializer):
     lexeme = SimpleLexemeSerializer(read_only=True)
-    language = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name',
-    )
+    language = LanguageSerializer(read_only=True)
+    curator = CuratorSerializer(read_only=True)
+
     word = serializers.CharField(max_length=255, read_only=True)
     class Meta:
         model = InflectedForm
-        fields = ['id', 'language', 'word', 'lexeme']
+        fields = ['id', 'language', 'word', 'lexeme', 'curator', 'curationdate']
 
 class InflectedFormPairSerializer(serializers.ModelSerializer):
     curator = CuratorSerializer(read_only=True)
@@ -522,3 +524,269 @@ class VocabBankSerializer(serializers.ModelSerializer):
     
     def get_updated(self, instance):
         return instance.updated.strftime("%B %d, %Y")
+
+
+   
+class LexemePairSerializer(serializers.ModelSerializer):    
+    curator = CuratorSerializer(read_only=True)
+    curationdate = serializers.SerializerMethodField(read_only=True)
+    lexeme_1_details = serializers.SerializerMethodField(read_only=True)
+    lexeme_2_details = serializers.SerializerMethodField(read_only=True)
+
+    lexeme_1_language = serializers.SerializerMethodField(read_only=True)
+    lexeme_2_language = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = LexemePair
+        fields = '__all__'
+        # fields = ['id', 'curator', 'curationdate', 'side_a_text', 'side_a_hint', 'side_b_text', 'side_b_hint', 'side_a_language', 'a_direction', 'side_b_language', 'b_direction']
+
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_lexeme_1_language(self, instance):
+        serializer = LanguageSerializer(instance.lexeme_1.language)
+        return serializer.data
+    
+    def get_lexeme_1_details(self, instance):
+        serializer = SimpleLexemeSerializer(instance.lexeme_1)
+        return serializer.data
+
+
+
+    def get_lexeme_2_language(self, instance):
+        serializer = LanguageSerializer(instance.lexeme_2.language)
+        return serializer.data
+
+    def get_lexeme_2_details(self, instance):
+        serializer = SimpleLexemeSerializer(instance.lexeme_2)
+        return serializer.data
+
+
+class LexemePairLearningSerializer(serializers.ModelSerializer):
+    curationdate = serializers.SerializerMethodField(read_only=True)
+    last_attempted = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = LexemePairLearning
+        fields = '__all__'
+        # fields = ['id', 'curator', 'curationdate', 'side_a_text', 'side_a_hint', 'side_b_text', 'side_b_hint', 'side_a_language', 'a_direction', 'side_b_language', 'b_direction']
+    
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_last_attempted(self, instance):
+        return instance.last_attempted.strftime("%B %d, %Y")
+
+class LearnLexemePairSerializer(serializers.ModelSerializer):    
+    curator = CuratorSerializer(read_only=True)
+    curationdate = serializers.SerializerMethodField(read_only=True)
+    lexeme_1_details = serializers.SerializerMethodField(read_only=True)
+    lexeme_2_details = serializers.SerializerMethodField(read_only=True)
+    lexeme_1_language = serializers.SerializerMethodField(read_only=True)
+    lexeme_2_language = serializers.SerializerMethodField(read_only=True)
+    lexeme_1_audio = serializers.SerializerMethodField(read_only=True)
+    lexeme_2_audio = serializers.SerializerMethodField(read_only=True)
+    pair_learning = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = LexemePair
+        fields = '__all__'
+        # fields = ['id', 'curator', 'curationdate', 'side_a_text', 'side_a_hint', 'side_b_text', 'side_b_hint', 'side_a_language', 'a_direction', 'side_b_language', 'b_direction']
+
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_lexeme_1_language(self, instance):
+        serializer = LanguageSerializer(instance.lexeme_1.language)
+        return serializer.data
+    
+    def get_lexeme_1_details(self, instance):
+        serializer = SimpleLexemeSerializer(instance.lexeme_1)
+        return serializer.data
+
+    def get_lexeme_2_language(self, instance):
+        serializer = LanguageSerializer(instance.lexeme_2.language)
+        return serializer.data
+
+    def get_lexeme_2_details(self, instance):
+        serializer = SimpleLexemeSerializer(instance.lexeme_2)
+        return serializer.data
+
+    def get_lexeme_1_audio(self, instance):
+        queryset = LexemePronunciation.objects.filter(lexeme=instance.lexeme_1)
+        if queryset.exists():
+            lexeme_audio = queryset[0]
+            serializer = LexemePronunciationSerializer(lexeme_audio)
+            return serializer.data
+        print(queryset)
+        return False
+
+    def get_lexeme_2_audio(self, instance):
+        queryset = LexemePronunciation.objects.filter(lexeme=instance.lexeme_2)
+        if queryset.exists():
+            lexeme_audio = queryset[0]
+            serializer = LexemePronunciationSerializer(lexeme_audio)
+            return serializer.data
+        # print(queryset)
+        return False
+
+
+    def get_pair_learning(self, instance):
+        user = self.context.get("request").user
+        # queryset = LexemePairLearning.objects.filter(lexeme_pair=instance.pk).filter(curator=request.user)
+        # if queryset.exists():
+        #     learning_object = queryset[0]
+        # serializer = LexemePairLearningSerializer(learning_object)
+        # return serializer.data
+        learnings = []
+
+        queryset = LexemePairLearning.objects.filter(curator=user).filter(lexeme_pair=instance)
+        if queryset.exists():
+            learninglex = queryset[0]
+        else:
+            newpair = LexemePairLearning.objects.create(curator=user, lexeme_pair=instance)
+            learninglex = newpair
+
+        # print(queryset[0].last_attempted)
+        # print("Hello")
+
+        serializer = LexemePairLearningSerializer(learninglex)
+        return serializer.data
+
+    # def get_learning_pairs(self, instance):
+    #     user = self.context.get('request').user
+    #     # print(instance.lexeme_pairs)
+    #     # print(self)
+    #     # print(self.context)
+    #     # print(self.context.get('request'))
+
+    #     #TODO: Create a tuple or array for storing each learning pair, 
+    #     # then, run through the algorithm below. Then, serialize this list
+    #     # of new objects. THEN (and finally) return the list of lexeme pairs with all
+    #     # of the user's information for those objects
+
+    #     learnings = []
+    #     queryset = LexemePairLearning.objects.filter(curator=user)
+    #     for i in instance.lexeme_pairs.all():
+    #         if queryset.filter(lexeme_pair=i).exists():
+    #             learnings.append(queryset.filter(lexeme_pair=i)[0])
+    #         else:
+    #             newpair = LexemePairLearning.objects.create(curator=user, lexeme_pair=i)
+    #             learnings.append(newpair)
+    #     serializer = LexemePairLearningSerializer(learnings, many=True)
+    #     return serializer.data
+
+
+class CardStackSerializer(serializers.ModelSerializer):    
+    curator = CuratorSerializer(read_only=True)
+    curationdate = serializers.SerializerMethodField(read_only=True)
+    l1direction = serializers.SerializerMethodField()
+    l2direction = serializers.SerializerMethodField()
+
+    learning_language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+    native_language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+    topic = serializers.SlugRelatedField(
+        queryset = TopicTag.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+    lexeme_pairs = LexemePairSerializer(many=True, required=False)
+
+    class Meta:
+        model = CardStack
+        fields = '__all__'
+        read_only_fields = ('slug',)
+        # fields = ['id', 'curator', 'curationdate', 'side_a_text', 'side_a_hint', 'side_b_text', 'side_b_hint', 'side_a_language', 'a_direction', 'side_b_language', 'b_direction']
+
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_updated(self, instance):
+        return instance.updated.strftime("%B %d, %Y")
+
+    def get_l1direction(self, instance):
+        return instance.learning_language.direction
+
+    def get_l2direction(self, instance):
+        return instance.native_language.direction
+
+
+class LearnStackSerializer(serializers.ModelSerializer):    
+    curator = CuratorSerializer(read_only=True)
+    curationdate = serializers.SerializerMethodField(read_only=True)
+    l1direction = serializers.SerializerMethodField()
+    l2direction = serializers.SerializerMethodField()
+
+    learning_language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+    native_language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+    topic = serializers.SlugRelatedField(
+        queryset = TopicTag.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+    lexeme_pairs = LearnLexemePairSerializer(many=True, required=False)
+    # lexeme_pairs = LearnLexemePairSerializer(many=True, required=False, context={'request': self.context.get('request')})
+    # lexeme_pairs = LexemePairSerializer(many=True)
+    learning_pairs = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CardStack
+        fields = '__all__'
+        read_only_fields = ('slug',)
+        # fields = ['id', 'curator', 'curationdate', 'side_a_text', 'side_a_hint', 'side_b_text', 'side_b_hint', 'side_a_language', 'a_direction', 'side_b_language', 'b_direction']
+
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_updated(self, instance):
+        return instance.updated.strftime("%B %d, %Y")
+
+    def get_l1direction(self, instance):
+        return instance.learning_language.direction
+
+    def get_l2direction(self, instance):
+        return instance.native_language.direction
+    
+    def get_learning_pairs(self, instance):
+        user = self.context.get('request').user
+        # print(instance.lexeme_pairs)
+        # print(self)
+        # print(self.context)
+        # print(self.context.get('request'))
+
+        #TODO: Create a tuple or array for storing each learning pair, 
+        # then, run through the algorithm below. Then, serialize this list
+        # of new objects. THEN (and finally) return the list of lexeme pairs with all
+        # of the user's information for those objects
+
+        learnings = []
+        # print("hello")
+        queryset = LexemePairLearning.objects.filter(curator=user)
+        for i in instance.lexeme_pairs.all():
+            print(i)
+            if queryset.filter(lexeme_pair=i).exists():
+                learnings.append(queryset.filter(lexeme_pair=i)[0])
+            else:
+                newpair = LexemePairLearning.objects.create(curator=user, lexeme_pair=i)
+                learnings.append(newpair)
+        serializer = LexemePairLearningSerializer(learnings, many=True)
+        return serializer.data
+        
+

@@ -14,7 +14,7 @@
     </v-row>
     <v-row wrap dense v-if="filteredCount">
       <v-col
-        cols="12"
+        cols="12" sm="6" md="4" lg="3"
         v-for="textElement in filteredElements"
         :key="textElement.id"
       >

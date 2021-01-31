@@ -7,7 +7,9 @@ import NotFound from "../views/NotFound.vue";
 import QuestionViewer from "../views/QuestionViewer.vue";
 import LessonBuilder from "../components/lessons/LessonBuilder.vue";
 import LessonViewer from "../views/LessonViewer.vue";
-import VocabCurator from "../components/vocab/VocabCurator.vue";
+import LexemeCurator from "../components/vocab/LexemeCurator.vue";
+import StacksViewer from "../components/vocab/stacks/StacksViewer.vue";
+import LearnStack from "../components/vocab/stacks/LearnStack.vue";
 import MediaElementViewer from "../views/MediaElementViewer.vue";
 import TextElementViewer from "../views/TextElementViewer.vue";
 import Curate from "../views/Curate.vue";
@@ -69,9 +71,21 @@ export default new VueRouter({
       props: true
     },
     {
-      path: "/curate/vocab/:lexemeslug?",
-      name: "Vocab-Curator",
-      component: VocabCurator,
+      path: "/curate/cardstack/:stackslug?",
+      name: "Stacks-Viewer",
+      component: StacksViewer,
+      props: true
+    },
+    {
+      path: "/learn/cardstack/:slug",
+      name: "Learn-Stack",
+      component: LearnStack,
+      props: true
+    },
+    {
+      path: "/curate/lexeme/:lexemeslug?",
+      name: "Lexeme-Curator",
+      component: LexemeCurator,
       props: true
     },
     {

@@ -12,6 +12,7 @@ from vocab.models import  (
                         LexemeDefinition,
                         LexemePronunciation,
                         LexemeRoot,
+                        LexemePairLearning,
                         InflectedForm,
                         InflectedFormGrammar,
                         InflectedFormDefinition,
@@ -24,6 +25,7 @@ from vocab.models import  (
                         LexemePair,
                         InflectedFormPair,
                         VocabBank,
+                        CardStack,
                         )
 from categories.models import Language
 from lessons.models import LessonVocabBank
@@ -41,6 +43,9 @@ from vocab.api.serializers import (
                            InflectedFormDefinitionSerializer,
                            InflectedFormPronunciationSerializer,
                            InflectedFormPairSerializer,
+                           CardStackSerializer,
+                           LearnStackSerializer,
+                           LexemePairSerializer,
                             )
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
@@ -154,14 +159,12 @@ def wordpair_list(request, pk):
       }
       resdata.append(word_package)
 
-   print(resdata)
    # return InflectedFormSerializer(wordlist.keys(), many=True).data
    return Response(resdata)
 
 
 @api_view(['POST'])
 def remove_pair_from_bank(request):
-   print(request.data)
    if request.user.is_authenticated:
       vocab_bank = get_object_or_404(VocabBank, pk=request.data.get('vocab_bank'))
       if vocab_bank.curator != request.user:
@@ -169,7 +172,7 @@ def remove_pair_from_bank(request):
       else:
          word_pair = get_object_or_404(InflectedFormPair, pk=request.data.get('word_pair'))
          vocab_bank.word_pairs.remove(word_pair)
-         print("Pair removed from bank.")
+
          return Response(status=status.HTTP_202_ACCEPTED)
 
 
@@ -260,8 +263,6 @@ class InflectedFormPairViewSet(viewsets.ModelViewSet):
          self.perform_create(serializer)
          headers = self.get_success_headers(serializer.data)
          return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
 
 
    def perform_create(self, serializer):
@@ -448,7 +449,6 @@ class LexemePronunciationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
 
     def perform_create(self, serializer):
-        print("test")
         serializer.save(curator=self.request.user)
         self.request.user.user_profile.points += 2
         self.request.user.user_profile.save()
@@ -502,7 +502,6 @@ class InflectedFormPronunciationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
 
     def perform_create(self, serializer):
-        print("test")
         serializer.save(curator=self.request.user)
         self.request.user.user_profile.points += 2
         self.request.user.user_profile.save()
@@ -549,7 +548,7 @@ class SentenceAudioViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
 
     def perform_create(self, serializer):
-        print("test")
+
         serializer.save(curator=self.request.user)
         self.request.user.user_profile.points += 2
         self.request.user.user_profile.save()
@@ -576,3 +575,213 @@ class SentenceTranslationViewSet(viewsets.ModelViewSet):
         self.request.user.user_profile.points += 2
         self.request.user.user_profile.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CardStackViewSet(viewsets.ModelViewSet):
+   queryset = CardStack.objects.all().order_by("-curationdate")
+   lookup_field = "slug"
+   serializer_class = CardStackSerializer
+   permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+   def list(self, request):
+      # userlanguages = request.user.user_profile.learninglanguage.all()
+      # usertopics = request.user.user_profile.learningtopics.all()
+      queryset = CardStack.objects.filter(
+                                 Q(public = True) | Q(curator = request.user)
+                              ).order_by("-curationdate")
+
+      serializer = CardStackSerializer(queryset, many=True) 
+      return Response(serializer.data)
+
+   def perform_create(self, serializer):
+      serializer.save(curator=self.request.user)
+      self.request.user.user_profile.points += 2
+      self.request.user.user_profile.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+
+   def partial_update(self, request, slug):
+      stack = get_object_or_404(CardStack, slug=slug)
+      # serializer_context = {"request": request}
+      serializer=CardStackSerializer(stack, data=request.data, partial=True)
+      if serializer.is_valid():
+         serializer.save()
+         # updatedserializer=CardStackSerializer(stack)
+      return Response(serializer.data)
+
+
+@api_view(['GET'])
+def learn_stack_view(request, slug):
+   stack = get_object_or_404(CardStack, slug=slug)
+   # print(request)
+   serializer = LearnStackSerializer(stack, context={'request': request})
+   return Response(serializer.data)
+   
+
+
+class LearnStackViewSet(viewsets.ModelViewSet):
+   queryset = CardStack.objects.all().order_by("-curationdate")
+   lookup_field = "slug"
+   serializer_class = LearnStackSerializer
+   permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+   def list(self, request):
+      # userlanguages = request.user.user_profile.learninglanguage.all()
+      # usertopics = request.user.user_profile.learningtopics.all()
+      queryset = CardStack.objects.filter(
+                                 Q(public = True) | Q(curator = request.user)
+                              ).order_by("-curationdate")
+      # queryset = Lexeme.objects.filter(
+      #    suspended = False,
+      # #   language__in = userlanguages,
+      # #   topic__in = usertopics,
+      # ).order_by("-curationdate")
+
+      # serializer_context = {"request": request, "userlanguages": userlanguages, "usertopics": usertopics}
+      
+      # page = self.paginate_queryset(queryset)
+      # if page is not None:
+      #    serializer = LexemeSerializer(page, many=True, context=serializer_context) 
+      #    return self.get_paginated_response(serializer.data)
+
+      serializer = LearnStackSerializer(queryset, many=True) 
+      return Response(serializer.data)
+
+
+
+@api_view(['POST'])
+def add_stack_pair(request):
+   if request.user.is_authenticated:
+      stack = get_object_or_404(CardStack, slug=request.data.get('stack'))
+      if stack.curator != request.user:
+         return Response(status=status.HTTP_401_UNAUTHORIZED)
+      pair = get_object_or_404(LexemePair, pk=request.data.get('pair'))
+      stack.lexeme_pairs.add(pair)
+      stack.save()
+      resdata = LexemePairSerializer(pair).data
+      return Response(resdata)
+
+@api_view(['POST'])
+def delete_stack_pair(request):
+   if request.user.is_authenticated:
+      stack = get_object_or_404(CardStack, slug=request.data.get('stack'))
+      if stack.curator != request.user:
+         return Response(status=status.HTTP_401_UNAUTHORIZED)
+      pair = get_object_or_404(LexemePair, pk=request.data.get('pair'))
+      stack.lexeme_pairs.remove(pair)
+      stack.save()
+      resdata = {}
+      resdata['message'] = 'Pairing removed'
+      return Response(resdata)
+
+
+
+class LexemePronunciationViewSet(viewsets.ModelViewSet):
+    queryset = LexemePronunciation.objects.all().order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = LexemePronunciationSerializer
+    parser_classes = (MultiPartParser, FormParser, )
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, pk):
+       pronunciation = get_object_or_404(LexemePronunciation, pk=pk)
+       serializer_context = {"request": request}
+       serializer=LexemePronunciationSerializer(pronunciation, data=request.data, partial=True)
+       if serializer.is_valid():
+         serializer.save()
+       updatedserializer=LexemePronunciationSerializer(pronunciation, context=serializer_context)
+       return Response(updatedserializer.data)
+
+
+class LexemePairViewSet(viewsets.ModelViewSet):
+    queryset = LexemePair.objects.all().order_by("-curationdate")
+   #  lookup_field = "slug"
+    serializer_class = LexemePairSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+
+    def perform_create(self, serializer):
+        instance = serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+
+
+@api_view(['GET'])
+def get_lexemepair_list(request, slug, pairlanguage):
+   lexeme = get_object_or_404(Lexeme, slug=slug)
+   lexemepairs = LexemePair.objects.filter(
+                              Q(lexeme_1 = lexeme) | Q(lexeme_2 = lexeme)
+                              )
+
+   # language_param = request.GET.get('language', '')
+
+   if pairlanguage:
+      language = get_object_or_404(Language, name=pairlanguage)
+      newPairSet = []
+      for i in lexemepairs:
+         newPair = {}
+         if i.lexeme_1 != lexeme:
+            l1 = i.lexeme_1
+            if l1.language == language:
+               newPair['id']=i.id
+               serializer = LexemeSerializer(l1)
+               newPair['pairing']=serializer.data
+               newPairSet.append(newPair)
+         else:
+            l2 = i.lexeme_2
+            if l2.language == language:
+               newPair['id']=i.id
+               serializer = LexemeSerializer(l2)
+               newPair['pairing']=serializer.data
+               newPairSet.append(newPair)
+
+      return Response(newPairSet)
+   serializer = LexemePairSerializer(lexemepairs, many=True)
+   return Response(serializer.data)
+
+
+@api_view(['GET'])
+def get_word_list(request):
+   resdata = {}
+   if request.method == 'GET':
+      language_param = request.GET.get('language', '')
+      if language_param == '':
+         words = InflectedForm.objects.filter(language = None).order_by("-word")
+      elif language_param == 'all':
+         words = InflectedForm.objects.all().order_by("-word")
+      else:
+         language = get_object_or_404(Language, name=language_param)
+         words = InflectedForm.objects.filter(language = language)
+
+      return Response(InflectedFormSerializer(words, many=True).data)
+   return Response(resdata)
+
+
+
+@api_view(['POST'])
+def update_lexeme_learning_correct(request):
+   if request.user.is_authenticated:
+      print(request.data)
+      learning_pair = get_object_or_404(LexemePairLearning, pk=request.data.get('learning_pair_id'))
+      if learning_pair.curator != request.user:
+         return Response(status=status.HTTP_401_UNAUTHORIZED)
+      else:
+         learning_pair.attempts = learning_pair.attempts + 1
+         learning_pair.number_correct = learning_pair.number_correct + 1
+         learning_pair.save()
+         return Response({'message': 'Correct answer recorded'})
+
+@api_view(['POST'])
+def update_lexeme_learning_incorrect(request):
+   if request.user.is_authenticated:
+      print(request.data)
+      learning_pair = get_object_or_404(LexemePairLearning, pk=request.data.get('learning_pair_id'))
+      if learning_pair.curator != request.user:
+         return Response(status=status.HTTP_401_UNAUTHORIZED)
+      else:
+         learning_pair.attempts = learning_pair.attempts + 1
+         learning_pair.save()
+         return Response({'message': 'Incorrect answer recorded'})

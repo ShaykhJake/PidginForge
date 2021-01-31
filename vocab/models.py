@@ -252,27 +252,67 @@ class VocabBank(models.Model):
    updated = models.DateTimeField(auto_now=True, editable=False)
    word_pairs = models.ManyToManyField(InflectedFormPair)
 
-# class LexemeLearning(models.Model):
-#    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="attached_note_curator") #do we want this to be null?
-#    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
-#    learning_lexeme = models.ForeignKey(Lexeme)
-#    known_lexeme = models.ForeignKey(Lexeme)
-#    last_attempted = models.DateTimeField(auto_now=True, editable=False)
-#    attempts = models.PositiveIntegerField(default=0)
-#    number_correct = models.PositiveIntegerField(default=0)
-#    active = models.BooleanField(default=True)
+class LexemePairLearning(models.Model):
+   curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+   curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+   lexeme_pair = models.ForeignKey(LexemePair, on_delete=models.CASCADE, null=False)
+   last_attempted = models.DateTimeField(auto_now=True, editable=False)
+   attempts = models.PositiveIntegerField(default=0)
+   number_correct = models.PositiveIntegerField(default=0)
+   active = models.BooleanField(default=True)
 
-# class CardStack(models.Model):
-#    # presentation of words in vocab games will be calculated by
-#    # user preference and what pairs are available. 
-#    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="attached_note_curator") #do we want this to be null?
-#    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
-#    updated = models.DateTimeField(auto_now=True, editable=False)
-#    name = models.CharField(max_length=305, default="", null=False)
-#    public = models.BooleanField(default=False)
-#    topics = models.ManyToManyField(TopicTag)
-#    learning_languages = models.ManyToManyField(Language)
-#    lexeme_pairs = models.ManyToManyField(LexemePair)
+class CustomCard(models.Model):
+   curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+   curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+   public = models.BooleanField(default=False)
+   side_a_text = models.CharField(max_length=250, default="", null=False)
+   side_a_language = models.ForeignKey(Language, on_delete=models.CASCADE, null=False, related_name="custom_card_side_a_language")
+   side_a_image = models.ImageField(null=True, upload_to='vocab/customcards/images/%Y/%m/%d')
+   side_a_audio = models.FileField(null=True, upload_to='vocab/customcards/audio/%Y/%m/%d')
+   side_a_hint = models.CharField(max_length=250, default="", null=True)
+   side_b_text = models.CharField(max_length=250, default="", null=False)
+   side_b_language = models.ForeignKey(Language, on_delete=models.CASCADE, null=False, related_name="custom_card_side_b_language")
+   side_b_image = models.ImageField(null=True, upload_to='vocab/customcards/images/%Y/%m/%d')
+   side_b_audio = models.FileField(null=True, upload_to='vocab/customcards/audio/%Y/%m/%d')
+   side_b_hint = models.CharField(max_length=250, default="", null=True)
 
-#    # TODO CREATE A SLUG FOR THIS CARD STACK!?
-#    # most statistics will be calculated by individual stack
+class CustomCardLearning(models.Model):
+   curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+   curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+   custom_card = models.ForeignKey(CustomCard, on_delete=models.CASCADE, null=False)
+   last_attempted = models.DateTimeField(auto_now=True, editable=False)
+   attempts = models.PositiveIntegerField(default=0)
+   number_correct = models.PositiveIntegerField(default=0)
+   active = models.BooleanField(default=True)
+
+class CardStack(models.Model):
+   # presentation of words in vocab games will be calculated by
+   # user preference and what pairs are available. 
+   curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+   curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+   updated = models.DateTimeField(auto_now=True, editable=False)
+   name = models.CharField(max_length=250, default="", null=False)
+   description = models.TextField(default="", null=False)
+   public = models.BooleanField(default=False)
+   topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
+   learning_language = models.ForeignKey(Language, on_delete=models.CASCADE, related_name="cardstack_learning_language")
+   native_language = models.ForeignKey(Language, on_delete=models.CASCADE, related_name="cardstack_native_language")
+   lexeme_pairs = models.ManyToManyField(LexemePair)
+   # custom_cards = models.ManyToManyField(CustomCard)
+   slug = models.SlugField(allow_unicode=True, max_length=255, unique=True, null=True, blank=True)
+   
+   def __str__(self):
+      return self.name
+
+
+@receiver(pre_save, sender=CardStack)
+def add_slug_to_cardstack(sender, instance, *args, **kwargs):
+   if instance and not instance.slug:
+      slugstring = instance.learning_language.name + "-" + instance.name
+      slug = slugify(slugstring, allow_unicode=True)
+      random_string = generate_random_string()
+      instance.slug = slug + "-" + random_string
+
+
+   # TODO CREATE A SLUG FOR THIS CARD STACK!?
+   # most statistics will be calculated by individual stack

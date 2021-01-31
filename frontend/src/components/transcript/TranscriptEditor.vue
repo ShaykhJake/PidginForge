@@ -625,6 +625,7 @@ export default {
       confirmDeleteDialog: false,
       unsavedChanges: false,
       currentContent: ``,
+      
       editor: new Editor({
         editable: false,
         extensions: [
@@ -657,7 +658,7 @@ export default {
          `,
         onUpdate: () => {
           this.unsavedChanges = true;
-          console.log("Unsaved changes");
+          // console.log("Unsaved changes");
         },
         handleDOMEvents: {}
       })

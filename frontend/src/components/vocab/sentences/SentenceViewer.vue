@@ -194,9 +194,100 @@
 
               </div>
                <div class="mt-2">
-                 <h3>Linked Words/Terms <v-btn class="primary" small>Add</v-btn></h3>
+                 <h3>Linked Words/Terms ({{inflectedWordArray.length}}) <v-btn class="primary" small>Add</v-btn></h3>
 
-                 TODO
+                     <div 
+                        class="listBox sandstone my-1"
+                        v-if="inflectedWordArray.length > 0" 
+                     >
+                        <div
+                           v-for="item in inflectedWordArray" 
+                           :key="item.id"
+                           class="mb-1"
+                        >
+                           <v-row 
+
+                              dense
+                           >
+                           <v-col class="body-1">
+                              <div 
+                                 :style="`direction: ${item.language.direction}`" 
+                                 class="roundBox"
+                                 @click="viewLexemeSelection=item.lexeme.slug" 
+                              >
+                                 {{ item.word }}
+                              </div>
+                                 <div class="overline">
+                                    Curated by 
+                                    <span class="primary--text font-weight-black">
+                                       {{ item.curator.username }}
+                                    </span> 
+                                 </div>
+                                 <div>
+                                 </div>
+                           </v-col>
+
+                           <v-col cols="1" align="right">
+                              <v-icon 
+                                 small 
+                                 @click="editTranslation(item)" 
+                                 v-if="requestUser === item.curator.username"
+                              >
+                                 mdi-pencil
+                              </v-icon>
+                              <v-icon 
+                                 small 
+                                 @click="deleteTranslationSelection=item.id" 
+                                 v-if="requestUser === item.curator.username"
+                              >
+                                 mdi-delete
+                              </v-icon><br>
+
+                           </v-col>
+                           </v-row>
+                           <v-overlay
+                                 absolute
+                                 :value="viewLexemeSelection ? true : false"
+                                 opacity=".89"
+                              >
+                              <div style="text-align:center;">
+                                 <div class="title">
+                                    View Lexeme?
+                                 </div>
+
+                                 <span class="overline">Would you like to view the
+                                    parent lexeme? This will route you away from the current
+                                    page.
+                                 </span>
+                                 <br>
+                                 <v-btn
+                                    small
+                                    class="calligraphy desertsand--text mr-3"
+                                    @click="viewLexemeSelection = null"
+                                 >
+                                    Cancel
+                                 </v-btn>
+
+                                 <v-btn
+                                    small
+                                    class="primary"
+                                    @click="$router.push({name: 'Lexeme-Curator', params: { lexemeslug: item.lexeme.slug },})"
+                                 >
+                                    View Lexeme
+                                 </v-btn>
+                              </div>
+
+                              </v-overlay>
+                           </div>
+
+
+                        </div>
+
+
+
+
+
+
               </div>
 
            </div>
@@ -278,10 +369,12 @@ export default {
       audio: null,
       audioArray: [],
       translationArray: [],
+      inflectedWordArray: [],
       deleteTranslationOverlay: false,
       deleteAudioOverlay: false,
       deleteAudioSelection: null,
       deleteTranslationSelection: null,
+      viewLexemeSelection: null,
       playerDialog: false,
       attachTranslationDialog: false,
       selectedTranslation: null,
@@ -309,6 +402,7 @@ export default {
                   this.sentence = data;
                   this.audioArray = this.sentence.audio;
                   this.translationArray = this.sentence.translations;
+                  this.inflectedWordArray = this.sentence.inflectedforms;
                   this.loading=false;
                } else {
                   console.log(data)

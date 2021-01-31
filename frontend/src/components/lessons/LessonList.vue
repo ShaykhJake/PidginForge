@@ -13,11 +13,9 @@
       </v-col>
     </v-row>
     <v-row wrap dense v-if="filteredCount">
-      <v-col cols="12" v-for="lesson in filteredLessons" :key="lesson.id">
+      <v-col cols="12" sm="6" md="4" lg="3" v-for="lesson in filteredLessons" :key="lesson.id">
         <LessonMicro
           :lesson="lesson"
-          :hidden="lesson.user_has_hidden"
-          @hideLesson="lesson.user_has_hidden = !lesson.user_has_hidden"
         />
       </v-col>
     </v-row>

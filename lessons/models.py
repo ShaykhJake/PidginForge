@@ -32,7 +32,7 @@ class Lesson(models.Model):
    target_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="lesson_target_language")
    topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, related_name="lesson_topic")
    
-   primary_vocab = models.ForeignKey(VocabBank, on_delete=models.SET_NULL, null=True)
+   primary_vocab = models.ForeignKey(VocabBank, on_delete=models.SET_NULL, null=True, blank=True)
 
    citation = models.CharField(max_length=600, default="", null=True)
 

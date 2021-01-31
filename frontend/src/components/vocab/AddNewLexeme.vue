@@ -71,7 +71,7 @@
 <script>
 import { apiService } from "@/common/api.service.js";
 export default {
-   name: "CreateNewTerm",
+   name: "AddNewLexeme",
    props: {
       dialog: {
          type: Boolean,

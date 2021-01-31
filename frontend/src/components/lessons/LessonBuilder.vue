@@ -88,8 +88,8 @@
                     v-model="lesson.source_language"
                     name="sourcelanguage"
                     :items="allLanguages"
-                    label="Source Language*"
-                    placeholder="choose a source language"
+                    label="Learning Language*"
+                    placeholder="choose a learning language"
                     :rules="[rules.requiredLanguage]"
                     required
                     :loading="loadingLanguages"
@@ -101,8 +101,8 @@
                     v-model="lesson.target_language"
                     name="targetlanguage"
                     :items="allLanguages"
-                    label="Target Language*"
-                    placeholder="choose a target language"
+                    label="Instruction Language*"
+                    placeholder="choose an instruction language"
                     :rules="[rules.requiredLanguage]"
                     required
                     :loading="loadingLanguages"
@@ -370,7 +370,7 @@
                                 <v-btn
                                   color="primary"
                                   text
-                                  @submit.prevent="
+                                  @click.prevent="
                                     setLinkUrl(commands.link, linkUrl)
                                   "
                                   >Update</v-btn
@@ -508,6 +508,7 @@
                       <v-divider class="mx-1" inset vertical></v-divider>
 
                       <v-btn
+                        v-if="false"
                         icon
                         small
                         color="calligraphy"
@@ -587,7 +588,7 @@
       </v-card-actions>
     </v-card>
 
-    <v-card class="calligraphy mb-2" v-if="!isNewLesson">
+    <v-card class="calligraphy mb-2" v-if="!isNewLesson && false">
        <v-card-title class="calligraphy desertsand--text py-1">
           Quiz Bank
          <v-spacer></v-spacer>
@@ -595,9 +596,9 @@
             v-if="!lesson.primary_vocab" 
             :loading="creatingBank" 
             class="primary"
-            @click="createVocabBank"
+            @click="createQuizBank"
           >
-            Add Vocab Bank
+            Add Quiz Bank
           </v-btn>
 
          <v-btn icon class="mx-1 primary--text" @click="showingQuizBank=!showingQuizBank">
@@ -610,6 +611,7 @@
          <QuizBank ref="quizbank" />         
       </v-card-text>
     </v-card>
+
     <v-card class="calligraphy mb-2"  v-if="!isNewLesson">
       <v-card-title class="calligraphy desertsand--text py-1">
          Vocab Bank
@@ -694,16 +696,17 @@ import {
   Heading,
   Bold,
   Italic,
-  Link,
+  // Link,
   Strike,
   Underline,
   History
 } from "tiptap-extensions";
 import { default as Alignment } from "@/components/tiptaptoo/Alignment.js";
+import { default as Link } from "@/components/tiptaptoo/CustomLink.js";
 import { default as TextDirection } from "@/components/tiptaptoo/TextDirection.js";
 import { default as Highlighter } from "@/components/tiptaptoo/Highlighter.js";
 import { default as Lexeme } from "@/components/tiptaptoo/Lexeme.js";
-import { default as YouTubeEmbed } from "@/components/tiptaptoo/YouTube.js";
+// import { default as YouTubeEmbed } from "@/components/tiptaptoo/YouTube.js";
 
 export default {
   name: "LessonBuilder",
@@ -719,134 +722,122 @@ export default {
       required: false
     }
   },
-  data: () => ({
-    isNewLesson: true,
-    loaded: false,
-    building: false,
-    saving: false,
-    unsavedChanges: false,
-    confirmDeleteDialog: false,
-    submittingDelete: false,
-    skillDialog: false,
-    publishing: false,
-    lessonTypeDialog: false,
-    loadingLesson: false,
-    loadingLanguages: false,
-    loadingTopics: false,
-    allTopics: [],
-    allLanguages: [],
-    metadataValid: false,
-    creatingBank: false,
-    linkDialog: false,
-    lesson: {},
-    showingMetadata: true,
-    showingContentEditor: true,
-    showingVocabBank: true,
-    showingQuizBank: true,
-    editorFontSize: 1,
-    linkUrl: null,
-    linkMenuIsActive: false,
+  data() {
+    return {
+      isNewLesson: true,
+      loaded: false,
+      building: false,
+      saving: false,
+      unsavedChanges: false,
+      confirmDeleteDialog: false,
+      submittingDelete: false,
+      skillDialog: false,
+      publishing: false,
+      lessonTypeDialog: false,
+      loadingLesson: false,
+      loadingLanguages: false,
+      loadingTopics: false,
+      allTopics: [],
+      allLanguages: [],
+      metadataValid: false,
+      creatingBank: false,
+      linkDialog: false,
+      lesson: {},
+      showingMetadata: true,
+      showingContentEditor: true,
+      showingVocabBank: true,
+      showingQuizBank: true,
+      editorFontSize: 1,
+      linkUrl: null,
+      linkMenuIsActive: false,
 
-    skillLevels: ["0+, Novice Low", "1, Novice Mid", "1+, Novice High", "2, Intermediate Low", "2+, Intermediate Mid", "3, Intermediate High", "3+, Advanced Low", "4, Advanced Mid", "4+, Advanced High", "5, Superior"],
-    lessonTypes: ["Reading Comprehension",
-                  "Listening Comprehension", 
-                  "Explicit Grammar",
-                  "Content-Based ",
-                  "Problem-Based",
-                  "Other",
-    ],
-    rules: {
-      requiredTitle: value =>
-        (value || "").length > 3 ||
-        "Title length must be at least 4 characters.",
-
-      requiredObjective: value =>
-        (value || "").length > 9 ||
-        "Objective length must be at least 9 characters.",
-
-      requiredType: typevalue =>
-        (typevalue || "").length > 0 || "You must choose an event type.",
-
-      requiredSkillLevel: value =>
-        (value || "").length > 0 || "You must choose a skill level.",
-      
-      requiredLessonType: lessontype =>
-        (lessontype || "").length > 0 || "You must choose a lesson type.",
-
-      requiredLanguage: languagevalue =>
-        (languagevalue || "").length > 0 || "You must choose a language.",
-
-      requiredTopic: topicvalue =>
-        (topicvalue || "").length > 0 || "You must choose a primary topic.",
-
-      requiredCitation: value =>
-        (value || "").length > 5 ||
-         "You must provied a source citation.",
-
-    },
-
-    vocabList: {},
-    previewMode: false,
-    editor: new Editor({
-      editable: true,
-      extensions: [
-        new Blockquote(),
-        new BulletList(),
-        new CodeBlock(),
-        new HorizontalRule(),
-        new ListItem(),
-        new OrderedList(),
-        new TodoItem(),
-        new TodoList(),
-        new Link(),
-        new HardBreak(),
-        new Heading({ levels: [1, 2, 3] }),
-        new Bold(),
-        new Alignment(),
-        new TextDirection(),
-        new History(),
-        new Highlighter(),
-        new Italic(),
-        new Lexeme(),
-        new Link(),
-        new Strike(),
-        new Underline(),
-        new YouTubeEmbed()
+      skillLevels: ["0+, Novice Low", "1, Novice Mid", "1+, Novice High", "2, Intermediate Low", "2+, Intermediate Mid", "3, Intermediate High", "3+, Advanced Low", "4, Advanced Mid", "4+, Advanced High", "5, Superior"],
+      lessonTypes: ["Reading Comprehension",
+                    "Listening Comprehension", 
+                    "Explicit Grammar",
+                    "Content-Based ",
+                    "Problem-Based",
+                    "Other",
       ],
-      editorProps: {
-        handleClickOn: (view, pos, node, nodePos, event) => {
-          if (node.type.name === "lexeme") {
-            //   console.log(`Skip to ${node.attrs.timehack}`);
-            console.log(`Lexeme: ${node.text} means ${node.attrs.definition}`);
-            //   this.$emit("skipToTime", node.attrs.timehack);
-          } else {
-            return view, pos, node, nodePos, event;
-          }
-        },
-        onUpdate: () => {
-          this.unsavedChanges = true;
-          console.log("Unsaved changes");
-        },
+      rules: {
+        requiredTitle: value =>
+          (value || "").length > 3 ||
+          "Title length must be at least 4 characters.",
+
+        requiredObjective: value =>
+          (value || "").length > 9 ||
+          "Objective length must be at least 9 characters.",
+
+        requiredType: typevalue =>
+          (typevalue || "").length > 0 || "You must choose an event type.",
+
+        requiredSkillLevel: value =>
+          (value || "").length > 0 || "You must choose a skill level.",
+        
+        requiredLessonType: lessontype =>
+          (lessontype || "").length > 0 || "You must choose a lesson type.",
+
+        requiredLanguage: languagevalue =>
+          (languagevalue || "").length > 0 || "You must choose a language.",
+
+        requiredTopic: topicvalue =>
+          (topicvalue || "").length > 0 || "You must choose a primary topic.",
+
+        requiredCitation: value =>
+          (value || "").length > 5 ||
+          "You must provied a source citation.",
 
       },
-      content: `          
-          سجل كولومبي يبلغ من العمر 26 عاما رقما قياسيا عالميا جديدا بالصعود بدراجته 76 درجة سلم في مبنى مؤلف من 38 طابقا وسجل خافيير زاباتا 23 دقيقة و17 ثانية ويوم الخميس الماضي عندما صعد بدراجته 760 درجة سلم في مبنى كولتيجير في مدينة ميدلين الشمالية الغربية.  وقالت وسائل الإعلام المحلية إن الرقم القياسي السابق مسجل باسم إسباني صعد 747 درجة سلم في فندق في برسلونة في 25 دقيقة و23 ثانية.
-وأهم شرط في المرتين كان عدم لمس قدم المتسابق للأرض حتى النهاية.  وأشرف على محاولة زاباتا التي جرى تصويرها قائدُ شرطة ميدلين وقاض من الاتحاد الدولي للدراجات.  وكل ما تمكن زاباتا من قوله للصحفيين، بعد أن اختتم محاولته وقيل له إنه دخل موسوعة جينس للأرقام القياسية، "أنا بحاجة لاستنشاق هواء، كدتُ أموت هناك"
 
-          
-          
-
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Blanditiis obcaecati exercitationem cum harum cupiditate dicta nostrum quod necessitatibus fugiat, quis ex maxime commodi accusamus repudiandae reiciendis et quisquam iusto qui.</p>
-          ...lesson content goes here...
-
-         `
-    }),
-    vocabz: [
-      { word: "تشترك", definition: "participates" },
-      { word: "تشترك", definition: "participates" },
-      { word: "تشترك", definition: "participates" }
-    ]
-  }),
+      vocabList: {},
+      previewMode: false,
+      editor: new Editor({
+        editable: true,
+        extensions: [
+          new Blockquote(),
+          new BulletList(),
+          new CodeBlock(),
+          new HorizontalRule(),
+          new ListItem(),
+          new OrderedList(),
+          new TodoItem(),
+          new TodoList(),
+          new Link(),
+          new HardBreak(),
+          new Heading({ levels: [1, 2, 3] }),
+          new Bold(),
+          new Alignment(),
+          new TextDirection(),
+          new History(),
+          new Highlighter(),
+          new Italic(),
+          new Lexeme(),
+          new Link(),
+          new Strike(),
+          new Underline(),
+          // new YouTubeEmbed()
+        ],
+        // editorProps: {
+        //   handleClickOn: (view, pos, node, nodePos, event) => {
+        //     if (node.type.name === "lexeme") {
+        //       //   console.log(`Skip to ${node.attrs.timehack}`);
+        //       console.log(`Lexeme: ${node.text} means ${node.attrs.definition}`);
+        //       //   this.$emit("skipToTime", node.attrs.timehack);
+        //     } else {
+        //       return view, pos, node, nodePos, event;
+        //     }
+        //   },
+        // },
+        content: `
+          Loading
+        `,
+        onUpdate: () => {
+          this.unsavedChanges = true;
+        },
+        handleDOMEvents: {},
+      }),
+    }
+  },
   computed: {
     editorFontClass() {
       return `font-size:${this.editorFontSize}em`;
@@ -872,7 +863,7 @@ export default {
       try {
         apiService(endpoint, method, payload).then(data => {
           if (data) {
-            console.log(data.published)
+            // console.log(data.published)
             this.lesson.published = data.published;
             this.publishing=false;
           } else {
@@ -904,7 +895,7 @@ export default {
       try {
         apiService(endpoint, method, payload).then(data => {
           if (data) {
-            console.log(data)
+            // console.log(data)
             this.saving = false;
             this.unsavedChanges = false;
           } else {
@@ -953,7 +944,7 @@ export default {
     },
     loadLesson(slug) {
       this.loadingLesson = true;
-      console.log(`Loading lesson: ${slug}`);
+      // console.log(`Loading lesson: ${slug}`);
       // get from api....data =>
       // this.editor.setContent(data.content);
       let endpoint = `/api/lessons/lessonz/${slug}/`;
@@ -999,7 +990,7 @@ export default {
       try {
         apiService(endpoint, method, payload).then(data => {
             if (data){
-              console.log(data);
+              // console.log(data);
               this.lesson.primary_vocab = data.vocab_bank_id;
               this.creatingBank = false;
             } else {
@@ -1046,8 +1037,8 @@ export default {
       let command = lexemePackage.returnCommand;
       // this.editor.commands.lexeme({ definition: package.editedItem.definition });
       this.editor.focus();
-      console.log(command);
-      console.log(lexemePackage.editedItem.translation);
+      // console.log(command);
+      // console.log(lexemePackage.editedItem.translation);
       command({ translation: lexemePackage.editedItem.translation });
       // console.log(definition)
     },
@@ -1117,6 +1108,7 @@ export default {
 
     getLanguages() {
       var localLanguages = localStorage.getItem("languages");
+      console.log(localLanguages);
       if (localLanguages.length > 1) {
         console.log("Shop local!");
         this.allLanguages = JSON.parse(localLanguages);
@@ -1143,7 +1135,7 @@ export default {
     getTopics() {
       var localTopics = localStorage.getItem("topics");
       if (localTopics.length > 1) {
-        console.log("Shop local!");
+        // console.log("Shop local!");
         this.allTopics = JSON.parse(localTopics);
       } else {
         this.loadingTopics = true;
@@ -1169,8 +1161,9 @@ export default {
     this.loadingLesson = true;
     this.getLanguages();
     this.getTopics();
+    console.log(this.lesson);
     if (this.lessonslug) {
-      console.log("loading")
+      // console.log("loading")
       this.loadLesson(this.lessonslug);
     } else {
       console.log("making new lesson")

@@ -413,7 +413,7 @@
       </v-card-text>
     </v-card>
 
-    <v-card class="calligraphy mb-2">
+    <v-card class="calligraphy mb-2" v-if="false">
        <v-card-title class="calligraphy desertsand--text py-1">
           Quiz Bank
          <v-spacer></v-spacer>
@@ -428,6 +428,8 @@
          <QuizBank ref="quizbank" />         
       </v-card-text>
     </v-card>
+
+
     <v-card class="calligraphy mb-2">
       <v-card-title class="calligraphy desertsand--text py-1">
          Vocab Bank
@@ -439,36 +441,21 @@
          </v-btn>
 
       </v-card-title>
+
       <v-card-text v-show="showingVocabBankViewer" class="calligraphy pa-1">
-         <VocabBankViewer
-         :vocab-list="vocabList"
-         @setLexemeDefinition="setLexemeDefinition"
-         ref="vocabbank"
-         />
+
+          <VocabBank
+            v-if="lesson.primary_vocab"
+            :vocab-list="vocabList"
+            :source-language="this.lesson.source_language"
+            :target-language="this.lesson.target_language"
+            :vocab-bank-i-d="lesson.primary_vocab"
+            @setLexemeDefinition="setLexemeDefinition"
+            ref="vocabbank2"
+          />
+
       </v-card-text>
    </v-card>
-    <v-card class="calligraphy mb-2">
-      <v-card-title class="calligraphy desertsand--text py-1">
-         Vocab Bank
-         <v-spacer></v-spacer>
-
-         <v-btn icon class="mx-1 primary--text" @click="showingVocabBankViewer=!showingVocabBankViewer">
-            <v-icon v-if="showingVocabBankViewer">mdi-menu-up</v-icon>
-            <v-icon v-else>mdi-menu-down</v-icon>
-         </v-btn>
-
-      </v-card-title>
-      <v-card-text v-show="showingVocabBankViewer" class="calligraphy pa-1">
-         <VocabBankViewer
-         :vocab-list="vocabList"
-         @setLexemeDefinition="setLexemeDefinition"
-         ref="vocabbank"
-         />
-      </v-card-text>
-   </v-card>
-
-
-
 
     <v-overlay :value="loadingLesson">
       <v-progress-circular indeterminate size="64" color="primary"></v-progress-circular>
@@ -477,7 +464,7 @@
 </template>
 
 <script>
-import VocabBankViewer from "@/components/vocab/VocabBankViewer.vue";
+import VocabBank from "@/components/vocab/VocabBank.vue";
 import QuizBank from "@/components/quizzes/QuizBank.vue";
 import LessonVoter from "@/components/lessons/LessonVoter.vue";
 import { apiService } from "@/common/api.service.js";
@@ -511,7 +498,7 @@ export default {
   components: {
     EditorContent,
     EditorMenuBar,
-    VocabBankViewer,
+    VocabBank,
     QuizBank,
     LessonVoter,
   },
