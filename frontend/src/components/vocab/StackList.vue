@@ -13,6 +13,22 @@
 
         <v-tooltip bottom>
           <template v-slot:activator="{ on }">
+            <v-btn
+              v-on="on"
+              icon
+              @click="setPreference"
+              class="garbage--text"
+            >
+              <v-icon v-if="!byPreference">toggle_off</v-icon>
+              <v-icon class="primary--text" v-if="byPreference">toggle_on</v-icon>
+            </v-btn>
+          </template>
+          <span>Filter by Preference</span>
+        </v-tooltip>
+
+
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
             <v-btn icon v-on="on" class="primary--text" @click="refreshList">
               <v-icon>refresh</v-icon>
             </v-btn>
@@ -117,6 +133,7 @@
         addStackDialog: false,
         stackEditorLoaded: false,
         showStackEditor: false,
+        byPreference: true,
       };
     },
     components: {
@@ -130,9 +147,20 @@
         this.stackEditorLoaded = true;
         this.showStackEditor = !this.showStackEditor;
       },
-
+      setPreference() {
+        this.byPreference = !this.byPreference;
+        this.questions = [];
+        this.totalCount = 0;
+        this.next = null;
+        this.getStacks();
+      },
       getStacks() {
-        let endpoint = "/api/vocab/stacks/list/?by_preference=True";
+        let endpoint = String;
+        if(this.byPreference){
+          endpoint = "/api/vocab/stacks/list/?by_preference=True";
+        } else {
+          endpoint = "/api/vocab/stacks/list/";
+        }
         if (this.next) {
           endpoint = this.next;
         }

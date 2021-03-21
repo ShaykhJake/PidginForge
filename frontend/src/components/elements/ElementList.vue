@@ -28,6 +28,22 @@
                     </template>
                     <span>Filter By Preferences</span>
                   </v-tooltip> -->
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on }">
+                <v-btn
+                  v-on="on"
+                  icon
+                  @click="setPreference"
+                  class="garbage--text"
+                >
+                  <v-icon v-if="!byPreference">toggle_off</v-icon>
+                  <v-icon color="elements" v-if="byPreference"
+                    >toggle_on</v-icon
+                  >
+                </v-btn>
+              </template>
+              <span>Filter by Preference</span>
+            </v-tooltip>
 
             <v-tooltip bottom>
               <template v-slot:activator="{ on }">
@@ -70,18 +86,14 @@
           >
             <div>
               <div class="element-list">
-                <v-row
-                  wrap
-                  dense
-                  v-if="elements.length < 1 && !loading"
-                >
+                <v-row wrap dense v-if="elements.length < 1 && !loading">
                   <v-col cols="12">
                     <v-card>
                       <v-card-text class="desertsand calligraphy--text">
                         There are no elements which match your language
                         preferences. You may need to update your profile to add
-                        learning languages...or maybe we just don't
-                        have enough content yet!
+                        learning languages...or maybe we just don't have enough
+                        content yet!
                       </v-card-text>
                     </v-card>
                   </v-col>
@@ -164,6 +176,7 @@
         next: null,
         showElements: true,
         showElementEditor: false,
+        byPreference: true,
       };
     },
     props: {
@@ -189,8 +202,20 @@
     },
 
     methods: {
+      setPreference() {
+        this.byPreference = !this.byPreference;
+        this.elements = [];
+        this.totalCount = 0;
+        this.next = null;
+        this.getElements();
+      },
       getElements() {
-        let endpoint = `/api/elements/list/?by_preference=True`;
+        let endpoint = String;
+        if (this.byPreference) {
+          endpoint = "/api/elements/list/?by_preference=True";
+        } else {
+          endpoint = "/api/elements/list/";
+        }
         if (this.next) {
           endpoint = this.next;
         }

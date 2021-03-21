@@ -13,6 +13,18 @@
 
         <v-tooltip bottom>
           <template v-slot:activator="{ on }">
+            <v-btn v-on="on" icon @click="setPreference" class="garbage--text">
+              <v-icon v-if="!byPreference">toggle_off</v-icon>
+              <v-icon class="primary--text" v-if="byPreference"
+                >toggle_on</v-icon
+              >
+            </v-btn>
+          </template>
+          <span>Filter by Preference</span>
+        </v-tooltip>
+
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
             <v-btn icon v-on="on" class="primary--text" @click="refreshList">
               <v-icon>refresh</v-icon>
             </v-btn>
@@ -100,78 +112,91 @@
 </template>
 
 <script>
-import { apiService } from "@/common/api.service.js";
-import QuestionMicro from "@/components/questions/QuestionMicro.vue";
-export default {
-  name: "QuestionsList",
-  data() {
-    return {
-      questions: [],
-      next: null,
-      totalCount: 0,
-      loadingQuestions: false,
-      showQuestions: true,
-      askQuestionDialog: false,
-      questionEditorLoaded: false,
-      showQuestionEditor: false
-    };
-  },
-  components: {
-    QuestionMicro,
-    QuestionEditor: () =>
-      import(
-        /* webpackPrefetch: true */ "@/components/questions/QuestionEditor.vue"
-      )
-  },
-  computed: {},
-
-  methods: {
-    loadQuestionEditor() {
-      this.questionEditorLoaded = true;
-      this.showQuestionEditor = !this.showQuestionEditor;
+  import { apiService } from "@/common/api.service.js";
+  import QuestionMicro from "@/components/questions/QuestionMicro.vue";
+  export default {
+    name: "QuestionsList",
+    data() {
+      return {
+        questions: [],
+        next: null,
+        totalCount: 0,
+        loadingQuestions: false,
+        showQuestions: true,
+        askQuestionDialog: false,
+        questionEditorLoaded: false,
+        showQuestionEditor: false,
+        byPreference: true,
+      };
     },
+    components: {
+      QuestionMicro,
+      QuestionEditor: () =>
+        import(
+          /* webpackPrefetch: true */ "@/components/questions/QuestionEditor.vue"
+        ),
+    },
+    computed: {},
 
-    getQuestions() {
-      let endpoint = "/api/questions/list/?by_preference=True";
-      if (this.next) {
-        endpoint = this.next;
-      }
-      this.loadingQuestions = true;
-      apiService(endpoint).then(data => {
-        this.totalCount = data.count;
-        this.questions.push(...data.results);
+    methods: {
+      setPreference() {
+        this.byPreference = !this.byPreference;
+        this.questions = [];
+        this.totalCount = 0;
+        this.next = null;
+        this.getQuestions();
+      },
+      loadQuestionEditor() {
+        this.questionEditorLoaded = true;
+        this.showQuestionEditor = !this.showQuestionEditor;
+      },
 
-        this.loadingQuestions = false;
-        if (data.next) {
-          this.next = data.next;
+      getQuestions() {
+        let endpoint = String;
+        if(this.byPreference){
+          endpoint = "/api/questions/list/?by_preference=True";
         } else {
-          this.next = null;
+          endpoint = "/api/questions/list/";
         }
-      });
+        if (this.next) {
+          endpoint = this.next;
+        }
+        this.loadingQuestions = true;
+        apiService(endpoint).then((data) => {
+          this.totalCount = data.count;
+          this.questions.push(...data.results);
+
+          this.loadingQuestions = false;
+          if (data.next) {
+            this.next = data.next;
+          } else {
+            this.next = null;
+          }
+        });
+      },
+      refreshList() {
+        this.questions = [];
+        this.next = null;
+        this.getQuestions();
+      },
     },
-    refreshList() {
-      this.questions = [];
-      this.next = null;
+    created() {
       this.getQuestions();
-    }
-  },
-  created() {
-    this.getQuestions();
-  }
-};
+    },
+  };
 </script>
 <style scoped>
-.question-author {
-  font-weight: bold;
-  color: maroon;
-}
-.question-link {
-  font-weight: bold;
-  color: black;
-}
-.question-link:hover {
-  font-weight: bold;
-  color: gray;
-  text-decoration: none;
-}
+  .question-author {
+    font-weight: bold;
+    color: maroon;
+  }
+  .question-link {
+    font-weight: bold;
+    color: black;
+  }
+  .question-link:hover {
+    font-weight: bold;
+    color: gray;
+    text-decoration: none;
+  }
 </style>
