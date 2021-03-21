@@ -11,7 +11,7 @@ module.exports = {
   // Production
   publicPath: "https://jakesdesk-media.s3.amazonaws.com/static/dist/",
 
-  //Development
+  // Development
   // publicPath: "http://0.0.0.0:8080/",
 
   // runtimeCompiler: true,

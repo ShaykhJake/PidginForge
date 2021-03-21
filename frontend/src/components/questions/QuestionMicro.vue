@@ -50,7 +50,7 @@
                     {{ question.nativelanguage }} &#8594;
                     {{ question.learninglanguage }}
                   </span>
-                  ><br />
+                  <br />
                 </p>
                 <p class="primary--text overline mb-0">
                   {{ question.answers_count }} Answers

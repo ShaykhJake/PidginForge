@@ -25,7 +25,9 @@
               icon
               v-on="on"
               class="primary--text"
-              @click="loadStackEditor"
+              :to="{
+                name: 'Stacks-Viewer',
+              }"
             >
               <v-icon>style</v-icon>
             </v-btn>
@@ -101,60 +103,61 @@
 </template>
 
 <script>
-import { apiService } from "@/common/api.service.js";
-import StackMicro from "@/components/vocab/StackMicro.vue";
-export default {
-  name: "StackList",
-  data() {
-    return {
-      stacks: [],
-      next: null,
-      totalCount: 0,
-      loadingStacks: false,
-      showStacks: true,
-      addStackDialog: false,
-      stackEditorLoaded: false,
-      showStackEditor: false
-    };
-  },
-  components: {
-    StackMicro
-  },
-  computed: {},
-
-  methods: {
-    loadStackEditor() {
-      this.stackEditorLoaded = true;
-      this.showStackEditor = !this.showStackEditor;
+  import { apiService } from "@/common/api.service.js";
+  import StackMicro from "@/components/vocab/StackMicro.vue";
+  export default {
+    name: "StackList",
+    data() {
+      return {
+        stacks: [],
+        next: null,
+        totalCount: 0,
+        loadingStacks: false,
+        showStacks: true,
+        addStackDialog: false,
+        stackEditorLoaded: false,
+        showStackEditor: false,
+      };
     },
+    components: {
+      StackMicro,
+    },
+    computed: {},
 
-    getStacks() {
-      let endpoint = "/api/vocab/stacks/list/?by_preference=True";
-      if (this.next) {
-        endpoint = this.next;
-      }
-      this.loadingStacks = true;
-      apiService(endpoint).then(data => {
-        this.totalCount = data.count;
-        this.stacks.push(...data.results);
+    methods: {
+      loadStackEditor() {
+        console.log("trust");
+        this.stackEditorLoaded = true;
+        this.showStackEditor = !this.showStackEditor;
+      },
 
-        this.loadingStacks = false;
-        if (data.next) {
-          this.next = data.next;
-        } else {
-          this.next = null;
+      getStacks() {
+        let endpoint = "/api/vocab/stacks/list/?by_preference=True";
+        if (this.next) {
+          endpoint = this.next;
         }
-      });
+        this.loadingStacks = true;
+        apiService(endpoint).then((data) => {
+          this.totalCount = data.count;
+          this.stacks.push(...data.results);
+
+          this.loadingStacks = false;
+          if (data.next) {
+            this.next = data.next;
+          } else {
+            this.next = null;
+          }
+        });
+      },
+      refreshList() {
+        this.stacks = [];
+        this.next = null;
+        this.getStacks();
+      },
     },
-    refreshList() {
-      this.stacks = [];
-      this.next = null;
+    created() {
       this.getStacks();
-    }
-  },
-  created() {
-    this.getStacks();
-  }
-};
+    },
+  };
 </script>
 <style scoped></style>
