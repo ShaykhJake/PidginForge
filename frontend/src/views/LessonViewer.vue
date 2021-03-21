@@ -5,8 +5,8 @@
         {{ lesson.title }}
       </v-card-title>
       <v-toolbar dense flat class="desertsand">
-        <v-btn 
-          small 
+        <v-btn
+          small
           class="primary desertsand--text"
           :to="{
             name: 'Lesson-Builder',
@@ -14,7 +14,7 @@
               lessonslug: lesson.slug
             }
           }"
-          v-if="lesson.curator && requestUser==lesson.curator.username"
+          v-if="lesson.curator && requestUser == lesson.curator.username"
         >
           Edit Lesson
           <v-icon>mdi-pencil</v-icon>
@@ -24,7 +24,7 @@
           <v-icon>mdi-flag</v-icon>
         </v-btn>
         <v-btn icon class="primary--text">
-          <v-icon>mdi-eye-off</v-icon>  
+          <v-icon>mdi-eye-off</v-icon>
         </v-btn>
         <v-btn icon class="primary--text">
           <v-icon>mdi-heart</v-icon>
@@ -32,16 +32,15 @@
         <v-btn icon class="primary--text">
           <v-icon>mdi-source-fork</v-icon>
         </v-btn>
-        
+
         <v-divider vertical></v-divider>
-        <LessonVoter 
+        <LessonVoter
           :slug="lesson.slug"
           :up-vote-count="lesson.upvote_count"
           :down-vote-count="lesson.downvote_count"
           :user-vote="lesson.user_vote"
           @updateVote="updateVote"
         />
-          
       </v-toolbar>
 
       <v-card-text class="desertsand pa-1">
@@ -49,25 +48,53 @@
           <v-col cols="12">
             <v-card outlined flat>
               <v-card-title class="sandstone py-1 calligraphy--text">
-               Metadata
+                Metadata
                 <v-spacer />
 
-               <v-btn icon class="mx-1 primary--text" @click="showingMetadata=!showingMetadata">
+                <v-btn
+                  icon
+                  class="mx-1 primary--text"
+                  @click="showingMetadata = !showingMetadata"
+                >
                   <v-icon v-if="showingMetadata">mdi-menu-up</v-icon>
                   <v-icon v-else>mdi-menu-down</v-icon>
-               </v-btn>
-
-
+                </v-btn>
               </v-card-title>
               <v-card-text v-show="showingMetadata" class="sandstone pt-4">
                 <ul>
-                  <li>Learning Objective: <strong>{{ lesson.objective }}</strong></li>
-                  <li>Skill Level:  <strong>{{ lesson.skill_level }}</strong></li>
-                  <li>Lesson Type:  <strong>{{ lesson.lesson_type }}</strong></li>
-                  <li>Native Language:  <strong>{{ lesson.native_language }}</strong></li>
-                  <li>Target Language: <strong> {{ lesson.target_language }}</strong></li>
-                  <li>Primary Topic: <strong> {{ lesson.topic }}</strong></li>
-                  <li>Source Citation:  <strong>{{ lesson.citation }}</strong></li>
+                  <li>
+                    Learning Objective: <strong>{{ lesson.objective }}</strong>
+                  </li>
+                  <li>
+                    Skill Level: <strong>{{ lesson.skill_level }}</strong>
+                  </li>
+                  <li>
+                    Lesson Type: <strong>{{ lesson.lesson_type }}</strong>
+                  </li>
+                  <li>
+                    Instruction Language:
+                    <strong>{{ lesson.target_language }}</strong>
+                  </li>
+                  <li>
+                    Learning Language:
+                    <strong> {{ lesson.source_language }}</strong>
+                  </li>
+                  <li>
+                    Topic Tags:
+                    <strong>
+                      <v-chip
+                        outlined
+                        small
+                        class="tags tags--text"
+                        v-for="tag in lesson.tags"
+                        :key="tag.id"
+                        >{{ tag }}</v-chip
+                      >
+                    </strong>
+                  </li>
+                  <li>
+                    Source Citation: <strong>{{ lesson.citation }}</strong>
+                  </li>
                 </ul>
               </v-card-text>
             </v-card>
@@ -78,10 +105,14 @@
               <v-card-title class="sandstone calligraphy--text py-1">
                 Lesson Content
                 <v-spacer />
-               <v-btn icon class="mx-1 primary--text" @click="showingContentEditor=!showingContentEditor">
+                <v-btn
+                  icon
+                  class="mx-1 primary--text"
+                  @click="showingContentEditor = !showingContentEditor"
+                >
                   <v-icon v-if="showingContentEditor">mdi-menu-up</v-icon>
                   <v-icon v-else>mdi-menu-down</v-icon>
-               </v-btn>
+                </v-btn>
               </v-card-title>
 
               <v-card-text
@@ -408,57 +439,63 @@
               </v-card-actions>
             </v-card>
           </v-col>
-
         </v-row>
       </v-card-text>
     </v-card>
 
     <v-card class="calligraphy mb-2" v-if="false">
-       <v-card-title class="calligraphy desertsand--text py-1">
-          Quiz Bank
-         <v-spacer></v-spacer>
+      <v-card-title class="calligraphy desertsand--text py-1">
+        Quiz Bank
+        <v-spacer></v-spacer>
 
-         <v-btn icon class="mx-1 primary--text" @click="showingQuizBank=!showingQuizBank">
-            <v-icon v-if="showingQuizBank">mdi-menu-up</v-icon>
-            <v-icon v-else>mdi-menu-down</v-icon>
-         </v-btn>
-
-       </v-card-title>
+        <v-btn
+          icon
+          class="mx-1 primary--text"
+          @click="showingQuizBank = !showingQuizBank"
+        >
+          <v-icon v-if="showingQuizBank">mdi-menu-up</v-icon>
+          <v-icon v-else>mdi-menu-down</v-icon>
+        </v-btn>
+      </v-card-title>
       <v-card-text v-show="showingQuizBank" class="calligraphy pa-1">
-         <QuizBank ref="quizbank" />         
+        <QuizBank ref="quizbank" />
       </v-card-text>
     </v-card>
 
-
     <v-card class="calligraphy mb-2">
       <v-card-title class="calligraphy desertsand--text py-1">
-         Vocab Bank
-         <v-spacer></v-spacer>
+        Vocab Bank
+        <v-spacer></v-spacer>
 
-         <v-btn icon class="mx-1 primary--text" @click="showingVocabBankViewer=!showingVocabBankViewer">
-            <v-icon v-if="showingVocabBankViewer">mdi-menu-up</v-icon>
-            <v-icon v-else>mdi-menu-down</v-icon>
-         </v-btn>
-
+        <v-btn
+          icon
+          class="mx-1 primary--text"
+          @click="showingVocabBankViewer = !showingVocabBankViewer"
+        >
+          <v-icon v-if="showingVocabBankViewer">mdi-menu-up</v-icon>
+          <v-icon v-else>mdi-menu-down</v-icon>
+        </v-btn>
       </v-card-title>
 
       <v-card-text v-show="showingVocabBankViewer" class="calligraphy pa-1">
-
-          <VocabBank
-            v-if="lesson.primary_vocab"
-            :vocab-list="vocabList"
-            :source-language="this.lesson.source_language"
-            :target-language="this.lesson.target_language"
-            :vocab-bank-i-d="lesson.primary_vocab"
-            @setLexemeDefinition="setLexemeDefinition"
-            ref="vocabbank2"
-          />
-
+        <VocabBank
+          v-if="lesson.primary_vocab"
+          :vocab-list="vocabList"
+          :source-language="this.lesson.source_language"
+          :target-language="this.lesson.target_language"
+          :vocab-bank-i-d="lesson.primary_vocab"
+          @setLexemeDefinition="setLexemeDefinition"
+          ref="vocabbank2"
+        />
       </v-card-text>
-   </v-card>
+    </v-card>
 
     <v-overlay :value="loadingLesson">
-      <v-progress-circular indeterminate size="64" color="primary"></v-progress-circular>
+      <v-progress-circular
+        indeterminate
+        size="64"
+        color="primary"
+      ></v-progress-circular>
     </v-overlay>
   </v-container>
 </template>
@@ -500,7 +537,7 @@ export default {
     EditorMenuBar,
     VocabBank,
     QuizBank,
-    LessonVoter,
+    LessonVoter
   },
   props: {
     lessonslug: {
@@ -532,13 +569,25 @@ export default {
     linkUrl: null,
     linkMenuIsActive: false,
 
-    skillLevels: ["0+, Novice Low", "1, Novice Mid", "1+, Novice High", "2, Intermediate Low", "2+, Intermediate Mid", "3, Intermediate High", "3+, Advanced Low", "4, Advanced Mid", "4+, Advanced High", "5, Superior"],
-    lessonTypes: ["Reading Comprehension",
-                  "Listening Comprehension", 
-                  "Explicit Grammar",
-                  "Content-Based ",
-                  "Problem-Based",
-                  "Other",
+    skillLevels: [
+      "0+, Novice Low",
+      "1, Novice Mid",
+      "1+, Novice High",
+      "2, Intermediate Low",
+      "2+, Intermediate Mid",
+      "3, Intermediate High",
+      "3+, Advanced Low",
+      "4, Advanced Mid",
+      "4+, Advanced High",
+      "5, Superior"
+    ],
+    lessonTypes: [
+      "Reading Comprehension",
+      "Listening Comprehension",
+      "Explicit Grammar",
+      "Content-Based ",
+      "Problem-Based",
+      "Other"
     ],
     rules: {
       requiredTitle: value =>
@@ -554,7 +603,7 @@ export default {
 
       requiredSkillLevel: languagevalue =>
         (languagevalue || "").length > 0 || "You must choose a skill level.",
-      
+
       requiredLessonType: lessontype =>
         (lessontype || "").length > 0 || "You must choose a lesson type.",
 
@@ -565,9 +614,7 @@ export default {
         (topicvalue || "").length > 0 || "You must choose a primary topic.",
 
       requiredCitation: value =>
-        (value || "").length > 5 ||
-         "You must provied a source citation.",
-
+        (value || "").length > 5 || "You must provied a source citation."
     },
 
     vocabList: {},
@@ -610,14 +657,7 @@ export default {
         }
       },
       content: `          
-          سجل كولومبي يبلغ من العمر 26 عاما رقما قياسيا عالميا جديدا بالصعود بدراجته 76 درجة سلم في مبنى مؤلف من 38 طابقا وسجل خافيير زاباتا 23 دقيقة و17 ثانية ويوم الخميس الماضي عندما صعد بدراجته 760 درجة سلم في مبنى كولتيجير في مدينة ميدلين الشمالية الغربية.  وقالت وسائل الإعلام المحلية إن الرقم القياسي السابق مسجل باسم إسباني صعد 747 درجة سلم في فندق في برسلونة في 25 دقيقة و23 ثانية.
-وأهم شرط في المرتين كان عدم لمس قدم المتسابق للأرض حتى النهاية.  وأشرف على محاولة زاباتا التي جرى تصويرها قائدُ شرطة ميدلين وقاض من الاتحاد الدولي للدراجات.  وكل ما تمكن زاباتا من قوله للصحفيين، بعد أن اختتم محاولته وقيل له إنه دخل موسوعة جينس للأرقام القياسية، "أنا بحاجة لاستنشاق هواء، كدتُ أموت هناك"
-
-          
-          
-
           <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Blanditiis obcaecati exercitationem cum harum cupiditate dicta nostrum quod necessitatibus fugiat, quis ex maxime commodi accusamus repudiandae reiciendis et quisquam iusto qui.</p>
-          ...lesson content goes here...
 
          `
     }),
@@ -630,7 +670,7 @@ export default {
   computed: {
     editorFontClass() {
       return `font-size:${this.editorFontSize}em`;
-    },
+    }
   },
   methods: {
     updateVote(data) {
@@ -638,19 +678,19 @@ export default {
       this.lesson.downvote_count = data.newdowncount;
       this.lesson.upvote_count = data.newupcount;
     },
-    togglePublish(){
+    togglePublish() {
       this.publishing = true;
       let payload = {
         published: !this.lesson.published
-      }
+      };
       let endpoint = `/api/lessons/lessonz/${this.lesson.slug}/`;
       let method = "PATCH";
       try {
         apiService(endpoint, method, payload).then(data => {
           if (data) {
-            console.log(data.published)
+            // console.log(data.published);
             this.lesson.published = data.published;
-            this.publishing=false;
+            this.publishing = false;
           } else {
             console.log("There was a major problem with the request.");
             // console.log(data.message);
@@ -659,10 +699,11 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        this.publishing = false; 
+        this.publishing = false;
       }
     },
-    saveLesson(){  // Save user progress???
+    saveLesson() {
+      // Save user progress???
       // this.saving = true;
       // let payload = {
       //   title: this.lesson.title,
@@ -672,7 +713,7 @@ export default {
       //   native_language: this.lesson.native_language,
       //   target_language: this.lesson.target_language,
       //   topic: this.lesson.topic,
-      //   citation: this.lesson.citation, 
+      //   citation: this.lesson.citation,
       //   content: this.editor.getJSON(),
       // }
       // let endpoint = `/api/lessons/lessonz/${this.lesson.slug}/`;
@@ -690,10 +731,11 @@ export default {
       //   });
       // } catch (err) {
       //   console.log(err);
-      //   this.saving = false; 
+      //   this.saving = false;
       // }
     },
-    buildNewLesson() { //fork new lesson?
+    buildNewLesson() {
+      //fork new lesson?
       // let payload = {
       //   title: this.lesson.title,
       //   objective: this.lesson.objective,
@@ -702,7 +744,7 @@ export default {
       //   native_language: this.lesson.native_language,
       //   target_language: this.lesson.target_language,
       //   topic: this.lesson.topic,
-      //   citation: this.lesson.citation, 
+      //   citation: this.lesson.citation,
       //   published: false,
       //   content: "blank",
       // }
@@ -723,12 +765,11 @@ export default {
       //   });
       // } catch (err) {
       //   console.log(err);
-      //   this.building = false; 
+      //   this.building = false;
       // }
     },
     loadLesson(slug) {
       this.loadingLesson = true;
-      console.log(`Loading lesson: ${slug}`);
       // get from api....data =>
       // this.editor.setContent(data.content);
       let endpoint = `/api/lessons/lessonz/${slug}/`;
@@ -736,19 +777,17 @@ export default {
         apiService(endpoint).then(data => {
           if (data) {
             this.lesson = data;
-            console.log(data);
-            this.editor.setContent(this.lesson.content);
+            this.editor.setContent(this.lesson.rich_text);
             this.isNewLesson = false;
             this.loadingLesson = false;
           } else {
             console.log("There was a major problem with the request.");
-            // console.log(data.message);
             this.loadingLesson = false;
           }
         });
       } catch (err) {
         console.log(err);
-        this.loadingLesson = false; 
+        this.loadingLesson = false;
       }
     },
     showLinkMenu(attrs) {
@@ -784,8 +823,8 @@ export default {
       let command = lexemePackage.returnCommand;
       // this.editor.commands.lexeme({ definition: package.editedItem.definition });
       this.editor.focus();
-      console.log(command);
-      console.log(lexemePackage.editedItem.translation);
+      // console.log(command);
+      // console.log(lexemePackage.editedItem.translation);
       command({ translation: lexemePackage.editedItem.translation });
       // console.log(definition)
     },
@@ -798,8 +837,6 @@ export default {
     //    }
     //    this.$emit('setLexemeDefinition', lexemePackage);
     //   };
-
-
 
     printText() {
       var html = document.getElementById("editorbox").innerHTML;
@@ -851,9 +888,7 @@ export default {
           this.editorFontSize -= 0.15;
         }
       }
-    },
-
-
+    }
   },
   mounted() {
     this.loadingLesson = true;
@@ -866,27 +901,7 @@ export default {
 };
 </script>
 
-<style>
-.editor > * {
-  /* padding: 4px, 4px;
-  margin: 4px, 4px; */
-}
-
-.ProseMirror {
-  color: black;
-  background-color: oldlace;
-  padding: 10px 10px 10px 10px;
-  height: 650px;
-  font-size: 1.25em;
-  line-height: 1.35em;
-  overflow: auto;
-  resize: vertical;
-  border-color: black;
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 5px;
-}
-
+<style scoped>
 .is-active {
   border-color: orange;
   background-color: darkorange;

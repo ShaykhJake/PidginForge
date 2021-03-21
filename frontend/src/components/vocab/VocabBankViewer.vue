@@ -16,12 +16,10 @@
         <v-btn small>
           Import Selected
         </v-btn>
-        
+
         <v-dialog v-model="dialog" max-width="500px">
           <template v-slot:activator="{ on }">
-            <v-btn small color="primary" v-on="on"
-              >New Lexeme</v-btn
-            >
+            <v-btn small color="primary" v-on="on">New Lexeme</v-btn>
           </template>
           <v-card>
             <v-card-title>

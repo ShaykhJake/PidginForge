@@ -199,13 +199,20 @@
                 >Language Pair: {{ selectedEvent.native_language }} &#8594;
                 {{ selectedEvent.target_language }}</v-chip
               >
-              <v-chip x-small outlined class="topics topics--text mr-1"
-                >Topic Area: {{ selectedEvent.topic }}</v-chip
-              >
               <v-chip x-small outlined class="garbage garbage--text mr-1"
                 >Access:
                 {{ selectedEvent.public ? "Public" : "Invite Only" }}</v-chip
               ><br />
+              Tags:
+              <v-chip
+                x-small
+                v-for="tag in selectedEvent.tags"
+                :key="tag.uuid"
+                outlined
+                class="topics topics--text mr-1"
+                >{{ tag }}</v-chip
+              >
+
               <hr />
               <h2>{{ selectedEvent.name }}</h2>
               <p>{{ selectedEvent.caption }}</p>
@@ -323,8 +330,7 @@ export default {
       eventType: [],
       targetLanguage: [],
       nativeLanguage: [],
-      byRSVP: false,
-      topic: []
+      byRSVP: false
     },
     today: new Date().toISOString().substr(0, 10),
     selectedEvent: {},
@@ -430,13 +436,6 @@ export default {
             return false;
           }
         }
-        if (filter.topic.length > 0) {
-          if (!filter.eventType.includes(event.topic)) {
-            console.log("No results for topics");
-            return false;
-          }
-        }
-
         return true;
       });
     }

@@ -48,43 +48,6 @@
         </v-autocomplete>
 
         <v-autocomplete
-          v-model="filterSettings.topic"
-          :items="allTopics"
-          outlined
-          chips
-          dense
-          label="Event Topic(s)"
-          item-color="topics darken-4"
-          multiple
-        >
-          <template v-slot:selection="data">
-            <v-chip
-              color="topics darken-1 desertsand--text"
-              v-bind="data.attrs"
-              :input-value="data.selected"
-              close
-              small
-              @click="data.select"
-              @click:close="removeTopic(data.item)"
-            >
-              {{ data.item }}
-            </v-chip>
-          </template>
-          <template v-slot:item="data">
-            <template v-if="typeof data.item !== 'object'">
-              <v-list-item-content v-text="data.item"></v-list-item-content>
-            </template>
-            <template v-else>
-              <v-list-item-content>
-                <v-list-item-title
-                  v-html="data.item.username"
-                ></v-list-item-title>
-              </v-list-item-content>
-            </template>
-          </template>
-        </v-autocomplete>
-
-        <v-autocomplete
           v-model="filterSettings.nativeLanguage"
           :items="allLanguages"
           outlined

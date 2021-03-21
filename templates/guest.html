@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+            integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>PidginForge</title>
+        {% block style %}
+        <style type="text/css">
+            html,
+            body {
+                height: 100%;
+                font-family: 'PT Sans';
+                /* font-family: 'Philosopher', ;
+            font-family: 'Marck Script', ; */
+            }
+
+            .login-form-container {
+                width: 90%;
+                margin: auto;
+            }
+
+            .logo {
+                width: 65%;
+            }
+
+
+            }
+        </style>
+        {% endblock %}
+    </head>
+
+
+    <body>
+        <!-- 
+{% block messages %}
+  {% if messages %}
+    <div>
+        <ul>
+        {% for message in messages %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>{{message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+        </div>
+        {% endfor %}
+        </ul>
+    </div>
+  {% endif %}
+{% endblock %} -->
+
+        {% block content %}
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-8 col-md-7 col-lg-6 mx-auto">
+                    <div class="outer-area">
+                        <div class="auth-box text-center">
+                            <div>
+                                <img class="logo" src="{% static 'images/pidginforge_logo_white_small.jpg' %}">
+                            </div>
+                            <div class="text-left">
+                                <p>PidginForge is a collaborative foreign language learning community. We promote 
+                                    peace and prosperity 
+                                    through greater
+                                    understanding of other cultures.</p>
+                                <p>We are currently on <strong>version 1.0</strong> (deployed March 2021), with many future functions not yet enabled. Current features
+                                include: Question/Answer Forum; Vocabulary Stacks with limited exercises; Audio/Video/Text learning media with the ability
+                                to attach learner notes; and an Events
+                                Calendar to facilitate gatherings.</p>
+                                <p>Please be patient in these early phases as we work to build a robust and reliable platform.</p>
+                                <p>For the safety of our users, you must register in order to see the good stuff.</p>
+                            </div>
+                            <a href="{% url 'account_login' %}"><button>Login</button></a>
+                            <a href="{% url 'account_signup' %}"><button>Signup</button></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endblock %}
+
+
+        {% block js %}
+        {% endblock %}
+
+    </body>
+
+</html>

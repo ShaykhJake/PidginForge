@@ -68,9 +68,9 @@ export default {
       } else if (votetype == "down" && this.userVote === -1) {
         return false;
       }
-      let endpoint=`api/lessons/vote/`
+      let endpoint = `api/lessons/vote/`;
       this.voting = true;
-      let payload = { 
+      let payload = {
         slug: this.slug,
         vote: votetype
       };
@@ -78,7 +78,7 @@ export default {
         apiService(endpoint, "POST", payload).then(data => {
           if (data) {
             this.$emit("updateVote", data);
-            this.voting=false;
+            this.voting = false;
           } else {
             console.log("There was a major problem with the request.");
             // console.log(data.message);
@@ -87,7 +87,7 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        this.voting = false; 
+        this.voting = false;
       }
     }
   },

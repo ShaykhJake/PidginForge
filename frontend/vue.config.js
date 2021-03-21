@@ -9,16 +9,16 @@ module.exports = {
   outputDir: "../static/dist/",
 
   // Production
-  // publicPath: "https://jakesdesk-media.s3.amazonaws.com/static/dist/",
+  publicPath: "https://jakesdesk-media.s3.amazonaws.com/static/dist/",
 
   //Development
-  publicPath: "http://0.0.0.0:8080/",
+  // publicPath: "http://0.0.0.0:8080/",
 
   // runtimeCompiler: true,
-  
+
   parallel: false,
 
-  
+  transpileDependencies: [/[\\/]node_modules[\\/]tiptap.*/],
 
   configureWebpack: {
     // loader: 'worker-loader',
@@ -31,10 +31,13 @@ module.exports = {
       rules: [
         {
           test: /\.worker\.js$/,
-          use: [{ loader: 'worker-loader', options: { inline: true } }, { loader: 'babel-loader' }],
-        },
-      ],
-    },
+          use: [
+            { loader: "worker-loader", options: { inline: true } },
+            { loader: "babel-loader" }
+          ]
+        }
+      ]
+    }
   },
 
   chainWebpack: config => {
@@ -42,8 +45,8 @@ module.exports = {
       .plugin("BundleTracker")
       .use(BundleTracker, [{ filename: "./webpack-stats.json" }]);
 
-    config.module.rule('js').exclude.add(/\.worker\.js$/)
-    
+    config.module.rule("js").exclude.add(/\.worker\.js$/);
+
     // config.output.filename("bundle.js");
     config.output.filename("[name].[hash:8].bundle.js");
 

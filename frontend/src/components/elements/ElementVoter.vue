@@ -30,15 +30,7 @@ export default {
     userVote: Number,
     slug: {
       type: String,
-      required: false
-    },
-    elementType: {
-      type: String,
       required: true
-    },
-    elementid: {
-      type: Number,
-      required: false
     },
     textTypography: {
       type: String,
@@ -77,44 +69,15 @@ export default {
         return false;
       }
       this.voting = true;
-      let payload = {};
-      let endpoint = "";
-      if (this.elementType === "YouTube") {
-        endpoint = `/api/elements/youtube/vote/`;
-        payload.slug = this.slug;
-        payload.vote = votetype;
-      } else if (this.elementType === "Audio") {
-        endpoint = `/api/elements/audio/vote/`;
-        payload.slug = this.slug;
-        payload.vote = votetype;
-      } else if (this.elementType === "Transcript") {
-        endpoint = `/api/elements/transcript/vote/`;
-        payload.id = this.elementid; // Note that this will actually be the pk
-        payload.vote = votetype;
-      } else if (this.elementType === "Translation") {
-        endpoint = `/api/elements/translation/vote/`;
-        payload.id = this.elementid; // Note that this will actually be the pk
-        payload.vote = votetype;
-      } else if (this.elementType === "Text") {
-        endpoint = `/api/elements/text/vote/`;
-        payload.slug = this.slug;
-        payload.id = this.elementid;
-        payload.vote = votetype;
-      } else if (this.elementType === "Markup") {
-        endpoint = `/api/elements/markup/vote/`;
-        payload.id = this.elementid;
-        payload.vote = votetype;
-      }
-
+      let payload = {
+        slug: this.slug,
+        vote: votetype
+      };
+      let endpoint = `/api/elements/vote/element/`;
       if (endpoint) {
         apiService(endpoint, "POST", payload).then(data => {
           if (data) {
             this.$emit("updateVote", data);
-            // message = data.message;
-            // success = data.success;
-          } else {
-            // message = "There was an error submitting your vote";
-            // success = false
           }
           this.voting = false;
         });

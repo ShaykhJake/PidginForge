@@ -7,7 +7,9 @@ from lessons.api.views import (
     lesson_togglehidden,
     lesson_togglevote,
     create_lesson_vocab,
-
+    saved_lessons,
+    quick_lesson_list,
+    QuickLessonList,
     )   
 
 app_name = 'lessons'
@@ -20,6 +22,8 @@ urlpatterns = [
     path('save/', lesson_togglesaved, name="lesson_togglesaved"),
     path('hide/', lesson_togglehidden, name="lesson_togglehidden"),
     path('vote/', lesson_togglevote, name="lesson_togglevote"),
+    path('saved/', saved_lessons, name="saved_lessons"),
     path('createvocab/', create_lesson_vocab, name="create_lesson_vocab"),
+    path('list/', QuickLessonList.as_view(), name="quick_lesson_list"),
     path("", include(lesson_router.urls)),
 ]

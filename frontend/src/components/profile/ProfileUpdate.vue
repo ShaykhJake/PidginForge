@@ -147,17 +147,6 @@
                   v-on:change="unsavedChanges = true"
                 ></v-select>
 
-                <v-autocomplete
-                  v-model="userData.learningtopics"
-                  :items="allTopics"
-                  label="Topic Interests"
-                  placeholder="Placeholder"
-                  multiple
-                  required
-                  outlined
-                  v-on:change="unsavedChanges = true"
-                ></v-autocomplete>
-
                 <v-textarea
                   outlined
                   name="userbio"
@@ -224,13 +213,10 @@ export default {
     valid: true,
     success: false,
     learningLanguages: [],
-    learningTopics: [],
-    topicObject: Object,
     methodObject: Object,
     updatedDataObject: {
       nativelanguage: String,
       learninglanguage: Array,
-      learningtopics: Array,
       biography: String
     },
     rules: {
@@ -243,7 +229,6 @@ export default {
       // this.email1 === this.email2 || "The addresses you entered don't match"
     },
     allLanguages: [],
-    allTopics: [],
     allMethods: []
   }),
   methods: {
@@ -284,31 +269,6 @@ export default {
       }
     },
 
-    getTopics() {
-      var localTopics = localStorage.getItem("topics");
-      if (localTopics.length > 1) {
-        console.log("Shop local!");
-        this.allTopics = JSON.parse(localTopics);
-      } else {
-        this.loadingTopics = true;
-        let endpoint = `/api/categories/topics/`;
-        try {
-          apiService(endpoint).then(data => {
-            if (data != null) {
-              this.allTopics = data;
-              this.error = false;
-            } else {
-              console.log("Something bad happened...");
-              this.error = true;
-            }
-            this.loadingTopics = false;
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      }
-    },
-
     submitData() {
       this.submitting = true;
       try {
@@ -337,7 +297,6 @@ export default {
   },
   mounted() {
     this.getLanguages();
-    this.getTopics();
     // this.parsePreferences();
   }
 };

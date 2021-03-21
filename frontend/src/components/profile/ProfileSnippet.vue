@@ -2,7 +2,7 @@
   <v-dialog v-model="profileDialog" width="275">
     <v-card class="desertsand">
       <v-card-title class="pa-0">
-        <v-img :src="curatorObject.user_profile.image">
+        <v-img :src="profile.image">
           <v-btn
             icon
             fab
@@ -17,7 +17,7 @@
       <v-card-text class="pt-2 pl-4 desertsand calligraphy--text">
         <v-row dense>
           <v-col align="center">
-            <h2>{{ curatorObject.username }}</h2>
+            <h2>{{ profileObject.username }}</h2>
             <v-chip outlined small class="primary primary--text">{{
               userPointsText
             }}</v-chip>
@@ -34,7 +34,7 @@
               {{ profile.biography }}
             </p>
 
-            <v-btn block class="my-1 primary desertsand--text"
+            <v-btn block class="my-1 primary desertsand--text" disabled
               >View Curated Works</v-btn
             >
 
@@ -80,7 +80,7 @@ export default {
   components: {},
   props: {
     profileDialog: Boolean,
-    curatorObject: Object
+    profileObject: Object
   },
   data: () => ({
     loading: true,
@@ -94,9 +94,7 @@ export default {
     },
     isProfileOwner() {
       // return this.question.author.username === this.requestUser;
-      return (
-        this.curatorObject.username === window.localStorage.getItem("username")
-      );
+      return this.profile.username === window.localStorage.getItem("username");
       // return true;
     }
   },
@@ -106,10 +104,11 @@ export default {
     },
     getProfileSnippet() {
       this.loading = true;
-      let endpoint = `/api/users/snippet/${this.curatorObject.username}`;
+      let endpoint = `/api/users/snippet/${this.profileObject.username}`;
       apiService(endpoint).then(data => {
         if (data) {
           this.profile = data;
+          // console.log(this.profile);
           this.loading = false;
         } else {
           this.profile = null;
@@ -134,7 +133,6 @@ export default {
                 } else {
                   this.profile.followers_count -= 1;
                 }
-                // console.log(data.message)
               } else {
                 // this.alertType = 'error';
               }
@@ -158,7 +156,6 @@ export default {
           if (data != null) {
             if (data.success == true) {
               this.profile.user_has_hidden = !this.profile.user_has_hidden;
-              console.log("This profile has been hidden");
             } else {
               this.alertType = "error";
             }
@@ -174,6 +171,7 @@ export default {
     //
   },
   created() {
+    this.profile = this.profileObject;
     this.getProfileSnippet();
   }
 };

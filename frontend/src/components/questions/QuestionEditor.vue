@@ -8,39 +8,26 @@
       hide-overlay
       transition="dialog-bottom-transition"
     >
-      <v-card
-        :loading="loadingLanguages || loadingQuestion || loadingTopics"
-        class="desertsand"
-      >
+      <v-card :loading="loadingLanguages || loadingQuestion" class="desertsand">
         <v-card-title v-if="editing">Edit Your Language Question</v-card-title>
         <v-card-title v-else>Ask a Language Question</v-card-title>
         <v-card-text>
           <v-form ref="questioncontent" v-model="valid" class="mt-2">
             <v-textarea
-              v-model="content"
+              v-model="title"
               outlined
-              label="Question Content*"
-              :rules="[rules.contentMin]"
+              label="Question Title*"
+              :rules="[rules.titleMin]"
               counter
-              rows="4"
-              maxlength="240"
+              rows="1"
+              maxlength="150"
             ></v-textarea>
-
-            <v-select
-              v-model="nativelanguage"
-              :items="allLanguages"
-              label="Native Language*"
-              placeholder="choose the native language"
-              :rules="[rules.requiredLanguage]"
-              required
-              outlined
-            ></v-select>
 
             <v-select
               v-model="learninglanguage"
               :items="allLanguages"
               :loading="loadingLanguages"
-              label="Learning Language*"
+              label="Learning Language (i.e. what this question is about)*"
               placeholder="choose the learning language"
               :rules="[rules.requiredLanguage]"
               required
@@ -48,12 +35,11 @@
             ></v-select>
 
             <v-select
-              v-model="topic"
-              :items="allTopics"
-              label="Primary Topic*"
-              :loading="loadingTopics"
-              placeholder="choose a topic"
-              :rules="[rules.requiredTopic]"
+              v-model="nativelanguage"
+              :items="allLanguages"
+              label="Your Native Language*"
+              placeholder="choose the native language"
+              :rules="[rules.requiredLanguage]"
               required
               outlined
             ></v-select>
@@ -84,6 +70,143 @@
                 </v-chip>
               </template>
             </v-combobox>
+
+            <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
+              <div class="desertsand--text">
+                <v-toolbar dense flat class="sandstone">
+                  <v-btn
+                    small
+                    icon
+                    color="calligraphy"
+                    :class="{ 'is-active': isActive.bold() }"
+                    @click="commands.bold"
+                  >
+                    <v-icon> mdi-format-bold </v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="calligraphy"
+                    :class="{ 'is-active': isActive.italic() }"
+                    @click="commands.italic"
+                  >
+                    <v-icon> mdi-format-italic </v-icon>
+                  </v-btn>
+                  <v-divider class="mx-1" inset vertical></v-divider>
+                  <v-btn
+                    icon
+                    small
+                    color="calligraphy"
+                    :class="{ 'is-active': isActive.paragraph() }"
+                    @click="commands.paragraph"
+                  >
+                    <v-icon> mdi-format-paragraph </v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="calligraphy"
+                    :class="{ 'is-active': isActive.heading({ level: 3 }) }"
+                    @click="commands.heading({ level: 3 })"
+                  >
+                    <v-icon> mdi-format-header-3 </v-icon>
+                  </v-btn>
+
+                  <v-divider class="mx-1" inset vertical></v-divider>
+
+                  <v-btn
+                    icon
+                    small
+                    color="calligraphy"
+                    :class="{
+                      'is-active': isActive.alignment({ orientation: 'left' })
+                    }"
+                    @click="commands.alignment({ orientation: 'left' })"
+                  >
+                    <v-icon> mdi-format-align-left </v-icon>
+                  </v-btn>
+
+                  <v-btn
+                    icon
+                    small
+                    color="calligraphy"
+                    :class="{
+                      'is-active': isActive.alignment({
+                        orientation: 'center'
+                      })
+                    }"
+                    @click="commands.alignment({ orientation: 'center' })"
+                  >
+                    <v-icon> mdi-format-align-center </v-icon>
+                  </v-btn>
+
+                  <v-btn
+                    icon
+                    small
+                    color="calligraphy"
+                    :class="{
+                      'is-active': isActive.alignment({
+                        orientation: 'right'
+                      })
+                    }"
+                    @click="commands.alignment({ orientation: 'right' })"
+                  >
+                    <v-icon> mdi-format-align-right </v-icon>
+                  </v-btn>
+
+                  <v-btn
+                    icon
+                    small
+                    color="calligraphy"
+                    :class="{
+                      'is-active': isActive.text_direction({
+                        direction: 'ltr'
+                      })
+                    }"
+                    @click="commands.text_direction({ direction: 'ltr' })"
+                  >
+                    <v-icon> mdi-format-textdirection-l-to-r </v-icon>
+                  </v-btn>
+                  <v-btn
+                    icon
+                    small
+                    color="calligraphy"
+                    :class="{
+                      'is-active': isActive.text_direction({
+                        direction: 'rtl'
+                      })
+                    }"
+                    @click="commands.text_direction({ direction: 'rtl' })"
+                  >
+                    <v-icon> mdi-format-textdirection-r-to-l </v-icon>
+                  </v-btn>
+
+                  <v-divider class="mx-1" inset vertical></v-divider>
+                  <v-btn
+                    color="calligraphy"
+                    icon
+                    @click="changeEditorFontSize('down')"
+                  >
+                    <v-icon>mdi-magnify-minus</v-icon>
+                  </v-btn>
+                  Zoom
+                  <v-btn
+                    icon
+                    color="calligraphy"
+                    @click="changeEditorFontSize('up')"
+                  >
+                    <v-icon>mdi-magnify-plus</v-icon>
+                  </v-btn>
+
+                  <v-divider class="mx-1" inset vertical></v-divider>
+                  <v-spacer></v-spacer>
+                  Count:
+                  <span :class="characterCountClass">{{ characterCount }}</span>
+                  / 500
+                </v-toolbar>
+              </div>
+            </editor-menu-bar>
+            <editor-content :editor="editor" :style="editorFontClass" />
           </v-form>
           <p v-if="error" class="muted mt-2">{{ error }}</p>
         </v-card-text>
@@ -100,10 +223,6 @@
             :hidden="submitted"
             >Submit<v-icon right>mdi-send</v-icon></v-btn
           >
-          <v-btn class="success desertsand--text" :hidden="!submitted"
-            >Success<v-icon right>mdi-thumb-up</v-icon></v-btn
-          >
-          <!-- TODO: need to ensure that the user information is reloaded after saving -->
           <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
@@ -112,8 +231,25 @@
 </template>
 <script>
 import { apiService } from "@/common/api.service.js";
+import { Editor, EditorContent, EditorMenuBar } from "tiptap";
+import {
+  Blockquote,
+  HardBreak,
+  Heading,
+  Bold,
+  Italic,
+  Link,
+  Strike,
+  Underline
+} from "tiptap-extensions";
+import { default as Alignment } from "@/components/tiptaptoo/Alignment.js";
+import { default as TextDirection } from "@/components/tiptaptoo/TextDirection.js";
 export default {
   name: "QuestionEditor",
+  components: {
+    EditorContent,
+    EditorMenuBar
+  },
   props: {
     editing: {
       type: Boolean,
@@ -138,52 +274,86 @@ export default {
       valid: false,
       loadingQuestion: false,
       loadingLanguages: false,
-      loadingTopics: false,
       error: null,
       author: "",
+      title: "",
       content: "",
       nativelanguage: "",
       learninglanguage: "",
-      topic: "",
       allLanguages: [],
-      allTopics: [],
       tags: [],
       rules: {
-        contentMin: value =>
-          (value || "").length > 15 || "You must type at least 16 characters!",
+        titleMin: value =>
+          (value || "").length > 10 || "You must type at least 11 characters!",
         // contentMax: value => (value || '').length < 241 || "No more than 240 characters!",
         requiredLanguage: value =>
           !!value || "You must choose at least 1 language.",
-        requiredTopic: value => !!value || "You must choose a primary topic.",
         maxTags: value =>
           (value || "").length < 6 || "Maximum of 5 tags allowed!"
-      }
+      },
+      editorFontSize: 1,
+      editor: new Editor({
+        editable: true,
+        extensions: [
+          new Blockquote(),
+          new HardBreak(),
+          new Heading({ levels: [3] }),
+          new Bold(),
+          new Alignment(),
+          new TextDirection(),
+          new Italic(),
+          new Link(),
+          new Strike(),
+          new Underline()
+        ],
+        content: `
+                      ...type/paste question here...
+                     `
+      })
     };
   },
+  computed: {
+    characterCountClass() {
+      if (this.characterCount > 500) {
+        return "error";
+      } else {
+        return "";
+      }
+    },
+    editorFontClass() {
+      return `font-size:${this.editorFontSize}em`;
+    },
+    characterCount() {
+      return this.editor.view.state.doc.textContent.length;
+    }
+  },
+
   methods: {
     closeDialog() {
       this.$emit("closeDialog");
     },
     onSubmit() {
       this.submitting = true;
-      let endpoint = "/api/questions/";
+      let endpoint = "/api/questions/questions/";
       let method = "POST";
       if (this.slug !== undefined) {
         endpoint += `${this.slug}/`;
         method = "PATCH";
       }
       let payload = {
-        content: this.content,
+        title: this.title,
         nativelanguage: this.nativelanguage,
         learninglanguage: this.learninglanguage,
-        topic: this.topic,
-        tags: []
+        rich_text: this.editor.getJSON(),
+        plain_text: this.editor.view.state.doc.textContent,
+        // tags: []
+        tags: this.tags
       };
-      console.log(payload);
       apiService(endpoint, method, payload).then(data => {
         if (this.editing === true) {
           this.$emit("updateQuestion", payload);
           this.$emit("closeDialog");
+          console.log(payload);
           this.submitting = false;
         } else {
           this.submitted = true;
@@ -223,38 +393,14 @@ export default {
       }
     },
 
-    getTopics() {
-      var localTopics = localStorage.getItem("topics");
-      if (localTopics.length > 1) {
-        console.log("Shop local!");
-        this.allTopics = JSON.parse(localTopics);
-      } else {
-        this.loadingTopics = true;
-        let endpoint = `/api/categories/topics/`;
-        try {
-          apiService(endpoint).then(data => {
-            if (data != null) {
-              this.allTopics = data;
-              this.error = false;
-            } else {
-              console.log("Something bad happened...");
-              this.error = true;
-            }
-            this.loadingTopics = false;
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      }
-    },
     getQuestionData() {
       if (this.editing) {
         (this.author = this.question.author),
-          (this.content = this.question.content),
+          (this.title = this.question.title),
           (this.nativelanguage = this.question.nativelanguage),
           (this.learninglanguage = this.question.learninglanguage),
-          (this.topic = this.question.topic),
           (this.tags = this.question.tags);
+        this.editor.setContent(this.question.rich_text);
         this.loadingQuestion = false;
       }
     },
@@ -265,10 +411,9 @@ export default {
         apiService(endpoint).then(data => {
           if (data) {
             (this.author = data.author),
-              (this.content = data.content),
+              (this.title = data.title),
               (this.nativelanguage = data.nativelanguage),
               (this.learninglanguage = data.learninglanguage),
-              (this.topic = data.topic),
               (this.tags = data.tags);
             this.loadingQuestion = false;
           } else {
@@ -278,13 +423,42 @@ export default {
           }
         });
       }
+    },
+
+    changeEditorFontSize(direction) {
+      if (direction === "up") {
+        if (this.editorFontSize < 3.5) {
+          this.editorFontSize += 0.15;
+        }
+      } else {
+        if (this.editorFontSize > 0.5) {
+          this.editorFontSize -= 0.15;
+        }
+      }
     }
   },
   created() {
     this.getQuestionData();
     this.getLanguages();
-    this.getTopics();
   }
 };
 </script>
-<style scoped></style>
+<style scoped>
+.editor-box > * {
+  border-color: black;
+  color: black;
+  border-style: solid;
+  border-width: 1px;
+  padding: 4px, 4px;
+  width: 100%;
+  height: 300px;
+  overflow-x: hidden;
+  overflow-x: auto;
+  font-size: 1em;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+.ProseMirror {
+  background-color: black;
+}
+</style>

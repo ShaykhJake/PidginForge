@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import debug_toolbar
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
 from allauth.account.views import confirm_email
@@ -22,7 +24,7 @@ from django_registration.backends.one_step.views import RegistrationView
 # from django_registration.backends.model_activation.views import RegistrationView
 # to do email verification...read this reference: https://django-registration.readthedocs.io/en/3.0/activation-workflow.html
 
-from core.views import IndexTemplateView
+from core.views import IndexTemplateView, allow_guests
 from users.forms import CustomUserForm
 
 urlpatterns = [
@@ -44,9 +46,13 @@ urlpatterns = [
     path("api/events/", include("events.api.urls")),
     path("api/lessons/", include("lessons.api.urls")),
     path("api/vocab/", include("vocab.api.urls")),
-    path("api/", include("questions.api.urls")),
+    path("api/questions/", include("questions.api.urls")),
     path("api/categories/", include("categories.api.urls")),
     re_path('rest-auth/registration/account-confirm-email/(?P<key>.+)/', confirm_email, name='account_confirm_email'),
-    re_path(r"^.*$", IndexTemplateView.as_view(), name="entry-point")
-
+    # re_path(r"^.*$", IndexTemplateView.as_view(), name="entry-point"),
+    re_path(r"^.*$", allow_guests, name="entry-point"),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))

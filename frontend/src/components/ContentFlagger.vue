@@ -96,8 +96,6 @@ export default {
       let endpoint = `api/malapropos/flag/`;
       this.flagObject.contenttype = this.contentType;
       this.flagObject.id = this.contentid;
-
-      console.log(this.flagObject);
       apiService(endpoint, "POST", this.flagObject).then(data => {
         if (data != null) {
           // Success

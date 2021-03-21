@@ -57,15 +57,20 @@
                     {{ newScheduledEvent.native_language }} &#8594;
                     {{ newScheduledEvent.target_language }}</v-chip
                   >
-                  <v-chip small outlined class="topics topics--text mr-1"
-                    >Topic Area: {{ newScheduledEvent.topic }}</v-chip
-                  >
                   <v-chip small outlined class="garbage garbage--text mr-1"
                     >Access:
                     {{
                       newScheduledEvent.public ? "Public" : "Invitation Only"
                     }}</v-chip
                   ><br />
+                  Tags:<v-chip
+                    v-for="tag in newScheduledEvent.tags"
+                    :key="tag.uuid"
+                    small
+                    outlined
+                    class="topics topics--text mr-1"
+                    >{{ tag }}</v-chip
+                  >
                 </p>
                 <h1>{{ newScheduledEvent.name }}</h1>
                 <p>{{ newScheduledEvent.caption }}</p>
@@ -324,17 +329,34 @@
                 outlined
               ></v-autocomplete>
 
-              <v-autocomplete
-                v-model="newScheduledEvent.topic"
-                name="eventtopic"
-                :items="allTopics"
-                label="Primary Topic*"
-                placeholder="choose the primary topic"
-                :rules="[rules.requiredTopic]"
-                required
-                :loading="loadingTopics"
+              <v-combobox
+                label="Topic Tags"
+                name="texttags"
+                v-model="newScheduledEvent.tags"
+                chips
+                clearable
+                hint="Hit <enter> or <tab> after each entry (max of 5 tags allowed)"
+                persistent-hint
+                multiple
+                :rules="[rules.maxTags]"
                 outlined
-              ></v-autocomplete>
+                counter
+              >
+                <template v-slot:selection="{ attrs, item, select, selected }">
+                  <v-chip
+                    v-bind="attrs"
+                    :input-value="selected"
+                    close
+                    class="calligraphy desertsand--text"
+                    @click="select"
+                    @click:close="removeTag(item)"
+                  >
+                    <strong>{{ item }}</strong
+                    >&nbsp;
+                  </v-chip>
+                </template>
+              </v-combobox>
+
               <div justify="center">
                 Event Access:
                 <v-radio-group v-model="newScheduledEvent.public" row>
@@ -460,9 +482,7 @@
                     :class="{ 'is-active': isActive.bold() }"
                     @click="commands.bold"
                   >
-                    <v-icon>
-                      mdi-format-bold
-                    </v-icon>
+                    <v-icon> mdi-format-bold </v-icon>
                   </v-btn>
                   <v-btn
                     icon
@@ -471,9 +491,7 @@
                     :class="{ 'is-active': isActive.italic() }"
                     @click="commands.italic"
                   >
-                    <v-icon>
-                      mdi-format-italic
-                    </v-icon>
+                    <v-icon> mdi-format-italic </v-icon>
                   </v-btn>
                   <v-divider class="mx-1" inset vertical></v-divider>
                   <v-btn
@@ -483,9 +501,7 @@
                     :class="{ 'is-active': isActive.paragraph() }"
                     @click="commands.paragraph"
                   >
-                    <v-icon>
-                      mdi-format-paragraph
-                    </v-icon>
+                    <v-icon> mdi-format-paragraph </v-icon>
                   </v-btn>
                   <v-btn
                     icon
@@ -494,9 +510,7 @@
                     :class="{ 'is-active': isActive.heading({ level: 3 }) }"
                     @click="commands.heading({ level: 3 })"
                   >
-                    <v-icon>
-                      mdi-format-header-3
-                    </v-icon>
+                    <v-icon> mdi-format-header-3 </v-icon>
                   </v-btn>
 
                   <v-divider class="mx-1" inset vertical></v-divider>
@@ -510,9 +524,7 @@
                     }"
                     @click="commands.alignment({ orientation: 'left' })"
                   >
-                    <v-icon>
-                      mdi-format-align-left
-                    </v-icon>
+                    <v-icon> mdi-format-align-left </v-icon>
                   </v-btn>
 
                   <v-btn
@@ -526,9 +538,7 @@
                     }"
                     @click="commands.alignment({ orientation: 'center' })"
                   >
-                    <v-icon>
-                      mdi-format-align-center
-                    </v-icon>
+                    <v-icon> mdi-format-align-center </v-icon>
                   </v-btn>
 
                   <v-btn
@@ -542,9 +552,7 @@
                     }"
                     @click="commands.alignment({ orientation: 'right' })"
                   >
-                    <v-icon>
-                      mdi-format-align-right
-                    </v-icon>
+                    <v-icon> mdi-format-align-right </v-icon>
                   </v-btn>
 
                   <v-btn
@@ -558,9 +566,7 @@
                     }"
                     @click="commands.text_direction({ direction: 'ltr' })"
                   >
-                    <v-icon>
-                      mdi-format-textdirection-l-to-r
-                    </v-icon>
+                    <v-icon> mdi-format-textdirection-l-to-r </v-icon>
                   </v-btn>
                   <v-btn
                     icon
@@ -573,9 +579,7 @@
                     }"
                     @click="commands.text_direction({ direction: 'rtl' })"
                   >
-                    <v-icon>
-                      mdi-format-textdirection-r-to-l
-                    </v-icon>
+                    <v-icon> mdi-format-textdirection-r-to-l </v-icon>
                   </v-btn>
 
                   <v-divider class="mx-1" inset vertical></v-divider>
@@ -866,28 +870,21 @@ export default {
           "https://jakesdesk-media.s3.amazonaws.com/static/images/firepigeon_transparent.png"
       }
     ],
-    allTopics: [],
     rules: {
       requiredTitle: value =>
         (value || "").length > 3 ||
         "Title length must be at least 4 characters.",
-
       requiredCaption: value =>
         (value || "").length > 3 ||
         "Caption length must be at least 4 characters.",
-
       requiredLocation: value =>
         (value || "").length > 3 ||
         "Location length must be least 4 characters.",
-
       requiredType: typevalue =>
         (typevalue || "").length > 0 || "You must choose an event type.",
       requiredLanguage: languagevalue =>
         (languagevalue || "").length > 0 || "You must choose a language.",
-      requiredTopic: topicvalue =>
-        (topicvalue || "").length > 0 || "You must choose a primary topic.",
-      requiredCitation: citationvalue =>
-        !!citationvalue || "You must provied a source citation."
+      maxTags: value => (value || "").length < 6 || "Maximum of 5 tags allowed!"
     },
     editorFontSize: 1,
     editor: new Editor({
@@ -905,8 +902,8 @@ export default {
         new Underline()
       ],
       content: `
-          ...type/paste event details in here...
-         `
+            ...type/paste event details in here...
+           `
     })
   }),
   computed: {
@@ -1025,6 +1022,13 @@ export default {
       this.$emit("updateRSVP", rsvp);
       this.closeDialog();
     },
+    removeTag(item) {
+      this.newScheduledEvent.tags.splice(
+        this.newScheduledEvent.tags.indexOf(item),
+        1
+      );
+      this.newScheduledEvent.tags = [...this.newScheduledEvent.tags];
+    },
     removeGuest(item) {
       const index = this.newScheduledEvent.guest_list.indexOf(item.username);
       if (index >= 0) this.newScheduledEvent.guest_list.splice(index, 1);
@@ -1119,31 +1123,6 @@ export default {
               this.error = true;
             }
             this.loadingLanguages = false;
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      }
-    },
-
-    getTopics() {
-      var localTopics = localStorage.getItem("topics");
-      if (localTopics.length > 1) {
-        console.log("Shop local!");
-        this.allTopics = JSON.parse(localTopics);
-      } else {
-        this.loadingTopics = true;
-        let endpoint = `/api/categories/topics/`;
-        try {
-          apiService(endpoint).then(data => {
-            if (data != null) {
-              this.allTopics = data;
-              this.error = false;
-            } else {
-              console.log("Something bad happened...");
-              this.error = true;
-            }
-            this.loadingTopics = false;
           });
         } catch (err) {
           console.log(err);
@@ -1255,9 +1234,10 @@ export default {
         event_type: this.newScheduledEvent.event_type,
         native_language: this.newScheduledEvent.native_language,
         target_language: this.newScheduledEvent.target_language,
-        topic: this.newScheduledEvent.topic,
+        tags: this.newScheduledEvent.tags,
         public: this.newScheduledEvent.public,
         details: this.editor.getJSON(),
+        plain_text: this.editor.view.state.doc.textContent,
         guest_list: this.newScheduledEvent.guest_list,
         all_day: this.allDayEvent
       };
@@ -1346,7 +1326,6 @@ export default {
   },
   created() {
     this.getLanguages();
-    this.getTopics();
     this.getProfileList();
   }
 };

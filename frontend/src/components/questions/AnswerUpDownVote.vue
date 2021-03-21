@@ -1,16 +1,28 @@
 <template>
   <div>
-    <v-btn icon @click="castVote('up')" :loading="voting">
-      <v-icon :class="upClass">
-        mdi-arrow-up-bold
-      </v-icon>
+    <v-btn
+      icon
+      @click="castVote('up')"
+      :loading="voting"
+      :disabled="disabled"
+      class="ma-0 pa-0"
+    >
+      <v-icon :class="upClass"> mdi-arrow-up-bold </v-icon>
     </v-btn>
-    <span class="green--text font-weight-bold">{{ upVoteCount }}</span> /
-    <span class="red--text font-weight-bold">{{ downVoteCount }}</span>
-    <v-btn icon @click="castVote('down')" :loading="voting">
-      <v-icon :class="downClass">
-        mdi-arrow-down-bold
-      </v-icon>
+    <span class="green--text font-weight-bold ma-0 pa-0">{{
+      upVoteCount
+    }}</span>
+    /
+    <span class="red--text font-weight-bold ma-0 pa-0">{{
+      downVoteCount
+    }}</span>
+    <v-btn
+      icon
+      @click="castVote('down')"
+      :loading="voting"
+      :disabled="disabled"
+    >
+      <v-icon :class="downClass"> mdi-arrow-down-bold </v-icon>
     </v-btn>
   </div>
 </template>
@@ -28,7 +40,11 @@ export default {
     upVoteCount: Number,
     downVoteCount: Number,
     userVote: Number,
-    answerid: {
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    answer_id: {
       type: Number,
       required: true
     }
@@ -58,9 +74,9 @@ export default {
         return false;
       }
       this.voting = true;
-      let endpoint = `/api/answer/vote/`;
+      let endpoint = `/api/questions/answer/vote/`;
       let payload = {
-        pk: this.answerid,
+        answer_id: this.answer_id,
         vote: votetype
       };
       apiService(endpoint, "POST", payload).then(data => {

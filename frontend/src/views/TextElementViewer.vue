@@ -20,7 +20,7 @@
                 </v-btn>
                 <ProfileSnippet
                   v-if="profileDialog"
-                  :curator-object="elementObject.curator"
+                  :profile-object="elementObject.curator"
                   @closeDialog="closeProfileDialog"
                 />
                 on {{ elementObject.curationdate }} <br />

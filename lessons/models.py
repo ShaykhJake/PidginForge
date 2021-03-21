@@ -18,7 +18,7 @@ from core.utils import generate_random_string
 # lesson Model
 class Lesson(models.Model):
    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="lesson_curator")
-   curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+   curation_date = models.DateTimeField(auto_now_add=True, editable=False)
    updated = models.DateTimeField(auto_now=True, editable=False)
 
    title = models.CharField(max_length=140, default="new title", null=False)
@@ -30,42 +30,46 @@ class Lesson(models.Model):
 
    source_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="lesson_native_language")
    target_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="lesson_target_language")
-   topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True, related_name="lesson_topic")
    
    primary_vocab = models.ForeignKey(VocabBank, on_delete=models.SET_NULL, null=True, blank=True)
-
+   tags = ArrayField(models.CharField(max_length=25), blank=True, null=True)
    citation = models.CharField(max_length=600, default="", null=True)
 
    published = models.BooleanField(default=False)
-   content = JSONField(null=True, blank=True)
-
-   saved = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="lesson_saved")
-   hidden = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="lesson_hidden")
+   rich_text = JSONField(blank=True, default=dict)
+   plain_text = models.TextField(default='', db_index=True)
 
    flag = models.ManyToManyField(Flag, blank=True, related_name="lesson_flag")
    suspended = models.BooleanField(default=False)
    
-   upvote = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="lesson_upvoted")
-   downvote= models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="lesson_downvoted")
    #  comment = models.ManyToManyField(Comment, null=True)
 
    def __str__(self):
       return self.title
 
-@receiver(pre_save, sender=Lesson)
-def add_slug_to_lesson(sender, instance, *args, **kwargs):
-   if instance and not instance.slug:
-      slugstring = instance.title
-      slug = slugify(slugstring, allow_unicode=True)
-      random_string = generate_random_string()
-      instance.slug = slug + "-" + random_string
+   def save(self, *args, **kwargs):
+      if not self.slug:
+         value = self.title[:50]
+         slug = slugify(value, allow_unicode=True)
+         random_string = generate_random_string()
+         self.slug = slug + "-" + random_string
+      super().save(*args, **kwargs)
+
 
 class LessonVocabBank(models.Model):
    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-   curationdate = models.DateTimeField(auto_now_add=True, editable=False)
+   curation_date = models.DateTimeField(auto_now_add=True, editable=False)
    updated = models.DateTimeField(auto_now=True, editable=False)
    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
    word_pairs = models.ManyToManyField(InflectedFormPair)
 
    def __str__(self):
       return self.lesson.title
+
+class SavedLesson(models.Model):
+   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+   lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="saves")
+
+class LessonHide(models.Model):
+   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+   lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="hides")

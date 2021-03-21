@@ -1,23 +1,20 @@
 <template>
   <div>
-  <v-data-table
-    :headers="headers"
-    :items="quizzes"
-    sort-by="quiz"
-    class="elevation-5 mb-2 desertsand"
-  >
-    <template v-slot:top>
-      <v-toolbar flat color="desertsand">
-        <v-toolbar-title>Quizzes</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
+    <v-data-table
+      :headers="headers"
+      :items="quizzes"
+      sort-by="quiz"
+      class="elevation-5 mb-2 desertsand"
+    >
+      <template v-slot:top>
+        <v-toolbar flat color="desertsand">
+          <v-toolbar-title>Quizzes</v-toolbar-title>
+          <v-divider class="mx-4" inset vertical></v-divider>
+          <v-spacer></v-spacer>
 
           <v-menu offset-y>
             <template v-slot:activator="{ on }">
-              <v-btn 
-                small 
-                class="primary desertsand--text mx-1" 
-                v-on="on">
+              <v-btn small class="primary desertsand--text mx-1" v-on="on">
                 Add Quiz
                 <v-icon right>mdi-plus</v-icon>
               </v-btn>
@@ -33,8 +30,6 @@
               </v-list-item>
             </v-list>
           </v-menu>
-
-
 
           <v-dialog v-model="dialog" max-width="500px">
             <v-card>
@@ -86,52 +81,50 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-      </v-toolbar>
-    </template>
-    <template v-slot:item.actions="{ item }">
-      <v-icon small class="mr-2" @click="editItem(item)">
-        mdi-pencil
-      </v-icon>
-      <v-icon small @click="deleteItem(item)">
-        mdi-delete
-      </v-icon>
-    </template>
-    <template v-slot:no-data>
-      <v-btn color="primary" @click="initialize">Reset</v-btn>
-    </template>
-  </v-data-table>
-
-
-
-
+        </v-toolbar>
+      </template>
+      <template v-slot:item.actions="{ item }">
+        <v-icon small class="mr-2" @click="editItem(item)">
+          mdi-pencil
+        </v-icon>
+        <v-icon small @click="deleteItem(item)">
+          mdi-delete
+        </v-icon>
+      </template>
+      <template v-slot:no-data>
+        <v-btn color="primary" @click="initialize">Reset</v-btn>
+      </template>
+    </v-data-table>
 
     <v-card v-show="false">
       <v-card-title class="sandstone py-1">
-        {{`Quiz Bank (${this.quizPackage.length}) `}}
+        {{ `Quiz Bank (${this.quizPackage.length}) ` }}
         <v-spacer></v-spacer>
         <v-btn
           small
           class="primary desertsand--text"
-          @click="previewMode=!previewMode"
+          @click="previewMode = !previewMode"
         >
           <span v-if="!previewMode">Preview Mode</span>
           <span v-if="previewMode">Edit Mode</span>
         </v-btn>
-        <v-btn fab icon class="mx-1 primary--text" @click="showingQuizBank=!showingQuizBank">
-            <v-icon v-if="showingQuizBank">mdi-menu-up</v-icon>
-            <v-icon v-else>mdi-menu-down</v-icon>
+        <v-btn
+          fab
+          icon
+          class="mx-1 primary--text"
+          @click="showingQuizBank = !showingQuizBank"
+        >
+          <v-icon v-if="showingQuizBank">mdi-menu-up</v-icon>
+          <v-icon v-else>mdi-menu-down</v-icon>
         </v-btn>
-        
       </v-card-title>
 
-
-
-      <v-card-text v-if="quizPackage.length > 0" v-show="showingQuizBank" class="desertsand pa-2">
-        <div           
-          v-for="(quiz, index) in quizPackage" 
-          :key="index"
-        >
-        </div>
+      <v-card-text
+        v-if="quizPackage.length > 0"
+        v-show="showingQuizBank"
+        class="desertsand pa-2"
+      >
+        <div v-for="(quiz, index) in quizPackage" :key="index"></div>
       </v-card-text>
     </v-card>
 
@@ -142,9 +135,8 @@
       v-if="MCQEditorDialog"
       :editor-dialog="MCQEditorDialog"
       :slug="MCQSlug"
-      @closeDialog="MCQEditorDialog=false"
+      @closeDialog="MCQEditorDialog = false"
     />
-
   </div>
 </template>
 
@@ -156,14 +148,13 @@ export default {
     MCQEditor
   },
   data: () => ({
-
     showingQuizBank: true,
     previewMode: false,
 
     dialog: false,
     MCQEditorDialog: false,
     MCQSlug: null,
-    
+
     returnCommand: function() {},
     headers: [
       {
@@ -195,11 +186,36 @@ export default {
     },
 
     quizTypes: [
-      { name: "Multiple Choice", quiz_type: "multiple_choice", icon: "mdi-close", available: true, },
-      { name: "Cloze Exercise", quiz_type: "cloze", icon: "mdi-close", available: false, },
-      { name: "Transcription", quiz_type: "transcription", icon: "mdi-close", available: false, },
-      { name: "Translation", quiz_type: "translation", icon: "mdi-close", available: false,},
-      { name: "Constructed Response", quiz_type: "constructed_response", icon: "mdi-close", available: false, },
+      {
+        name: "Multiple Choice",
+        quiz_type: "multiple_choice",
+        icon: "mdi-close",
+        available: true
+      },
+      {
+        name: "Cloze Exercise",
+        quiz_type: "cloze",
+        icon: "mdi-close",
+        available: false
+      },
+      {
+        name: "Transcription",
+        quiz_type: "transcription",
+        icon: "mdi-close",
+        available: false
+      },
+      {
+        name: "Translation",
+        quiz_type: "translation",
+        icon: "mdi-close",
+        available: false
+      },
+      {
+        name: "Constructed Response",
+        quiz_type: "constructed_response",
+        icon: "mdi-close",
+        available: false
+      }
     ],
     mcActivities: [],
     clozeActivities: [],
@@ -207,134 +223,137 @@ export default {
     transcriptionActivites: [],
     crActivities: [],
     quizPackage: [
-        { 
-          "quiz_type": "multiple_choice",
-          "title":"Test Title",
-          "objective":"testing user retention",
-          "native_language":"English",
-          "target_language":"Arabic-MSA",
-          "topic":"crafts",
-          "test_direction_rtl":false,
-          "randomize_questions":true,
-          "retest_attempts": "3", // 0 = off, 1, 2, 3 = infinite
-          "feedback_granularity": "2", // 0= "score", 1="by_question", 2="all"
-          "question_set": [
-            { 
-              "id": "1",
-              "multiple_select":true,
-              "rich_content": {
-                 "enabled":false,
-                 "content_type":"", // Audio/Video/Text/Photo
-                 "content":{} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
-               },
-              "stem":"Which of the following is/are non-essential nutrients?",
-              "stem_rtl":false,
-              "alternatives_rtl":false,
-              "randomize_alternatives": false,
-              "alternatives":[
-                { 
-                  "text":"pizza",
-                  "id":"0",
-                  "feedback":"a human can live for at least 100 years without pizza; it is not essential",
-                },
-                { 
-                  "text":"carbohydrates",
-                  "id":"1",
-                  "feedback":"despite what fascists say, the human body does not need carbohydrates",
-                },
-                { 
-                  "text":"fat",
-                  "id":"2",
-                  "feedback":"fat is essential",
-                },
-                { 
-                  "text":"protein",
-                  "id":"3",
-                  "feedback":"protein is essential",
-                },
-              ],
-              "answer_key": ["0", "1",],
-              "explanation": "Only protein and fat are essential; humans can get by without pizza and carbs!",
+      {
+        quiz_type: "multiple_choice",
+        title: "Test Title",
+        objective: "testing user retention",
+        native_language: "English",
+        target_language: "Arabic-MSA",
+        topic: "crafts",
+        test_direction_rtl: false,
+        randomize_questions: true,
+        retest_attempts: "3", // 0 = off, 1, 2, 3 = infinite
+        feedback_granularity: "2", // 0= "score", 1="by_question", 2="all"
+        question_set: [
+          {
+            id: "1",
+            multiple_select: true,
+            rich_content: {
+              enabled: false,
+              content_type: "", // Audio/Video/Text/Photo
+              content: {} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
             },
-            { 
-              "id": "2",
-              "multiple_select":false,
-              "rich_content": {
-                 "enabled":false,
-                 "content_type":"", // Audio/Video/Text/Photo
-                 "content":{} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
-               },              "stem":"I am a tree.",
-              "stem_rtl":false,
-              "alternatives_rtl":false,
-              "randomize_alternatives": false,
-              "alternatives":[
-                { 
-                  "text":"True",
-                  "id":"0",
-                  "feedback":"",
-                },
-                { 
-                  "text":"False",
-                  "id":"1",
-                  "feedback":"",
-                },
-              ],
-              "answer_key": "1",
-              "explanation": "I am not a tree, I am a person.",
+            stem: "Which of the following is/are non-essential nutrients?",
+            stem_rtl: false,
+            alternatives_rtl: false,
+            randomize_alternatives: false,
+            alternatives: [
+              {
+                text: "pizza",
+                id: "0",
+                feedback:
+                  "a human can live for at least 100 years without pizza; it is not essential"
+              },
+              {
+                text: "carbohydrates",
+                id: "1",
+                feedback:
+                  "despite what fascists say, the human body does not need carbohydrates"
+              },
+              {
+                text: "fat",
+                id: "2",
+                feedback: "fat is essential"
+              },
+              {
+                text: "protein",
+                id: "3",
+                feedback: "protein is essential"
+              }
+            ],
+            answer_key: ["0", "1"],
+            explanation:
+              "Only protein and fat are essential; humans can get by without pizza and carbs!"
+          },
+          {
+            id: "2",
+            multiple_select: false,
+            rich_content: {
+              enabled: false,
+              content_type: "", // Audio/Video/Text/Photo
+              content: {} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
             },
-            { 
-              "id": "3",
-              "multiple_select":false,
-              "rich_content": {
-                 "enabled":false,
-                 "content_type":"", // Audio/Video/Text/Photo
-                 "content":{} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
-               },              "stem":"شو اسمك يا كريم؟",
-              "stem_rtl":true,
-              "alternatives_rtl":true,
-              "randomize_alternatives": false,
-              "alternatives":[
-                { 
-                  "text":"كريم",
-                  "id":"0",
-                  "feedback":"",
-                },
-                { 
-                  "text":"يعقوب",
-                  "id":"1",
-                  "feedback":"",
-                },
-                { 
-                  "text":"عبدلله",
-                  "id":"2",
-                  "feedback":"",
-                },
-                { 
-                  "text":"ما فيه اسم",
-                  "id":"3",
-                  "feedback":"",
-                },
-
-              ],
-              "answer_key": "0",
-              "explanation": "You should know that your name is كريم!",
+            stem: "I am a tree.",
+            stem_rtl: false,
+            alternatives_rtl: false,
+            randomize_alternatives: false,
+            alternatives: [
+              {
+                text: "True",
+                id: "0",
+                feedback: ""
+              },
+              {
+                text: "False",
+                id: "1",
+                feedback: ""
+              }
+            ],
+            answer_key: "1",
+            explanation: "I am not a tree, I am a person."
+          },
+          {
+            id: "3",
+            multiple_select: false,
+            rich_content: {
+              enabled: false,
+              content_type: "", // Audio/Video/Text/Photo
+              content: {} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
             },
-          ]
-        },
-        // {
-        //   "activitiy_type": "cloze",
-        // },
-        // {
-        //   "activitiy_type": "translation",
-        // },
-        // {
-        //   "activitiy_type": "transcription",
-        // },
-        // {
-        //   "activitiy_type": "constructed_response",
-        // },
-      ]
-
+            stem: "شو اسمك يا كريم؟",
+            stem_rtl: true,
+            alternatives_rtl: true,
+            randomize_alternatives: false,
+            alternatives: [
+              {
+                text: "كريم",
+                id: "0",
+                feedback: ""
+              },
+              {
+                text: "يعقوب",
+                id: "1",
+                feedback: ""
+              },
+              {
+                text: "عبدلله",
+                id: "2",
+                feedback: ""
+              },
+              {
+                text: "ما فيه اسم",
+                id: "3",
+                feedback: ""
+              }
+            ],
+            answer_key: "0",
+            explanation: "You should know that your name is كريم!"
+          }
+        ]
+      }
+      // {
+      //   "activitiy_type": "cloze",
+      // },
+      // {
+      //   "activitiy_type": "translation",
+      // },
+      // {
+      //   "activitiy_type": "transcription",
+      // },
+      // {
+      //   "activitiy_type": "constructed_response",
+      // },
+    ]
   }),
 
   computed: {
@@ -342,7 +361,7 @@ export default {
       return this.editedIndex === -1 ? "New Quiz" : "Edit Quiz";
     }
   },
-  
+
   watch: {
     dialog(val) {
       val || this.close();
@@ -351,31 +370,31 @@ export default {
 
   created() {
     this.initialize();
-  }, 
+  },
   methods: {
-    updateMCQuiz(quiz){
+    updateMCQuiz(quiz) {
       this.quizPackage.multiple_choice = quiz;
     },
-    deleteQuiz(index){
-        this.quizPackage.splice(index,1);
+    deleteQuiz(index) {
+      this.quizPackage.splice(index, 1);
     },
-    addNewQuiz(quizType){
-      if(quizType=="multiple_choice"){
-        this.MCQEditorDialog=true;
+    addNewQuiz(quizType) {
+      if (quizType == "multiple_choice") {
+        this.MCQEditorDialog = true;
       } else {
         return false;
       }
     },
-    changeQuizOrder(payload){
-        if (payload.direction === "up"){
-          let tmp = this.quizPackage[payload.index];
-          this.quizPackage.splice(payload.index,1);
-          this.quizPackage.splice(payload.index-1,0,tmp);
-        } else {
-          let tmp = this.quiz[payload.index];
-          this.quizPackage.splice(payload.index,1);
-          this.quizPackage.splice(payload.index+1,0,tmp);
-        }
+    changeQuizOrder(payload) {
+      if (payload.direction === "up") {
+        let tmp = this.quizPackage[payload.index];
+        this.quizPackage.splice(payload.index, 1);
+        this.quizPackage.splice(payload.index - 1, 0, tmp);
+      } else {
+        let tmp = this.quiz[payload.index];
+        this.quizPackage.splice(payload.index, 1);
+        this.quizPackage.splice(payload.index + 1, 0, tmp);
+      }
     },
 
     initialize() {
@@ -387,7 +406,7 @@ export default {
           quiz_type: "Multiple Choice",
           items_count: 5,
           attempts: 10,
-          average_score: "25%",
+          average_score: "25%"
         },
         {
           title: "Fun Stuff",
@@ -396,7 +415,7 @@ export default {
           quiz_type: "Close Exercise",
           items_count: 5,
           attempts: 10,
-          average_score: "25%",
+          average_score: "25%"
         },
         {
           title: "اشترك في",
@@ -405,7 +424,7 @@ export default {
           quiz_type: "Multiple Choice",
           items_count: 5,
           attempts: 10,
-          average_score: "25%",
+          average_score: "25%"
         }
       ];
     },
@@ -457,9 +476,7 @@ export default {
       }
       this.close();
     }
-
-
-  },
+  }
 };
 </script>
 

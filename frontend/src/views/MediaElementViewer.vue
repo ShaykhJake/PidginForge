@@ -20,10 +20,11 @@
                 </v-btn>
                 <ProfileSnippet
                   v-if="profileDialog"
-                  :profile-dialog="profileDialog"
-                  :curator-object="elementObject.curator"
-                  @closeDialog="closeProfileDialog"
+                  :profileObject="elementObject.curator"
+                  :profileDialog="profileDialog"
+                  @closeDialog="profileDialog = false"
                 />
+
                 on {{ elementObject.curationdate }} <br />
               </p>
             </v-col>
@@ -306,7 +307,7 @@ export default {
       userSaved: false,
       voteScore: 0,
       youTubeHeight: 0,
-      isProfileSnippetVisible: false,
+
       voteColor: "text--black font-weight-bold"
     };
   },

@@ -22,7 +22,9 @@
             </a>
           </template>
           <ProfileSnippet
-            :username="reply.author.username"
+            v-if="profileDialog"
+            :profileObject="reply.author"
+            :profileDialog="profileDialog"
             @closeDialog="profileDialog = false"
           />
         </v-dialog>
@@ -36,7 +38,7 @@
           <p class="body-2">{{ reply.content }}</p>
         </v-col>
         <v-col v-if="replying" cols="12">
-          <v-form ref="editreply" v-model="replyValid" class="mt-2">
+          <v-form ref="editreply" v-model="valid" class="mt-2">
             <v-textarea
               v-model="reply.content"
               block
@@ -50,7 +52,7 @@
           </v-form>
           <v-btn
             small
-            class="success desertsand--text mr-1"
+            class="primary desertsand--text mr-1"
             @click="submitReplyEdit"
             :loading="submitting"
             :disabled="!valid"
@@ -60,7 +62,7 @@
           <v-btn
             small
             class="garbage desertsand--text mr-1"
-            @click="replying = false"
+            @click="cancelEdit"
           >
             Cancel<v-icon right>mdi-cancel</v-icon>
           </v-btn>
@@ -105,6 +107,7 @@
         x-small
         :hidden="deleteConfirm"
         @click="flaggerDialog = true"
+        v-if="!isReplyAuthor"
         :disabled="reply.user_has_flagged"
         class="error desertsand--text mr-1"
       >
@@ -139,11 +142,12 @@ export default {
   },
   data() {
     return {
+      oldContent: "",
       flaggerDialog: false,
       deleteConfirm: false,
       profileDialog: false,
       replying: false,
-      replyValid: false,
+      valid: false,
       submitting: false,
       rules: {
         contentMin: value =>
@@ -167,10 +171,14 @@ export default {
     }
   },
   methods: {
+    cancelEdit() {
+      this.replying = false;
+      this.reply.content = this.oldContent;
+    },
     submitReplyEdit() {
       if (this.reply.content) {
         this.submitting = true;
-        let endpoint = `/api/reply/edit/`;
+        let endpoint = `/api/questions/reply/edit/`;
         apiService(endpoint, "PATCH", {
           pk: this.reply.id,
           content: this.reply.content
@@ -191,6 +199,9 @@ export default {
       this.reply.user_has_flagged = true;
       this.reply.flag_count += 1;
     }
+  },
+  mounted() {
+    this.oldContent = this.reply.content;
   }
 };
 </script>

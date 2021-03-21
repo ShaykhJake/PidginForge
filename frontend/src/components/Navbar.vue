@@ -1,6 +1,6 @@
 <template>
   <nav>
-    <v-app-bar app flat dense class="desertsand">
+    <v-app-bar app dense class="desertsand">
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-btn
@@ -53,8 +53,6 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-btn
-            v-if="false"
-            disabled
             small
             fab
             class="mx-1 calligraphy"

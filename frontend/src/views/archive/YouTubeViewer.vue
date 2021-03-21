@@ -22,6 +22,13 @@
                       {{ curatorName }}
                     </v-btn>
                   </template>
+
+                  <ProfileSnippet
+                    v-if="profileDialog"
+                    :profileObject="video.curator"
+                    :profileDialog="profileDialog"
+                    @closeDialog="profileDialog = false"
+                  />
                   <ProfileSnippet
                     :username="curatorName"
                     @closeDialog="closeProfileDialog"

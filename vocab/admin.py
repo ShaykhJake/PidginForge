@@ -20,6 +20,7 @@ from vocab.models import (
                         InflectedFormPair,
                         VocabBank,
                         CardStack,
+                        FavoriteStack,
                         )
 
 
@@ -45,3 +46,4 @@ admin.site.register(LexemePairLearning)
 admin.site.register(InflectedFormPair)
 admin.site.register(VocabBank)
 admin.site.register(CardStack)
+admin.site.register(FavoriteStack)

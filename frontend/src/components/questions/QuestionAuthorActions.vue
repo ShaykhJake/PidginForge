@@ -85,7 +85,7 @@ export default {
     },
     async deleteQuestion() {
       this.deleteConfirm = false;
-      let endpoint = `/api/questions/${this.slug}/`;
+      let endpoint = `/api/questions/questions/${this.slug}/`;
       try {
         await apiService(endpoint, "DELETE");
         this.$router.push("/");

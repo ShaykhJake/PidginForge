@@ -51,7 +51,6 @@ class Profile(models.Model):
     avatar = models.ImageField(default='avatars/default.jpg', upload_to='avatars/%Y/%m/%d')
     nativelanguage = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name='user_native_language')
     learninglanguage = models.ManyToManyField(Language, related_name='user_learning_language', blank=True)
-    learningtopics = models.ManyToManyField(TopicTag, related_name='user_topics', blank=True)
     addedDate = models.DateTimeField(auto_now_add=True)
     updatedDate = models.DateTimeField(auto_now=True)
     followed = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="profile_followed")

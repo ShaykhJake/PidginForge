@@ -1,10 +1,13 @@
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser, FileUploadParser, JSONParser
 from rest_framework.views import APIView
-from rest_framework import generics, status, viewsets, permissions
+from rest_framework import generics, status, viewsets, permissions, filters
 from rest_framework.generics import get_object_or_404
 from rest_framework.decorators import api_view, action
-from django.db.models import Q
+from django.db.models import Prefetch, Q, Exists, OuterRef, Count
+from django_filters.rest_framework import DjangoFilterBackend
+import django_filters as django_filter
+
 from vocab.models import  (
                         WordRoot, 
                         Lexeme,
@@ -26,6 +29,7 @@ from vocab.models import  (
                         InflectedFormPair,
                         VocabBank,
                         CardStack,
+                        FavoriteStack,
                         )
 from categories.models import Language
 from lessons.models import LessonVocabBank
@@ -44,8 +48,10 @@ from vocab.api.serializers import (
                            InflectedFormPronunciationSerializer,
                            InflectedFormPairSerializer,
                            CardStackSerializer,
+                           QuickStackSerializer,
                            LearnStackSerializer,
                            LexemePairSerializer,
+                           FavoriteStackSerializer,
                             )
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
@@ -64,6 +70,50 @@ class IsPublishedOrAuthorOnly(permissions.BasePermission):
          return True
       if obj.published == False and obj.curator is not request.user:
          return False
+
+
+class CardStackFilter(django_filter.FilterSet):
+    tags = django_filter.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = CardStack
+        fields = ('curator__username',)
+
+
+class CardStackList(generics.ListAPIView):
+    model = CardStack
+    serializer_class = QuickStackSerializer
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = CardStackFilter
+    search_fields = ['name', 'description', 'tags']
+    ordering_fields = ['name', 'learning_language'
+                       'curationdate', 'updated', 'native_language']
+    ordering = ['-curationdate']
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = CardStack.objects.filter(public=True).select_related(
+            'curator__user_profile', 'native_language', 'learning_language'
+        ).prefetch_related(
+            'saves',
+        ).annotate(
+            user_has_saved=Exists(
+                FavoriteStack.objects.filter(
+                    stack=OuterRef('pk'),
+                    user=user
+                ))
+        ).order_by('-curationdate')
+        by_preference = self.request.query_params.get('by_preference', None)
+        by_saves = self.request.query_params.get('saved', None)
+        if by_preference is not None:
+            queryset = queryset.filter(learning_language__in=user.user_profile.learninglanguage.all())
+        if by_saves is not None:
+            queryset = queryset.filter(saves__user=user).order_by('-saves__created')
+        return queryset
+
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 
 @api_view(['GET'])
@@ -293,15 +343,13 @@ class LexemeViewSet(viewsets.ModelViewSet):
     # This list is currently factoring in user preferences and filtering by learning languages/topics
     def list(self, request):
       userlanguages = request.user.user_profile.learninglanguage.all()
-      usertopics = request.user.user_profile.learningtopics.all()
       queryset = Lexeme.objects.all().order_by("-curationdate")
       # queryset = Lexeme.objects.filter(
       #    suspended = False,
       # #   language__in = userlanguages,
-      # #   topic__in = usertopics,
       # ).order_by("-curationdate")
 
-      serializer_context = {"request": request, "userlanguages": userlanguages, "usertopics": usertopics}
+      serializer_context = {"request": request, "userlanguages": userlanguages}
       
       page = self.paginate_queryset(queryset)
       if page is not None:
@@ -326,7 +374,6 @@ class LexemeDefinitionViewSet(viewsets.ModelViewSet):
     # This list is currently factoring in user preferences and filtering by learning languages/topics
     def list(self, request):
       userlanguages = request.user.user_profile.learninglanguage.all()
-      usertopics = request.user.user_profile.learningtopics.all()
       queryset = LexemeDefinition.objects.all().order_by("-curationdate")
       # queryset = Lexeme.objects.filter(
       #    suspended = False,
@@ -334,7 +381,7 @@ class LexemeDefinitionViewSet(viewsets.ModelViewSet):
       # #   topic__in = usertopics,
       # ).order_by("-curationdate")
 
-      serializer_context = {"request": request, "userlanguages": userlanguages, "usertopics": usertopics}
+      serializer_context = {"request": request, "userlanguages": userlanguages}
       
       page = self.paginate_queryset(queryset)
       if page is not None:
@@ -394,7 +441,6 @@ class InflectedFormDefinitionViewSet(viewsets.ModelViewSet):
     # This list is currently factoring in user preferences and filtering by learning languages/topics
     def list(self, request):
       userlanguages = request.user.user_profile.learninglanguage.all()
-      usertopics = request.user.user_profile.learningtopics.all()
       queryset = InflectedFormDefinition.objects.all().order_by("-curationdate")
       # queryset = Lexeme.objects.filter(
       #    suspended = False,
@@ -402,7 +448,7 @@ class InflectedFormDefinitionViewSet(viewsets.ModelViewSet):
       # #   topic__in = usertopics,
       # ).order_by("-curationdate")
 
-      serializer_context = {"request": request, "userlanguages": userlanguages, "usertopics": usertopics}
+      serializer_context = {"request": request, "userlanguages": userlanguages}
       
       page = self.paginate_queryset(queryset)
       if page is not None:
@@ -467,7 +513,6 @@ class LexemePronunciationViewSet(viewsets.ModelViewSet):
     # This list is currently factoring in user preferences and filtering by learning languages/topics
     def list(self, request):
       userlanguages = request.user.user_profile.learninglanguage.all()
-      usertopics = request.user.user_profile.learningtopics.all()
       queryset = LexemePronunciation.objects.all().order_by("-curationdate")
       # queryset = Lexeme.objects.filter(
       #    suspended = False,
@@ -475,7 +520,7 @@ class LexemePronunciationViewSet(viewsets.ModelViewSet):
       # #   topic__in = usertopics,
       # ).order_by("-curationdate")
 
-      serializer_context = {"request": request, "userlanguages": userlanguages, "usertopics": usertopics}
+      serializer_context = {"request": request, "userlanguages": userlanguages}
       
       page = self.paginate_queryset(queryset)
       if page is not None:
@@ -539,7 +584,6 @@ class VocabBankViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
 class SentenceAudioViewSet(viewsets.ModelViewSet):
     queryset = SentenceAudio.objects.all().order_by("-curationdate")
     lookup_field = "pk"
@@ -577,19 +621,23 @@ class SentenceTranslationViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CardStackViewSet(viewsets.ModelViewSet):
-   queryset = CardStack.objects.all().order_by("-curationdate")
+   queryset = CardStack.objects.filter().select_related(
+      'curator', 'learning_language', 'native_language'
+   ).prefetch_related(
+      'lexeme_pairs'
+   ).order_by("-curationdate")
    lookup_field = "slug"
    serializer_class = CardStackSerializer
    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
 
    def list(self, request):
-      # userlanguages = request.user.user_profile.learninglanguage.all()
-      # usertopics = request.user.user_profile.learningtopics.all()
       queryset = CardStack.objects.filter(
                                  Q(public = True) | Q(curator = request.user)
                               ).order_by("-curationdate")
-
-      serializer = CardStackSerializer(queryset, many=True) 
+      context = {
+         'request':request
+      }
+      serializer = QuickStackSerializer(queryset, many=True, context=context) 
       return Response(serializer.data)
 
    def perform_create(self, serializer):
@@ -672,7 +720,44 @@ def delete_stack_pair(request):
       resdata['message'] = 'Pairing removed'
       return Response(resdata)
 
+class FavoriteStackViewSet(viewsets.ModelViewSet):
+    def get_queryset(self):
+        return FavoriteStack.objects.filter(curator=self.request.user).select_related('stack').order_by("-stack")
 
+   #  queryset = FavoriteStack.objects.filter(curator=request.user).order_by("-curationdate")
+    lookup_field = "pk"
+    serializer_class = FavoriteStackSerializer
+    permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
+   #  serializer=LexemePronunciationSerializer(pronunciation, data=request.data, partial=True)
+
+    def perform_create(self, serializer):
+        serializer.save(curator=self.request.user)
+        self.request.user.user_profile.points += 2
+        self.request.user.user_profile.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def stack_togglesave(request):
+    if request.method == 'POST':
+        resdata = {}
+        if request.user.is_authenticated:
+            try: 
+                stack = get_object_or_404(CardStack, slug=request.data['slug'])
+            except:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            else:
+                saved = FavoriteStack.objects.filter(user=request.user,stack=stack)
+                if saved:
+                    saved.delete()
+                    resdata['message'] = "Successfully removed item from saved list"
+                    resdata['success'] = True
+                    resdata['saved'] = False
+                else:
+                    FavoriteStack.objects.create(user=request.user, stack=stack)
+                    resdata['message'] = "Successfully added item to saved list"
+                    resdata['success'] = True
+                    resdata['saved'] = True
+    return Response(resdata)
 
 class LexemePronunciationViewSet(viewsets.ModelViewSet):
     queryset = LexemePronunciation.objects.all().order_by("-curationdate")

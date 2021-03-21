@@ -21,9 +21,10 @@ from vocab.models import  (
                         InflectedFormPair,
                         VocabBank,
                         CardStack,
+                        FavoriteStack,
                         )
-from categories.models import Language, TopicTag
-from categories.api.serializers import LanguageSerializer, TopicTagSerializer, MethodTagSerializer
+from categories.models import Language
+from categories.api.serializers import LanguageSerializer, MethodTagSerializer
 from django.db.models import Q
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -552,8 +553,6 @@ class LexemePairSerializer(serializers.ModelSerializer):
         serializer = SimpleLexemeSerializer(instance.lexeme_1)
         return serializer.data
 
-
-
     def get_lexeme_2_language(self, instance):
         serializer = LanguageSerializer(instance.lexeme_2.language)
         return serializer.data
@@ -614,18 +613,20 @@ class LearnLexemePairSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_lexeme_1_audio(self, instance):
-        queryset = LexemePronunciation.objects.filter(lexeme=instance.lexeme_1)
+        # queryset = LexemePronunciation.objects.filter(lexeme=instance.lexeme_1)
+        queryset = instance.lexeme_1.lexemepronunciation_set
         if queryset.exists():
-            lexeme_audio = queryset[0]
+            lexeme_audio = queryset.first()
             serializer = LexemePronunciationSerializer(lexeme_audio)
             return serializer.data
-        print(queryset)
+        # print(queryset)
         return False
 
     def get_lexeme_2_audio(self, instance):
-        queryset = LexemePronunciation.objects.filter(lexeme=instance.lexeme_2)
+        # queryset = LexemePronunciation.objects.filter(lexeme=instance.lexeme_2)
+        queryset = instance.lexeme_2.lexemepronunciation_set
         if queryset.exists():
-            lexeme_audio = queryset[0]
+            lexeme_audio = queryset.first()
             serializer = LexemePronunciationSerializer(lexeme_audio)
             return serializer.data
         # print(queryset)
@@ -641,7 +642,8 @@ class LearnLexemePairSerializer(serializers.ModelSerializer):
         # return serializer.data
         learnings = []
 
-        queryset = LexemePairLearning.objects.filter(curator=user).filter(lexeme_pair=instance)
+        # queryset = LexemePairLearning.objects.filter(curator=user).filter(lexeme_pair=instance)
+        queryset = instance.lexemepairlearning_set.filter(curator=user)
         if queryset.exists():
             learninglex = queryset[0]
         else:
@@ -694,11 +696,7 @@ class CardStackSerializer(serializers.ModelSerializer):
         read_only=False,
         slug_field='name',
     )
-    topic = serializers.SlugRelatedField(
-        queryset = TopicTag.objects.all(),
-        read_only=False,
-        slug_field='name',
-    )
+    tags = serializers.ListField(read_only=True)
     lexeme_pairs = LexemePairSerializer(many=True, required=False)
 
     class Meta:
@@ -736,15 +734,11 @@ class LearnStackSerializer(serializers.ModelSerializer):
         read_only=False,
         slug_field='name',
     )
-    topic = serializers.SlugRelatedField(
-        queryset = TopicTag.objects.all(),
-        read_only=False,
-        slug_field='name',
-    )
+    tags = serializers.ListField(read_only=True)
     lexeme_pairs = LearnLexemePairSerializer(many=True, required=False)
     # lexeme_pairs = LearnLexemePairSerializer(many=True, required=False, context={'request': self.context.get('request')})
     # lexeme_pairs = LexemePairSerializer(many=True)
-    learning_pairs = serializers.SerializerMethodField()
+    # learning_pairs = serializers.SerializerMethodField()
 
     class Meta:
         model = CardStack
@@ -766,10 +760,6 @@ class LearnStackSerializer(serializers.ModelSerializer):
     
     def get_learning_pairs(self, instance):
         user = self.context.get('request').user
-        # print(instance.lexeme_pairs)
-        # print(self)
-        # print(self.context)
-        # print(self.context.get('request'))
 
         #TODO: Create a tuple or array for storing each learning pair, 
         # then, run through the algorithm below. Then, serialize this list
@@ -778,9 +768,10 @@ class LearnStackSerializer(serializers.ModelSerializer):
 
         learnings = []
         # print("hello")
-        queryset = LexemePairLearning.objects.filter(curator=user)
+        # queryset = LexemePairLearning.objects.filter(curator=user)
+        queryset = user.lexemepairlearning_set
         for i in instance.lexeme_pairs.all():
-            print(i)
+            # print(i)
             if queryset.filter(lexeme_pair=i).exists():
                 learnings.append(queryset.filter(lexeme_pair=i)[0])
             else:
@@ -790,3 +781,102 @@ class LearnStackSerializer(serializers.ModelSerializer):
         return serializer.data
         
 
+class LearningStackSerializer(serializers.ModelSerializer):    
+    curator = CuratorSerializer(read_only=True)
+    curationdate = serializers.SerializerMethodField(read_only=True)
+    l1direction = serializers.SerializerMethodField()
+    l2direction = serializers.SerializerMethodField()
+
+    learning_language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+    native_language = serializers.SlugRelatedField(
+        queryset = Language.objects.all(),
+        read_only=False,
+        slug_field='name',
+    )
+    tags = serializers.ListField(read_only=True)
+    lexeme_pairs = LexemePairSerializer(many=True, required=False)
+
+    class Meta:
+        model = CardStack
+        fields = '__all__'
+        read_only_fields = ('slug',)
+        # fields = ['id', 'curator', 'curationdate', 'side_a_text', 'side_a_hint', 'side_b_text', 'side_b_hint', 'side_a_language', 'a_direction', 'side_b_language', 'b_direction']
+
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_updated(self, instance):
+        return instance.updated.strftime("%B %d, %Y")
+
+    def get_l1direction(self, instance):
+        return instance.learning_language.direction
+
+    def get_l2direction(self, instance):
+        return instance.native_language.direction
+
+
+class QuickStackSerializer(serializers.Serializer):    
+    curator = CuratorSerializer(read_only=True)
+    name = serializers.CharField()
+    slug = serializers.CharField()
+    tags = serializers.ListField(read_only=True)
+    curationdate = serializers.SerializerMethodField(read_only=True)
+    learning_language = serializers.SerializerMethodField(read_only=True)
+    native_language = serializers.SerializerMethodField(read_only=True)
+    stats = serializers.SerializerMethodField(read_only=True)
+    pair_count = serializers.SerializerMethodField(read_only=True)
+    user_has_saved = serializers.BooleanField(read_only=True)
+
+    # class Meta:
+    #     model = CardStack
+    #     fields = '__all__'
+
+    def get_curationdate(self, instance):
+        return instance.curationdate.strftime("%B %d, %Y")
+    
+    def get_updated(self, instance):
+        return instance.updated.strftime("%B %d, %Y")
+    
+    def get_learning_language(self, instance):
+        return instance.learning_language.name
+
+    def get_native_language(self, instance):
+        return instance.native_language.name 
+
+    def get_pair_count(self, instance):
+        return instance.lexeme_pairs.count()
+    
+    def get_stats(self, instance):
+        user = self.context.get('request').user
+        learning_pairs = LexemePairLearning.objects.filter(curator=user).filter(lexeme_pair__in=instance.lexeme_pairs.all())
+        word_score = []
+        for pair in learning_pairs:
+            if pair.attempts > 0:
+                word_score.append(pair.number_correct / pair.attempts)
+        if len(word_score) > 0:
+            mastery = int(sum(word_score)/len(word_score)*100)
+        else:
+            mastery = 0
+
+        stats = {
+            'cards_seen': len(learning_pairs),
+            'mastery': mastery,
+        }
+        return stats
+
+class FavoriteStackSerializer(serializers.ModelSerializer):
+    stack_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FavoriteStack
+        fields = '__all__'
+        # fields = ['id', 'curator', 'curationdate', 'side_a_text', 'side_a_hint', 'side_b_text', 'side_b_hint', 'side_a_language', 'a_direction', 'side_b_language', 'b_direction']
+
+    def get_stack_info(self, instance):
+        request = self.context['request']
+        serializer = QuickStackSerializer(instance.stack, context={'request':request})
+        return serializer.data

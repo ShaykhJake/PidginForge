@@ -22,7 +22,7 @@
                   ><span class="font-weight-black primary--text">
                     {{ lesson.curator.username }}</span
                   >
-                  on {{ lesson.curationdate }}</span
+                  on {{ lesson.curation_date }}</span
                 ><br />
               </v-col>
               <v-col cols="12">
@@ -35,9 +35,10 @@
               <v-col cols="12" class="text-justify"> </v-col>
               <v-col cols="12" class="pa-0 text-center">
                 <p class="overline font-weight-light mb-1">
-                  <span class="languages--text"> {{ lesson.native_language }} -> {{lesson.target_language}} </span>
-                  |<span class="topics--text"> {{ lesson.topic }}</span> |
-                  ><br />
+                  <span class="languages--text">
+                    {{ lesson.native_language }} -> {{ lesson.target_language }}
+                  </span>
+                  |<span class="topics--text"> {{ lesson.topic }}</span> | ><br />
                 </p>
 
                 <div>
@@ -61,9 +62,7 @@
                 </div>
 
                 <p class="primary--text caption mb-0">
-                  {{ lesson.saved_count }} Saves -
-                  # of Quizzes
-                  # of Vocabulary
+                  {{ lesson.saved_count }} Saves - # of Quizzes # of Vocabulary
                 </p>
               </v-col>
             </v-row>

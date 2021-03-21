@@ -2,9 +2,8 @@ from django.db import models
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import JSONField
-from categories.models import Language, TopicTag, MethodTag
-from elements.models import AudioElement, TextElement, YouTubeElement
+from django.contrib.postgres.fields import ArrayField, JSONField
+from categories.models import Language, MethodTag
 from malapropos.models import Flag
 # from interactions.models import Rating
 # from interactions.models import Saved, Upvote, Downvote, Comment, Malapropos
@@ -294,7 +293,7 @@ class CardStack(models.Model):
    name = models.CharField(max_length=250, default="", null=False)
    description = models.TextField(default="", null=False)
    public = models.BooleanField(default=False)
-   topic = models.ForeignKey(TopicTag, on_delete=models.SET_NULL, null=True)
+   tags = ArrayField(models.CharField(max_length=100), null=True, blank=True)
    learning_language = models.ForeignKey(Language, on_delete=models.CASCADE, related_name="cardstack_learning_language")
    native_language = models.ForeignKey(Language, on_delete=models.CASCADE, related_name="cardstack_native_language")
    lexeme_pairs = models.ManyToManyField(LexemePair)
@@ -304,6 +303,10 @@ class CardStack(models.Model):
    def __str__(self):
       return self.name
 
+class FavoriteStack(models.Model):
+   created = models.DateTimeField(auto_now_add=True)
+   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+   stack = models.ForeignKey(CardStack, on_delete=models.CASCADE, related_name="saves")
 
 @receiver(pre_save, sender=CardStack)
 def add_slug_to_cardstack(sender, instance, *args, **kwargs):

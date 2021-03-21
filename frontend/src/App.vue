@@ -1,7 +1,7 @@
 <template>
-  <v-app>
-    <v-content>
-      <div id="app" class="sandstone">
+  <v-app class="desertsand">
+    <v-main>
+      <div id="app" class="desertsand">
         <NavbarComponent
           v-if="!loadingUser"
           :user-data="userData"
@@ -11,7 +11,7 @@
           <router-view :key="$route.fullPath" />
         </keep-alive>
       </div>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 
@@ -60,23 +60,6 @@ export default {
         console.log(err);
       }
     },
-    getTopics() {
-      let endpoint = `/api/categories/topics/`;
-      try {
-        apiService(endpoint).then(data => {
-          if (data != null) {
-            localStorage.setItem("topics", JSON.stringify(data));
-            this.error = false;
-          } else {
-            console.log("Something bad happened...");
-            this.error = true;
-          }
-          this.loadingLanguages = false;
-        });
-      } catch (err) {
-        console.log(err);
-      }
-    },
     getUserProfileList() {
       let endpoint = `/api/users/profilelist/`;
       try {
@@ -112,8 +95,7 @@ export default {
   },
   mounted() {
     this.getLanguages();
-    this.getTopics();
-    this.getUserProfileList();
+    // this.getUserProfileList();
   },
   created() {
     this.initializeUser();
@@ -146,5 +128,21 @@ body {
 #app {
   height: 100vh;
   background-color: #dbd4c4;
+}
+.ProseMirror {
+  color: black;
+  background-color: #faf5e2;
+  padding: 10px 10px 10px 10px;
+  height: 350px;
+  font-size: 1.25em;
+  line-height: 1.35em;
+  overflow: auto;
+  resize: vertical;
+  border-color: #66665e;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  /* padding: 4px, 4px;
+    margin: 4px, 4px; */
 }
 </style>

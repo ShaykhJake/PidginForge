@@ -9,25 +9,27 @@
   >
     <v-card class="calligraphy desertsand--text mb-2">
       <v-card-title class="py-1">
-        Multiple Choice Quiz: "{{ quiz.title ? quiz.title.substr(0,25) : 'Untitled'}}"
+        Multiple Choice Quiz: "{{
+          quiz.title ? quiz.title.substr(0, 25) : "Untitled"
+        }}"
       </v-card-title>
       <v-card-text v-show="showingQuiz" class="px-2 pt-0">
         <v-card class="desertsand">
           <v-card-title>
             Metadata
             <v-spacer></v-spacer>
-            <v-btn fab icon class="mx-1 primary--text" @click="showingMetadata=!showingMetadata">
+            <v-btn
+              fab
+              icon
+              class="mx-1 primary--text"
+              @click="showingMetadata = !showingMetadata"
+            >
               <v-icon v-if="showingMetadata">mdi-menu-up</v-icon>
               <v-icon v-else>mdi-menu-down</v-icon>
             </v-btn>
-
           </v-card-title>
           <v-card-text v-show="showingMetadata">
-            <v-form
-              ref="mcametadata"
-              v-model="metadataValid"
-              @submit.prevent
-            >
+            <v-form ref="mcametadata" v-model="metadataValid" @submit.prevent>
               <v-text-field
                 v-model="quiz.title"
                 name="quiztitle"
@@ -102,7 +104,7 @@
                 persistent-hint
               ></v-switch>
 
-              <br><br>
+              <br /><br />
               <span class="body-1">Allowed Number of Retest Attempts</span>
               <v-slider
                 v-model="quiz.retest_attempts"
@@ -114,7 +116,7 @@
                 :tick-labels="retest_attempts_options"
               >
               </v-slider>
-              <br>
+              <br />
               <span class="body-1">Feedback Granularity</span>
               <v-slider
                 v-model="quiz.feedback_granularity"
@@ -126,18 +128,17 @@
                 :tick-labels="feedback_options"
               >
               </v-slider>
-
             </v-form>
-            <br>
+            <br />
             <p v-if="isNewQuiz" class="primary--text text--darken-2 mb-0">
-              You must submit valid metadata in order to
-              build a new quiz prior to attaching questions.
+              You must submit valid metadata in order to build a new quiz prior
+              to attaching questions.
             </p>
           </v-card-text>
           <v-card-actions v-if="isNewQuiz">
             <v-spacer />
-            <v-btn 
-              class="primary desertsand--text" 
+            <v-btn
+              class="primary desertsand--text"
               :disabled="!metadataValid"
               :loading="building"
               @click="buildNewQuiz"
@@ -147,39 +148,43 @@
             </v-btn>
             <v-spacer />
           </v-card-actions>
-          </v-card>
-          <v-card v-if="!isNewQuiz" class="desertsand mt-3">
-            <v-card-title>
-              Question Set ({{ questionSet.length }})
-              <v-spacer></v-spacer>
-              <v-btn 
-                small 
-                class="primary desertsand--text ml-2 mb-1"
-                @click="addQuestion"
-              >
-                Add Question
-                <v-icon>mdi-plus-circle</v-icon>
-              </v-btn>
-              <v-btn fab icon class="mx-1 primary--text" @click="showingQuestions=!showingQuestions">
-                <v-icon v-if="showingQuestions">mdi-menu-up</v-icon>
-                <v-icon v-else>mdi-menu-down</v-icon>
-              </v-btn>
-            </v-card-title>
+        </v-card>
+        <v-card v-if="!isNewQuiz" class="desertsand mt-3">
+          <v-card-title>
+            Question Set ({{ questionSet.length }})
+            <v-spacer></v-spacer>
+            <v-btn
+              small
+              class="primary desertsand--text ml-2 mb-1"
+              @click="addQuestion"
+            >
+              Add Question
+              <v-icon>mdi-plus-circle</v-icon>
+            </v-btn>
+            <v-btn
+              fab
+              icon
+              class="mx-1 primary--text"
+              @click="showingQuestions = !showingQuestions"
+            >
+              <v-icon v-if="showingQuestions">mdi-menu-up</v-icon>
+              <v-icon v-else>mdi-menu-down</v-icon>
+            </v-btn>
+          </v-card-title>
 
-            <v-card-text v-show="showingQuestions" class="px-2"> 
-
-                <MCQQuestionEditor
-                  v-for="(question, index) in questionSet"
-                  :key="index"
-                  :question-index="index"
-                  :total-questions="questionSet.length"
-                  :question="question"
-                  @updateQuestion="updateQuestion"
-                  @deleteQuestion="deleteQuestion"
-                  @changeQuestionOrder="changeQuestionOrder"
-                />         
-            </v-card-text>
-          </v-card>
+          <v-card-text v-show="showingQuestions" class="px-2">
+            <MCQQuestionEditor
+              v-for="(question, index) in questionSet"
+              :key="index"
+              :question-index="index"
+              :total-questions="questionSet.length"
+              :question="question"
+              @updateQuestion="updateQuestion"
+              @deleteQuestion="deleteQuestion"
+              @changeQuestionOrder="changeQuestionOrder"
+            />
+          </v-card-text>
+        </v-card>
       </v-card-text>
       <v-card-actions class="calligraphy">
         <v-spacer></v-spacer>
@@ -209,15 +214,15 @@ export default {
   props: {
     editorDialog: {
       type: Boolean,
-      default: false,
+      default: false
     },
     slug: {
       type: String,
-      required: false,
-    },
+      required: false
+    }
   },
   components: {
-    MCQQuestionEditor,
+    MCQQuestionEditor
   },
   data() {
     return {
@@ -240,22 +245,15 @@ export default {
 
       showingMetadata: true,
       showingQuestions: true,
-      retest_attempts_options: [
-        'None',
-        '1',
-        '2',
-        'Infinite',
-      ],
+      retest_attempts_options: ["None", "1", "2", "Infinite"],
       feedback_options: [
-        'Score Only',
-        'By Question',
-        'By Individual Alternative',
+        "Score Only",
+        "By Question",
+        "By Individual Alternative"
       ],
       editorFontSize: 1,
 
-      selectTypes: ["single",
-                    "multiple", 
-      ],
+      selectTypes: ["single", "multiple"],
       rules: {
         requiredTitle: value =>
           (value || "").length > 3 ||
@@ -270,94 +268,91 @@ export default {
 
         requiredSkillLevel: languagevalue =>
           (languagevalue || "").length > 0 || "You must choose a skill level.",
-        
+
         requiredLanguage: languagevalue =>
           (languagevalue || "").length > 0 || "You must choose a language.",
 
         requiredTopic: topicvalue =>
-          (topicvalue || "").length > 0 || "You must choose a primary topic.",
-
-      },
+          (topicvalue || "").length > 0 || "You must choose a primary topic."
+      }
     };
   },
-  computed: {
-
-  },
+  computed: {},
   methods: {
-      updateQuestion(payload){
-        this.questionSet[payload.questionIndex]=payload.question;
-        this.$emit("updateQuiz", this.quiz)
-        console.log(payload)
-      },
-      closeDialog(){
-        this.$emit("closeDialog");
-      },
-      discardNewQuiz(){
-        this.quiz={};
-        this.isNewQuiz=true;
-        this.loaded=false;
-        this.closeDialog();
-      },
-      buildNewQuiz(){
-        // check validity
-        // creat API Payload
-        // Submit Payload, wait for data
-        this.isNewQuiz=false;
-        // push New Quiz Up to parent
-        this.questionSet=[];
-      },
-      addQuestion(){
-         var questionIDs = [];
-         for(let i = 0; i < this.questionSet.length; i++){
-            questionIDs.push(this.questionSet[i].id)
-         }
-         for(let i = 0; i < this.questionSet.length + 1; i++){
-            if(!questionIDs.includes(i.toString())){
-               var newQuestionID = i.toString();
-               break
-            }
-         };
-         let newQuestion={
-            id: newQuestionID,
-            multiple_select:false,
-            rich_content: {
-                "enabled":false,
-                "content_type":"", // Audio/Video/Text/Photo
-                "content":{} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
-              },
-            stem:"New question...",
-            stem_rtl:false,
-            alternatives_rtl:false,
-            randomize_alternatives: false,
-            alternatives:[],
-         }
-         this.questionSet.push(newQuestion);
-      },
-      deleteQuestion(index){
-          this.questionSet.splice(index,1);
-      },
+    updateQuestion(payload) {
+      this.questionSet[payload.questionIndex] = payload.question;
+      this.$emit("updateQuiz", this.quiz);
+      console.log(payload);
+    },
+    closeDialog() {
+      this.$emit("closeDialog");
+    },
+    discardNewQuiz() {
+      this.quiz = {};
+      this.isNewQuiz = true;
+      this.loaded = false;
+      this.closeDialog();
+    },
+    buildNewQuiz() {
+      // check validity
+      // creat API Payload
+      // Submit Payload, wait for data
+      this.isNewQuiz = false;
+      // push New Quiz Up to parent
+      this.questionSet = [];
+    },
+    addQuestion() {
+      var questionIDs = [];
+      for (let i = 0; i < this.questionSet.length; i++) {
+        questionIDs.push(this.questionSet[i].id);
+      }
+      for (let i = 0; i < this.questionSet.length + 1; i++) {
+        if (!questionIDs.includes(i.toString())) {
+          var newQuestionID = i.toString();
+          break;
+        }
+      }
+      let newQuestion = {
+        id: newQuestionID,
+        multiple_select: false,
+        rich_content: {
+          enabled: false,
+          content_type: "", // Audio/Video/Text/Photo
+          content: {} // (Audio: URL, Video: URL, Text: JSON Pack, Photo: URL)
+        },
+        stem: "New question...",
+        stem_rtl: false,
+        alternatives_rtl: false,
+        randomize_alternatives: false,
+        alternatives: []
+      };
+      this.questionSet.push(newQuestion);
+    },
+    deleteQuestion(index) {
+      this.questionSet.splice(index, 1);
+    },
 
-      changeQuestionOrder(payload){
-         if (payload.direction === "up"){
-            let tmp = this.questionSet[payload.index];
-            this.questionSet.splice(payload.index,1);
-            this.questionSet.splice(payload.index-1,0,tmp);
-         } else {
-            let tmp = this.questionSet[payload.index];
-            this.questionSet.splice(payload.index,1);
-            this.questionSet.splice(payload.index+1,0,tmp);
-         }
-      },
-      deleteQuiz(index){
-        this.$emit("deleteQuiz", index);
-      },
-      changeQuizOrder(direction, index){
-         this.$emit("changeQuizOrder", { direction: direction, index: index})
-      },
-      saveMCQ(){
-        return false;
-      },
-      getLanguages() {
+    changeQuestionOrder(payload) {
+      if (payload.direction === "up") {
+        let tmp = this.questionSet[payload.index];
+        this.questionSet.splice(payload.index, 1);
+        this.questionSet.splice(payload.index - 1, 0, tmp);
+      } else {
+        let tmp = this.questionSet[payload.index];
+        this.questionSet.splice(payload.index, 1);
+        this.questionSet.splice(payload.index + 1, 0, tmp);
+      }
+    },
+    deleteQuiz(index) {
+      this.$emit("deleteQuiz", index);
+    },
+    changeQuizOrder(direction, index) {
+      this.$emit("changeQuizOrder", { direction: direction, index: index });
+    },
+    saveMCQ() {
+      return false;
+    },
+    getLanguages() {
       var localLanguages = localStorage.getItem("languages");
       if (localLanguages.length > 1) {
         console.log("Shop local!");
@@ -407,34 +402,31 @@ export default {
       }
     }
   },
-  mounted(){
+  mounted() {
     this.getLanguages();
     this.getTopics();
-    if(!this.slug){
+    if (!this.slug) {
       // test data
-      this.quiz={
-        "quiz_type": "multiple_choice",
-        "title":"Test Title",
-        "objective":"testing user retention",
-        "native_language":"English",
-        "target_language":"Arabic-MSA",
-        "topic":"crafts",
-        "test_direction_rtl":false,
-        "randomize_questions":true,
-        "retest_attempts": "3", // 0 = off, 1, 2, 3 = infinite
-        "feedback_granularity": "2", // 0= "score", 1="by_question", 2="all"
-      }
-      this.isNewQuiz=true;
+      this.quiz = {
+        quiz_type: "multiple_choice",
+        title: "Test Title",
+        objective: "testing user retention",
+        native_language: "English",
+        target_language: "Arabic-MSA",
+        topic: "crafts",
+        test_direction_rtl: false,
+        randomize_questions: true,
+        retest_attempts: "3", // 0 = off, 1, 2, 3 = infinite
+        feedback_granularity: "2" // 0= "score", 1="by_question", 2="all"
+      };
+      this.isNewQuiz = true;
     } else {
-      this.isNewQuiz=false;
+      this.isNewQuiz = false;
       // load quiz by slug...
     }
     this.loaded = true;
-
   },
-  beforeDestroy() {
-
-  }
+  beforeDestroy() {}
 };
 </script>
 <style type="text/css"></style>

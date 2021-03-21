@@ -1,50 +1,53 @@
-import { Mark, Plugin } from 'tiptap'
-import { updateMark, removeMark, pasteRule } from 'tiptap-commands'
-import { getMarkAttrs } from 'tiptap-utils'
+import { Mark, Plugin } from "tiptap";
+import { updateMark, removeMark, pasteRule } from "tiptap-commands";
+import { getMarkAttrs } from "tiptap-utils";
 
 export default class Link extends Mark {
-
   get name() {
-    return 'link'
+    return "link";
   }
 
   get defaultOptions() {
     return {
-      openOnClick: true,
-    }
+      openOnClick: true
+    };
   }
 
   get schema() {
     return {
       attrs: {
         href: {
-          default: null,
-        },
+          default: null
+        }
       },
       inclusive: false,
       parseDOM: [
         {
-          tag: 'a[href]',
+          tag: "a[href]",
           getAttrs: dom => ({
-            href: dom.getAttribute('href'),
-          }),
-        },
+            href: dom.getAttribute("href")
+          })
+        }
       ],
-      toDOM: node => ['a', {
-        ...node.attrs,
-        rel: 'noopener noreferrer nofollow',
-      }, 0],
-    }
+      toDOM: node => [
+        "a",
+        {
+          ...node.attrs,
+          rel: "noopener noreferrer nofollow"
+        },
+        0
+      ]
+    };
   }
 
   commands({ type }) {
     return attrs => {
       if (attrs.href) {
-        return updateMark(type, attrs)
+        return updateMark(type, attrs);
       }
 
-      return removeMark(type)
-    }
+      return removeMark(type);
+    };
   }
 
   pasteRules({ type }) {
@@ -52,31 +55,30 @@ export default class Link extends Mark {
       pasteRule(
         /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-zA-Z]{2,}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/g,
         type,
-        url => ({ href: url }),
-      ),
-    ]
+        url => ({ href: url })
+      )
+    ];
   }
 
   get plugins() {
     if (!this.options.openOnClick) {
-      return []
+      return [];
     }
 
     return [
       new Plugin({
         props: {
           handleClick: (view, pos, event) => {
-            const { schema } = view.state
-            const attrs = getMarkAttrs(view.state, schema.marks.link)
+            const { schema } = view.state;
+            const attrs = getMarkAttrs(view.state, schema.marks.link);
 
             if (attrs.href && event.target instanceof HTMLAnchorElement) {
-              event.stopPropagation()
-              window.open(attrs.href)
+              event.stopPropagation();
+              window.open(attrs.href);
             }
-          },
-        },
-      }),
-    ]
+          }
+        }
+      })
+    ];
   }
-
 }

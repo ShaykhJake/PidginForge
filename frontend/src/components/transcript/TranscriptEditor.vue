@@ -625,7 +625,7 @@ export default {
       confirmDeleteDialog: false,
       unsavedChanges: false,
       currentContent: ``,
-      
+
       editor: new Editor({
         editable: false,
         extensions: [

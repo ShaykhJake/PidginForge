@@ -11,13 +11,12 @@ from rest_framework.decorators import api_view, action
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from malapropos.models import Flag
-from elements.models import YouTubeElement, AudioElement, TextElement
+from elements.models import YouTubeElement, AudioElement, TextElement, Element
 from questions.models import Question, Answer, Reply
 
 
 
 class IsCuratorOrReadOnly(permissions.BasePermission):
-    
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -33,7 +32,9 @@ def flag_item(request):
          pk = request.data['id']
 
          # Now we must determine what type of flag this is to associate the relationship
-         if contenttype != None:
+         if contenttype is not None:
+            if contenttype == 'Element':
+               item = get_object_or_404(Element, pk=pk)
             if contenttype == 'Text':
                item = get_object_or_404(TextElement, pk=pk)
             elif contenttype == 'YouTube':

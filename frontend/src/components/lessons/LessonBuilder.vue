@@ -2,7 +2,10 @@
   <v-container fluid>
     <v-card class="mb-2">
       <v-card-title class="calligraphy desertsand--text">
-        Lesson Builder: <span class="font-weight-black">"{{ isNewLesson ? " New Lesson" : lesson.title }}"</span>
+        Lesson Builder:
+        <span class="font-weight-black"
+          >"{{ isNewLesson ? " New Lesson" : lesson.title }}"</span
+        >
       </v-card-title>
 
       <v-card-text class="calligraphy px-1">
@@ -10,15 +13,18 @@
           <v-col cols="12">
             <v-card>
               <v-card-title class="desertsand py-1 py-1 font-weight-b">
-               Metadata
+                Metadata
                 <v-spacer />
 
-               <v-btn small icon class="mx-1 primary--text" @click="showingMetadata=!showingMetadata">
+                <v-btn
+                  small
+                  icon
+                  class="mx-1 primary--text"
+                  @click="showingMetadata = !showingMetadata"
+                >
                   <v-icon v-if="showingMetadata">mdi-menu-up</v-icon>
                   <v-icon v-else>mdi-menu-down</v-icon>
-               </v-btn>
-
-
+                </v-btn>
               </v-card-title>
               <v-card-text v-show="showingMetadata" class="desertsand pt-4">
                 <v-form
@@ -34,7 +40,7 @@
                     :rules="[rules.requiredTitle]"
                     outlined
                     class="pb-0 mb-0"
-                    @change="unsavedChanges=true"
+                    @change="unsavedChanges = true"
                   ></v-text-field>
 
                   <v-textarea
@@ -47,41 +53,40 @@
                     counter
                     rows="3"
                     maxlength="400"
-                    @change="unsavedChanges=true"
+                    @change="unsavedChanges = true"
                   ></v-textarea>
                   <v-row wrap dense>
-                     <v-col>
-                        <v-autocomplete
-                           v-model="lesson.skill_level"
-                           name="skilllevel"
-                           :items="skillLevels"
-                           label="Skill Level*"
-                           placeholder="Skill Level"
-                           :rules="[rules.requiredSkillLevel]"
-                           required
-                           outlined
-                           color="topics"
-                           prepend-icon="mdi-help-circle"
-                           @click:prepend="skillDialog=true"
-                           @change="unsavedChanges=true"
-                        ></v-autocomplete>
-                     </v-col>
-                     <v-col>
-                        <v-autocomplete
-                           v-model="lesson.lesson_type"
-                           name="lessontype"
-                           :items="lessonTypes"
-                           label="Lesson Type*"
-                           placeholder="Lesson Type"
-                           :rules="[rules.requiredLessonType]"
-                           required
-                           outlined
-                           prepend-icon="mdi-help-circle"
-                           @click:prepend="lessonTypeDialog=true"
-                           @change="unsavedChanges=true"
-                        ></v-autocomplete>
-
-                     </v-col>
+                    <v-col>
+                      <v-autocomplete
+                        v-model="lesson.skill_level"
+                        name="skilllevel"
+                        :items="skillLevels"
+                        label="Skill Level*"
+                        placeholder="Skill Level"
+                        :rules="[rules.requiredSkillLevel]"
+                        required
+                        outlined
+                        color="topics"
+                        prepend-icon="mdi-help-circle"
+                        @click:prepend="skillDialog = true"
+                        @change="unsavedChanges = true"
+                      ></v-autocomplete>
+                    </v-col>
+                    <v-col>
+                      <v-autocomplete
+                        v-model="lesson.lesson_type"
+                        name="lessontype"
+                        :items="lessonTypes"
+                        label="Lesson Type*"
+                        placeholder="Lesson Type"
+                        :rules="[rules.requiredLessonType]"
+                        required
+                        outlined
+                        prepend-icon="mdi-help-circle"
+                        @click:prepend="lessonTypeDialog = true"
+                        @change="unsavedChanges = true"
+                      ></v-autocomplete>
+                    </v-col>
                   </v-row>
 
                   <v-autocomplete
@@ -94,7 +99,7 @@
                     required
                     :loading="loadingLanguages"
                     outlined
-                    @change="unsavedChanges=true"
+                    @change="unsavedChanges = true"
                   ></v-autocomplete>
 
                   <v-autocomplete
@@ -107,21 +112,38 @@
                     required
                     :loading="loadingLanguages"
                     outlined
-                    @change="unsavedChanges=true"
+                    @change="unsavedChanges = true"
                   ></v-autocomplete>
 
-                  <v-autocomplete
-                    v-model="lesson.topic"
-                    name="eventtopic"
-                    :items="allTopics"
-                    label="Primary Topic*"
-                    placeholder="choose the primary topic"
-                    :rules="[rules.requiredTopic]"
-                    required
-                    :loading="loadingTopics"
+                  <v-combobox
+                    label="Topic Tags"
+                    name="texttags"
+                    v-model="lesson.tags"
+                    chips
+                    clearable
+                    hint="Hit <enter> or <tab> after each entry (max of 5 tags allowed)"
+                    persistent-hint
+                    multiple
+                    :rules="[rules.maxTags]"
                     outlined
-                    @change="unsavedChanges=true"
-                  ></v-autocomplete>
+                    counter
+                  >
+                    <template
+                      v-slot:selection="{ attrs, item, select, selected }"
+                    >
+                      <v-chip
+                        v-bind="attrs"
+                        :input-value="selected"
+                        close
+                        class="calligraphy desertsand--text"
+                        @click="select"
+                        @click:close="removeTag(item)"
+                      >
+                        <strong>{{ item }}</strong
+                        >&nbsp;
+                      </v-chip>
+                    </template>
+                  </v-combobox>
 
                   <v-textarea
                     outlined
@@ -133,90 +155,105 @@
                     counter
                     rows="3"
                     maxlength="600"
-                    @change="unsavedChanges=true"
+                    @change="unsavedChanges = true"
                   ></v-textarea>
                 </v-form>
-                <p v-if="isNewLesson && !metadataValid" class="primary--text text--darken-2 mb-0">
-                  You must submit valid metadata in order to
-                  build a new quiz prior to attaching questions.
+                <p
+                  v-if="isNewLesson && !metadataValid"
+                  class="primary--text text--darken-2 mb-0"
+                >
+                  You must submit valid metadata in order to build a new quiz
+                  prior to attaching questions.
                 </p>
-
               </v-card-text>
 
-               <v-dialog v-model="skillDialog" max-width="450">
-                  <v-card>
-                     <v-card-title>Skill Levels</v-card-title>
-                     <v-card-text>
-                        <p>
-                        These skill levels are based on ACTFL and the ILR levels; please click on
-                        those names for in-depth information. As a summary though, this should suffice:
-                        </p>
-                        <p>
-                        0+ New Learner; very young native child<br>
-                        1 Early learner; young native child<br>
-                        1+ Learner; adolescent native<br>
-                        2 Functionally-fluent learner; uneducated native<br>
-                        2+ Fluent learner; high-school educated native<br>
-                        3 Fluent as second-language; post secondary educated native<br>
-                        3+ Highly-fluent second-language; college educated native<br>
-                        4 Advanced second-language; postgraduate native<br>
-                        4+ doctoral native<br>
-                        5 Authority in the specific topic and context<br>
-                        </p>
-                        <p>It should be noted that these levels do not describe a learner in a static state; rather,
-                        a learner may be a level 2 in one topic area and a level 4 in another. This can be frequently
-                        seen as a discrepency between listening, reading, and speaking. An example could be a 
-                        sports newscaster who can possibly reach above a level 4 in a sports context, but who may
-                        only speak below a level 2 in a nuclear engineering context.</p>
-
-                     </v-card-text>
-                  </v-card>
-               </v-dialog>
-               <v-dialog v-model="lessonTypeDialog" max-width="450">
-                  <v-card>
-                     <v-card-title>Lesson Types</v-card-title>
-                     <v-card-text>
-                        <p>
-                        The following is not all-inclusive, but represents the most common types of 
-                        language learning lessons which the PidginForge platform can currently support:
-                        </p>
-                        <p>
-                        Reading Comprehension - A lesson that is focused on improving a learner's ability
-                        to comprehend text. <br>
-                        Listening Comprehension - A lesson that is focued on improving a learning's ability
-                        to understand spoken language.<br>
-                        Explicit Grammar - A lesson focused on teaching grammar concepts in the target language.<br>
-                        Content-Based (CBI) - A lesson where the objective is to learn the content as the primary goal;
-                         these lessons tend to mimic the way a native would learn a language. For some learners they
-                         provide additional motivation.
-                        <br>
-                        Problem/Project-Based (PBI) - These lessons usually require the learner to produce some
-                        sort of product and require analysis and synthesis. <br>
-                        </p>
-                        <p>
-                           In the future, PidginForge hopes to branch out into augmented/virtual reality
-                           in order to incorporate role-playing and other experiential learning activities.
-                           Until that time, those activies will be best presented through a more synchronous
-                           teaching approach (e.g. face-to-face in-person instruction, or vitual over platforms
-                           like Zoom).
-                        </p>
-
-                     </v-card-text>
-                  </v-card>
-               </v-dialog>
-            <v-card-actions v-if="isNewLesson" class="desertsand">
-              <v-spacer />
-              <v-btn 
-                class="primary desertsand--text" 
-                :disabled="!metadataValid"
-                :loading="building"
-                @click="buildNewLesson"
-              >
-                Build Lesson
-                <v-icon right>mdi-domain</v-icon>
-              </v-btn>
-              <v-spacer />
-            </v-card-actions>
+              <v-dialog v-model="skillDialog" max-width="450">
+                <v-card>
+                  <v-card-title>Skill Levels</v-card-title>
+                  <v-card-text>
+                    <p>
+                      These skill levels are based on ACTFL and the ILR levels;
+                      please click on those names for in-depth information. As a
+                      summary though, this should suffice:
+                    </p>
+                    <p>
+                      0+ New Learner; very young native child<br />
+                      1 Early learner; young native child<br />
+                      1+ Learner; adolescent native<br />
+                      2 Functionally-fluent learner; uneducated native<br />
+                      2+ Fluent learner; high-school educated native<br />
+                      3 Fluent as second-language; post secondary educated
+                      native<br />
+                      3+ Highly-fluent second-language; college educated
+                      native<br />
+                      4 Advanced second-language; postgraduate native<br />
+                      4+ doctoral native<br />
+                      5 Authority in the specific topic and context<br />
+                    </p>
+                    <p>
+                      It should be noted that these levels do not describe a
+                      learner in a static state; rather, a learner may be a
+                      level 2 in one topic area and a level 4 in another. This
+                      can be frequently seen as a discrepency between listening,
+                      reading, and speaking. An example could be a sports
+                      newscaster who can possibly reach above a level 4 in a
+                      sports context, but who may only speak below a level 2 in
+                      a nuclear engineering context.
+                    </p>
+                  </v-card-text>
+                </v-card>
+              </v-dialog>
+              <v-dialog v-model="lessonTypeDialog" max-width="450">
+                <v-card>
+                  <v-card-title>Lesson Types</v-card-title>
+                  <v-card-text>
+                    <p>
+                      The following is not all-inclusive, but represents the
+                      most common types of language learning lessons which the
+                      PidginForge platform can currently support:
+                    </p>
+                    <p>
+                      Reading Comprehension - A lesson that is focused on
+                      improving a learner's ability to comprehend text. <br />
+                      Listening Comprehension - A lesson that is focued on
+                      improving a learning's ability to understand spoken
+                      language.<br />
+                      Explicit Grammar - A lesson focused on teaching grammar
+                      concepts in the target language.<br />
+                      Content-Based (CBI) - A lesson where the objective is to
+                      learn the content as the primary goal; these lessons tend
+                      to mimic the way a native would learn a language. For some
+                      learners they provide additional motivation.
+                      <br />
+                      Problem/Project-Based (PBI) - These lessons usually
+                      require the learner to produce some sort of product and
+                      require analysis and synthesis. <br />
+                    </p>
+                    <p>
+                      In the future, PidginForge hopes to branch out into
+                      augmented/virtual reality in order to incorporate
+                      role-playing and other experiential learning activities.
+                      Until that time, those activies will be best presented
+                      through a more synchronous teaching approach (e.g.
+                      face-to-face in-person instruction, or vitual over
+                      platforms like Zoom).
+                    </p>
+                  </v-card-text>
+                </v-card>
+              </v-dialog>
+              <v-card-actions v-if="isNewLesson" class="desertsand">
+                <v-spacer />
+                <v-btn
+                  class="primary desertsand--text"
+                  :disabled="!metadataValid"
+                  :loading="building"
+                  @click="buildNewLesson"
+                >
+                  Build Lesson
+                  <v-icon right>mdi-domain</v-icon>
+                </v-btn>
+                <v-spacer />
+              </v-card-actions>
             </v-card>
           </v-col>
 
@@ -233,12 +270,14 @@
                   <span v-if="!previewMode">Preview Mode</span>
                   <span v-if="previewMode">Edit Mode</span>
                 </v-btn>
-               <v-btn icon class="mx-1 primary--text" @click="showingContentEditor=!showingContentEditor">
+                <v-btn
+                  icon
+                  class="mx-1 primary--text"
+                  @click="showingContentEditor = !showingContentEditor"
+                >
                   <v-icon v-if="showingContentEditor">mdi-menu-up</v-icon>
                   <v-icon v-else>mdi-menu-down</v-icon>
-               </v-btn>
-
-
+                </v-btn>
               </v-card-title>
               <v-card-text
                 v-show="showingContentEditor"
@@ -258,9 +297,7 @@
                         :class="{ 'is-active': isActive.bold() }"
                         @click="commands.bold"
                       >
-                        <v-icon>
-                          mdi-format-bold
-                        </v-icon>
+                        <v-icon> mdi-format-bold </v-icon>
                       </v-btn>
                       <v-btn
                         icon
@@ -269,9 +306,7 @@
                         :class="{ 'is-active': isActive.italic() }"
                         @click="commands.italic"
                       >
-                        <v-icon>
-                          mdi-format-italic
-                        </v-icon>
+                        <v-icon> mdi-format-italic </v-icon>
                       </v-btn>
                       <v-divider class="mx-1" inset vertical></v-divider>
                       <v-btn
@@ -281,9 +316,7 @@
                         :class="{ 'is-active': isActive.paragraph() }"
                         @click="commands.paragraph"
                       >
-                        <v-icon>
-                          mdi-format-paragraph
-                        </v-icon>
+                        <v-icon> mdi-format-paragraph </v-icon>
                       </v-btn>
                       <v-btn
                         icon
@@ -292,9 +325,7 @@
                         :class="{ 'is-active': isActive.heading({ level: 1 }) }"
                         @click="commands.heading({ level: 1 })"
                       >
-                        <v-icon>
-                          mdi-format-header-1
-                        </v-icon>
+                        <v-icon> mdi-format-header-1 </v-icon>
                       </v-btn>
                       <v-btn
                         icon
@@ -303,9 +334,7 @@
                         :class="{ 'is-active': isActive.heading({ level: 2 }) }"
                         @click="commands.heading({ level: 2 })"
                       >
-                        <v-icon>
-                          mdi-format-header-2
-                        </v-icon>
+                        <v-icon> mdi-format-header-2 </v-icon>
                       </v-btn>
                       <v-btn
                         icon
@@ -314,9 +343,7 @@
                         :class="{ 'is-active': isActive.heading({ level: 3 }) }"
                         @click="commands.heading({ level: 3 })"
                       >
-                        <v-icon>
-                          mdi-format-header-3
-                        </v-icon>
+                        <v-icon> mdi-format-header-3 </v-icon>
                       </v-btn>
 
                       <v-divider class="mx-1" inset vertical></v-divider>
@@ -437,9 +464,7 @@
                         }"
                         @click="commands.alignment({ orientation: 'left' })"
                       >
-                        <v-icon>
-                          mdi-format-align-left
-                        </v-icon>
+                        <v-icon> mdi-format-align-left </v-icon>
                       </v-btn>
 
                       <v-btn
@@ -453,9 +478,7 @@
                         }"
                         @click="commands.alignment({ orientation: 'center' })"
                       >
-                        <v-icon>
-                          mdi-format-align-center
-                        </v-icon>
+                        <v-icon> mdi-format-align-center </v-icon>
                       </v-btn>
 
                       <v-btn
@@ -469,9 +492,7 @@
                         }"
                         @click="commands.alignment({ orientation: 'right' })"
                       >
-                        <v-icon>
-                          mdi-format-align-right
-                        </v-icon>
+                        <v-icon> mdi-format-align-right </v-icon>
                       </v-btn>
 
                       <v-btn
@@ -485,9 +506,7 @@
                         }"
                         @click="commands.text_direction({ direction: 'ltr' })"
                       >
-                        <v-icon>
-                          mdi-format-textdirection-l-to-r
-                        </v-icon>
+                        <v-icon> mdi-format-textdirection-l-to-r </v-icon>
                       </v-btn>
                       <v-btn
                         icon
@@ -500,9 +519,7 @@
                         }"
                         @click="commands.text_direction({ direction: 'rtl' })"
                       >
-                        <v-icon>
-                          mdi-format-textdirection-r-to-l
-                        </v-icon>
+                        <v-icon> mdi-format-textdirection-r-to-l </v-icon>
                       </v-btn>
 
                       <v-divider class="mx-1" inset vertical></v-divider>
@@ -522,9 +539,7 @@
                           )
                         "
                       >
-                        <v-icon>
-                          mdi-card-text-outline
-                        </v-icon>
+                        <v-icon> mdi-card-text-outline </v-icon>
                       </v-btn>
                     </v-toolbar>
                   </div>
@@ -567,15 +582,28 @@
               </v-card-actions>
             </v-card>
           </v-col>
-
         </v-row>
       </v-card-text>
       <v-card-actions class="calligraphy" v-if="!isNewLesson">
         <v-spacer />
-        <v-btn small class="garbage desertsand--text" @click="confirmDeleteDialog=true">Delete Lesson<v-icon right>mdi-delete</v-icon></v-btn>
-        <v-btn small class="elements desertsand--text" :loading="publishing" @click="togglePublish">
-          <span v-if="!lesson.published">Publish <v-icon right>mdi-publish</v-icon></span>
-          <span v-else>Return to Draft<v-icon right>mdi-file-edit</v-icon></span>
+        <v-btn
+          small
+          class="garbage desertsand--text"
+          @click="confirmDeleteDialog = true"
+          >Delete Lesson<v-icon right>mdi-delete</v-icon></v-btn
+        >
+        <v-btn
+          small
+          class="elements desertsand--text"
+          :loading="publishing"
+          @click="togglePublish"
+        >
+          <span v-if="!lesson.published"
+            >Publish <v-icon right>mdi-publish</v-icon></span
+          >
+          <span v-else
+            >Return to Draft<v-icon right>mdi-file-edit</v-icon></span
+          >
         </v-btn>
         <v-btn
           small
@@ -583,76 +611,80 @@
           :disabled="!metadataValid || !unsavedChanges"
           @click="saveLesson"
           :loading="saving"
-        >Save <v-icon right>mdi-content-save</v-icon></v-btn>
+          >Save <v-icon right>mdi-content-save</v-icon></v-btn
+        >
         <v-spacer />
       </v-card-actions>
     </v-card>
 
     <v-card class="calligraphy mb-2" v-if="!isNewLesson && false">
-       <v-card-title class="calligraphy desertsand--text py-1">
-          Quiz Bank
-         <v-spacer></v-spacer>
-          <v-btn 
-            v-if="!lesson.primary_vocab" 
-            :loading="creatingBank" 
-            class="primary"
-            @click="createQuizBank"
-          >
-            Add Quiz Bank
-          </v-btn>
+      <v-card-title class="calligraphy desertsand--text py-1">
+        Quiz Bank
+        <v-spacer></v-spacer>
+        <v-btn
+          v-if="!lesson.primary_vocab"
+          :loading="creatingBank"
+          class="primary"
+          @click="createQuizBank"
+        >
+          Add Quiz Bank
+        </v-btn>
 
-         <v-btn icon class="mx-1 primary--text" @click="showingQuizBank=!showingQuizBank">
-            <v-icon v-if="showingQuizBank">mdi-menu-up</v-icon>
-            <v-icon v-else>mdi-menu-down</v-icon>
-         </v-btn>
-
-       </v-card-title>
+        <v-btn
+          icon
+          class="mx-1 primary--text"
+          @click="showingQuizBank = !showingQuizBank"
+        >
+          <v-icon v-if="showingQuizBank">mdi-menu-up</v-icon>
+          <v-icon v-else>mdi-menu-down</v-icon>
+        </v-btn>
+      </v-card-title>
       <v-card-text v-show="showingQuizBank" class="calligraphy pa-1">
-         <QuizBank ref="quizbank" />         
+        <QuizBank ref="quizbank" />
       </v-card-text>
     </v-card>
 
-    <v-card class="calligraphy mb-2"  v-if="!isNewLesson">
+    <v-card class="calligraphy mb-2" v-if="!isNewLesson">
       <v-card-title class="calligraphy desertsand--text py-1">
-         Vocab Bank
-         <v-spacer></v-spacer>
-          <v-btn 
-            v-if="!lesson.primary_vocab" 
-            :loading="creatingBank" 
-            class="primary"
-            @click="createVocabBank"
-          >
-            Add Vocab Bank
-          </v-btn>
-          <v-btn v-else icon class="mx-1 primary--text" @click="showingVocabBank=!showingVocabBank">
-              <v-icon v-if="showingVocabBank">mdi-menu-up</v-icon>
-              <v-icon v-else>mdi-menu-down</v-icon>
-          </v-btn>
+        Vocab Bank
+        <v-spacer></v-spacer>
+        <v-btn
+          v-if="!lesson.primary_vocab"
+          :loading="creatingBank"
+          class="primary"
+          @click="createVocabBank"
+        >
+          Add Vocab Bank
+        </v-btn>
+        <v-btn
+          v-else
+          icon
+          class="mx-1 primary--text"
+          @click="showingVocabBank = !showingVocabBank"
+        >
+          <v-icon v-if="showingVocabBank">mdi-menu-up</v-icon>
+          <v-icon v-else>mdi-menu-down</v-icon>
+        </v-btn>
       </v-card-title>
       <v-card-text v-show="showingVocabBank" class="calligraphy pa-1">
-         <VocabBank
-            v-if="lesson.primary_vocab"
-            :vocab-list="vocabList"
-            :source-language="this.lesson.source_language"
-            :target-language="this.lesson.target_language"
-            :vocab-bank-i-d="lesson.primary_vocab"
-            @setLexemeDefinition="setLexemeDefinition"
-            ref="vocabbank"
-         />
+        <VocabBank
+          v-if="lesson.primary_vocab"
+          :vocab-list="vocabList"
+          :source-language="this.lesson.source_language"
+          :target-language="this.lesson.target_language"
+          :vocab-bank-i-d="lesson.primary_vocab"
+          @setLexemeDefinition="setLexemeDefinition"
+          ref="vocabbank"
+        />
       </v-card-text>
-   </v-card>
+    </v-card>
 
-    <v-dialog
-      v-model="confirmDeleteDialog"
-      persistent
-      max-width="300"
-    >
+    <v-dialog v-model="confirmDeleteDialog" persistent max-width="300">
       <v-card class="calligraphy desertsand--text">
         <v-card-title class="headline">Confirm Delete?</v-card-title>
         <v-card-text class="desertsand calligraphy--text pt-1">
-          You've worked so hard; are you sure that you want to flush
-          all of that work down the toilet and deprive the world of
-          your masterpiece?
+          You've worked so hard; are you sure that you want to flush all of that
+          work down the toilet and deprive the world of your masterpiece?
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -673,7 +705,11 @@
       </v-card>
     </v-dialog>
     <v-overlay :value="loadingLesson">
-      <v-progress-circular indeterminate size="64" color="primary"></v-progress-circular>
+      <v-progress-circular
+        indeterminate
+        size="64"
+        color="primary"
+      ></v-progress-circular>
     </v-overlay>
   </v-container>
 </template>
@@ -736,8 +772,6 @@ export default {
       lessonTypeDialog: false,
       loadingLesson: false,
       loadingLanguages: false,
-      loadingTopics: false,
-      allTopics: [],
       allLanguages: [],
       metadataValid: false,
       creatingBank: false,
@@ -751,13 +785,25 @@ export default {
       linkUrl: null,
       linkMenuIsActive: false,
 
-      skillLevels: ["0+, Novice Low", "1, Novice Mid", "1+, Novice High", "2, Intermediate Low", "2+, Intermediate Mid", "3, Intermediate High", "3+, Advanced Low", "4, Advanced Mid", "4+, Advanced High", "5, Superior"],
-      lessonTypes: ["Reading Comprehension",
-                    "Listening Comprehension", 
-                    "Explicit Grammar",
-                    "Content-Based ",
-                    "Problem-Based",
-                    "Other",
+      skillLevels: [
+        "0+, Novice Low",
+        "1, Novice Mid",
+        "1+, Novice High",
+        "2, Intermediate Low",
+        "2+, Intermediate Mid",
+        "3, Intermediate High",
+        "3+, Advanced Low",
+        "4, Advanced Mid",
+        "4+, Advanced High",
+        "5, Superior"
+      ],
+      lessonTypes: [
+        "Reading Comprehension",
+        "Listening Comprehension",
+        "Explicit Grammar",
+        "Content-Based ",
+        "Problem-Based",
+        "Other"
       ],
       rules: {
         requiredTitle: value =>
@@ -773,20 +819,18 @@ export default {
 
         requiredSkillLevel: value =>
           (value || "").length > 0 || "You must choose a skill level.",
-        
+
         requiredLessonType: lessontype =>
           (lessontype || "").length > 0 || "You must choose a lesson type.",
 
         requiredLanguage: languagevalue =>
           (languagevalue || "").length > 0 || "You must choose a language.",
 
-        requiredTopic: topicvalue =>
-          (topicvalue || "").length > 0 || "You must choose a primary topic.",
-
         requiredCitation: value =>
-          (value || "").length > 5 ||
-          "You must provied a source citation.",
+          (value || "").length > 5 || "You must provied a source citation.",
 
+        maxTags: tagsvalue =>
+          (tagsvalue || "").length < 6 || "Maximum of 5 tags allowed!"
       },
 
       vocabList: {},
@@ -814,7 +858,7 @@ export default {
           new Lexeme(),
           new Link(),
           new Strike(),
-          new Underline(),
+          new Underline()
           // new YouTubeEmbed()
         ],
         // editorProps: {
@@ -829,14 +873,14 @@ export default {
         //   },
         // },
         content: `
-          Loading
-        `,
+            ...loading...
+          `,
         onUpdate: () => {
           this.unsavedChanges = true;
         },
-        handleDOMEvents: {},
-      }),
-    }
+        handleDOMEvents: {}
+      })
+    };
   },
   computed: {
     editorFontClass() {
@@ -853,11 +897,16 @@ export default {
         editable: !this.previewMode
       });
     },
-    togglePublish(){
+    removeTag(item) {
+      this.elementObject.tags.splice(this.elementObject.tags.indexOf(item), 1);
+      this.elementObject.tags = [...this.elementObject.tags];
+    },
+
+    togglePublish() {
       this.publishing = true;
       let payload = {
         published: !this.lesson.published
-      }
+      };
       let endpoint = `/api/lessons/lessonz/${this.lesson.slug}/`;
       let method = "PATCH";
       try {
@@ -865,7 +914,7 @@ export default {
           if (data) {
             // console.log(data.published)
             this.lesson.published = data.published;
-            this.publishing=false;
+            this.publishing = false;
           } else {
             console.log("There was a major problem with the request.");
             // console.log(data.message);
@@ -874,10 +923,10 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        this.publishing = false; 
+        this.publishing = false;
       }
     },
-    saveLesson(){
+    saveLesson() {
       this.saving = true;
       let payload = {
         title: this.lesson.title,
@@ -886,10 +935,11 @@ export default {
         lesson_type: this.lesson.lesson_type,
         source_language: this.lesson.source_language,
         target_language: this.lesson.target_language,
-        topic: this.lesson.topic,
-        citation: this.lesson.citation, 
-        content: this.editor.getJSON(),
-      }
+        tags: this.lesson.tags,
+        citation: this.lesson.citation,
+        rich_text: this.editor.getJSON(),
+        plain_text: this.editor.view.state.doc.textContent
+      };
       let endpoint = `/api/lessons/lessonz/${this.lesson.slug}/`;
       let method = "PATCH";
       try {
@@ -906,7 +956,7 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        this.saving = false; 
+        this.saving = false;
       }
     },
     buildNewLesson() {
@@ -917,18 +967,18 @@ export default {
         lesson_type: this.lesson.lesson_type,
         source_language: this.lesson.source_language,
         target_language: this.lesson.target_language,
-        topic: this.lesson.topic,
-        citation: this.lesson.citation, 
+        citation: this.lesson.citation,
         published: false,
-        content: "blank",
-      }
+        rich_text: this.editor.getJSON(),
+        plain_text: this.editor.view.state.doc.textContent
+      };
       let endpoint = `/api/lessons/lessonz/`;
       let method = "POST";
       try {
         apiService(endpoint, method, payload).then(data => {
           if (data && data.slug) {
             this.lesson = data;
-            this.editor.setContent(this.lesson.content);
+            this.editor.setContent(this.lesson.rich_text);
             this.building = false;
             this.isNewLesson = false;
           } else {
@@ -939,20 +989,18 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        this.building = false; 
+        this.building = false;
       }
     },
     loadLesson(slug) {
       this.loadingLesson = true;
-      // console.log(`Loading lesson: ${slug}`);
-      // get from api....data =>
-      // this.editor.setContent(data.content);
+
       let endpoint = `/api/lessons/lessonz/${slug}/`;
       try {
         apiService(endpoint).then(data => {
           if (data) {
             this.lesson = data;
-            this.editor.setContent(this.lesson.content);
+            this.editor.setContent(this.lesson.rich_text);
             this.isNewLesson = false;
             this.loadingLesson = false;
           } else {
@@ -963,7 +1011,7 @@ export default {
         });
       } catch (err) {
         console.log(err);
-        this.loadingLesson = false; 
+        this.loadingLesson = false;
       }
     },
     async deleteLesson() {
@@ -979,28 +1027,28 @@ export default {
         this.submittingDelete = false;
       }
     },
-    createVocabBank(){
+    createVocabBank() {
       this.creatingBank = true;
-      
+
       let endpoint = `/api/lessons/createvocab/`;
       let method = "POST";
       let payload = {
-        lesson_id: this.lesson.id,
-      }
+        lesson_id: this.lesson.id
+      };
       try {
         apiService(endpoint, method, payload).then(data => {
-            if (data){
-              // console.log(data);
-              this.lesson.primary_vocab = data.vocab_bank_id;
-              this.creatingBank = false;
-            } else {
-              console.log("There was a major problem with the request.");
-              // console.log(data.message);
-              this.creatingBank = false;
-            }
+          if (data) {
+            // console.log(data);
+            this.lesson.primary_vocab = data.vocab_bank_id;
+            this.creatingBank = false;
+          } else {
+            console.log("There was a major problem with the request.");
+            // console.log(data.message);
+            this.creatingBank = false;
+          }
         });
       } catch (err) {
-      console.log(err);
+        console.log(err);
         this.creatingBank = false;
       }
     },
@@ -1052,45 +1100,43 @@ export default {
     //    this.$emit('setLexemeDefinition', lexemePackage);
     //   };
 
-
-
     printText() {
       var html = document.getElementById("editorbox").innerHTML;
       var a = window.open("", "", "height=300, width=300");
       var dateStamp = new Date();
       a.document.write(
         `
-          <html>
-          <head>
-          <title>PF Printer...</title>
-          </head>
+            <html>
+            <head>
+            <title>PF Printer...</title>
+            </head>
+              <style>
+                .header {
+                  position: fixed;
+                  top: 0;
+                  left: 50%;
+                  transform: translate(-50%, 0);
+                }
+                .footer {
+                  position: fixed;
+                  bottom: 0;
+                  left: 50%;
+                  transform: translate(-50%, 0);
+                }
+                .content {
+                  font-family:Arial, Helvetica, sans-serif;
+                  line-height: 1.25em;
+                  font-size: ${this.editorFontSize}em;
+                }
+              </style>
+              <body>
+                  <div class="header">${this.lesson.title}</div>
+                  <div class="content">${html}</div>
+                  <div class="footer">PidginForge on ${dateStamp.toLocaleString()}</div>
+              </body>  
+            </html>
             <style>
-              .header {
-                position: fixed;
-                top: 0;
-                left: 50%;
-                transform: translate(-50%, 0);
-              }
-              .footer {
-                position: fixed;
-                bottom: 0;
-                left: 50%;
-                transform: translate(-50%, 0);
-              }
-              .content {
-                font-family:Arial, Helvetica, sans-serif;
-                line-height: 1.25em;
-                font-size: ${this.editorFontSize}em;
-              }
-            </style>
-            <body>
-                <div class="header">${this.lesson.title}</div>
-                <div class="content">${html}</div>
-                <div class="footer">PidginForge on ${dateStamp.toLocaleString()}</div>
-            </body>  
-          </html>
-          <style>
-          `
+            `
       );
       a.print();
     },
@@ -1108,9 +1154,7 @@ export default {
 
     getLanguages() {
       var localLanguages = localStorage.getItem("languages");
-      console.log(localLanguages);
       if (localLanguages.length > 1) {
-        console.log("Shop local!");
         this.allLanguages = JSON.parse(localLanguages);
       } else {
         this.loadingLanguages = true;
@@ -1130,43 +1174,14 @@ export default {
           console.log(err);
         }
       }
-    },
-
-    getTopics() {
-      var localTopics = localStorage.getItem("topics");
-      if (localTopics.length > 1) {
-        // console.log("Shop local!");
-        this.allTopics = JSON.parse(localTopics);
-      } else {
-        this.loadingTopics = true;
-        let endpoint = `/api/categories/topics/`;
-        try {
-          apiService(endpoint).then(data => {
-            if (data != null) {
-              this.allTopics = data;
-              this.error = false;
-            } else {
-              console.log("Something bad happened...");
-              this.error = true;
-            }
-            this.loadingTopics = false;
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      }
     }
   },
   mounted() {
     this.loadingLesson = true;
     this.getLanguages();
-    this.getTopics();
-    console.log(this.lesson);
     if (this.lessonslug) {
-      // console.log("loading")
       this.loadLesson(this.lessonslug);
     } else {
-      console.log("making new lesson")
       this.isNewLesson = true;
       this.lesson = {};
       this.loadingLesson = false;
@@ -1181,7 +1196,7 @@ export default {
 <style>
 .editor > * {
   /* padding: 4px, 4px;
-  margin: 4px, 4px; */
+    margin: 4px, 4px; */
 }
 
 .ProseMirror {

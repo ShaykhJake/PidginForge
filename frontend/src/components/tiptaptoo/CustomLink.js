@@ -1,30 +1,34 @@
-import { Link } from 'tiptap-extensions'
+import { Link } from "tiptap-extensions";
 export default class CustomLink extends Link {
   get schema() {
     return {
       attrs: {
         href: {
-            default: null,
+          default: null
         },
         target: {
-            default: null,
+          default: null
         }
       },
       inclusive: false,
       parseDOM: [
         {
-          tag: 'a[href]',
+          tag: "a[href]",
           getAttrs: dom => ({
-            href: dom.getAttribute('href'),
-            target: dom.getAttribute('target')
-          }),
-        },
+            href: dom.getAttribute("href"),
+            target: dom.getAttribute("target")
+          })
+        }
       ],
-      toDOM: node => ['a', {
-        ...node.attrs,
-        target: '__blank',
-        rel: 'noopener noreferrer nofollow',
-      }, 0],
-    }
+      toDOM: node => [
+        "a",
+        {
+          ...node.attrs,
+          target: "__blank",
+          rel: "noopener noreferrer nofollow"
+        },
+        0
+      ]
+    };
   }
 }

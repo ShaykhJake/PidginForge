@@ -138,7 +138,6 @@ export default {
             this.submittingRSVP = false;
             this.closeDialog();
           } else {
-            console.log(data);
             console.log("There was a major problem with the request.");
             // console.log(data.message);
             this.submittingRSVP = false;

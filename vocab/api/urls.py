@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, re_path
 from rest_framework.authtoken import views
 from rest_framework.routers import DefaultRouter
 from vocab.api.views import (
@@ -15,7 +15,10 @@ from vocab.api.views import (
         InflectedFormDefinitionViewSet,
         InflectedFormPronunciationViewSet,
         LexemePairViewSet,
+        CardStackList,
         CardStackViewSet,
+        stack_togglesave,
+        FavoriteStackViewSet,
         learn_stack_view,
         add_stack_pair,
         delete_stack_pair,
@@ -67,19 +70,21 @@ inflected_sentence_router.register(r"inflectedsentencez", InflectedSentenceViewS
 inflected_pronunciation_router = DefaultRouter()
 inflected_pronunciation_router.register(r"inflectedpronunciationz", InflectedFormPronunciationViewSet)
 
-
 inflected_form_router = DefaultRouter()
 inflected_form_router.register(r"inflectedformz", InflectedFormViewSet)
 
 inflected_form_pair_router = DefaultRouter()
 inflected_form_pair_router.register(r"inflectedpairz", InflectedFormPairViewSet)
 
-
 vocab_bank_router = DefaultRouter()
 vocab_bank_router.register(r"bank", VocabBankViewSet)
 
 card_stack_router = DefaultRouter()
 card_stack_router.register(r"cardstackz", CardStackViewSet)
+
+favorite_stack_router = DefaultRouter()
+favorite_stack_router.register(r"favoritestackz", FavoriteStackViewSet, basename='FavoriteStack')
+
 
 # learn_stack_router = DefaultRouter()
 # learn_stack_router.register(r"learnstack", LearnStackViewSet)
@@ -88,10 +93,6 @@ card_stack_router.register(r"cardstackz", CardStackViewSet)
 
 urlpatterns = [
     path("", include(lexeme_router.urls)),
-    # path('youtube/save/', youtube_togglesaved, name="youtube_togglesaved"),
-    # path('youtube/hide/', youtube_togglehidden, name="youtube_togglehidden"),
-    # path('youtube/check/', youtube_check, name="youtube_check"),
-    # path('youtube/vote/', youtube_togglevote, name="youtube_togglevote"),
     path("", include(inflected_form_router.urls)),
     path("", include(vocab_bank_router.urls)),
     path("", include(sentence_router.urls)),
@@ -105,6 +106,9 @@ urlpatterns = [
     path("", include(inflected_pronunciation_router.urls)),
     path("", include(card_stack_router.urls)),
     path("", include(lexeme_pair_router.urls)),
+    path("", include(favorite_stack_router.urls)),
+    re_path('^stacks/list/$', CardStackList.as_view(), name="stack_list"),
+    path('stacks/save/', stack_togglesave, name="stack_togglesave"),
     path('learnstack/<str:slug>/', learn_stack_view, name="learn_stack_view"),
     path('sentences/searchwords/<int:pk>/', get_sentence_search, name="get_sentences_search"),
     path('words/wordlist/', get_word_list, name="get_word_list"),
