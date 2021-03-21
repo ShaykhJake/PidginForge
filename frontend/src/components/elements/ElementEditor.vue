@@ -130,7 +130,7 @@
                   class="mb-3"
                 >
                   <SimpleTipTap
-                    :forEdit="true"
+                    :editMode="true"
                     ref="textEditor"
                     :content="elementObject.element.rich_text"
                   />
@@ -469,7 +469,7 @@ export default {
                       this.elementObject.element.videoTitle =
                         resultVideo.snippet.title;
                       this.elementObject.element.video_id = resultVideo.id;
-                      this.elementObject.thumb =
+                      this.elementObject.element.thumb =
                         resultVideo.snippet.thumbnails.medium["url"];
                       this.videoLoaded = true;
                       this.validating = false;

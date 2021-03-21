@@ -221,6 +221,7 @@ class ElementViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 element = serializer.save()
             else:
+                print(serializer.errors)
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         elif request.data['sub_type'] == 'Audio':
             parser_classes = (MultiPartParser, FormParser, )
@@ -236,6 +237,7 @@ class ElementViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 element = serializer.save()
             else:
+                print(serializer.errors)
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)

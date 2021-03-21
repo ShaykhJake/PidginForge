@@ -247,10 +247,9 @@ export default {
   mounted() {
     this.editor.setContent(this.content);
     this.loaded = true;
-    // if (this.forEdit) {
-    //   this.editMode = true;
-    //   this.editor.setOptions({ editable: this.editMode });
-    // }
+    if (this.editMode) {
+      this.editor.setOptions({ editable: this.editMode });
+    }
   },
   created() {}
 };
