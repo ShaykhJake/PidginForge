@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.conf import settings
+from model_utils.managers import InheritanceManager
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField, JSONField
 from categories.models import Language, TopicTag, MethodTag
@@ -12,6 +13,128 @@ from django.dispatch import receiver
 from django.utils.text import slugify
 from core.utils import generate_random_string
 
+
+ELEMENT_CHOICES = (
+    ("Text", "Text"),
+    ("Audio", "Audio"),
+    ("YouTube", "YouTube"),
+)
+
+class Element(models.Model):
+    # https://django-model-utils.readthedocs.io/en/latest/managers.html#inheritancemanager
+    objects = InheritanceManager()
+
+    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="element_curator")
+    curation_date = models.DateTimeField(auto_now_add=True, editable=False)
+    title = models.CharField(max_length=150, default="", null=False)
+    slug = models.SlugField(max_length=255, allow_unicode=True, unique=True, null=True, blank=True)
+
+    # Categories
+    description = models.CharField(max_length=300, default="", null=False, db_index=True)
+    citation = models.CharField(max_length=300, default="", null=False)
+    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
+    tags = ArrayField(models.CharField(max_length=25), blank=True, null=True)
+    sub_type = models.CharField(max_length=20, choices=ELEMENT_CHOICES, default="text")
+    flag = models.ManyToManyField(Flag, blank=True, related_name="elements")
+    suspended = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.sub_type} { self.title }"
+    
+    def short(self):
+        return self.description[:75] + '...'
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            value = self.title[:50]
+            slug = slugify(value, allow_unicode=True)
+            random_string = generate_random_string()
+            self.slug = slug + "-" + random_string
+        super().save(*args, **kwargs)
+
+class Text(Element):
+    rich_text = JSONField(blank=True, default=dict)
+    plain_text = models.TextField(default='', db_index=True)
+    thumb = models.ImageField(default='elements/default_text.jpg', upload_to='elements/%Y/%m/%d')
+
+class YouTube(Element):
+    duration = models.PositiveIntegerField(default=0)
+    video_id = models.CharField(max_length=100)
+    thumb = models.CharField(max_length=200)
+
+class Audio(Element):
+    duration = models.PositiveIntegerField(default=0)
+    audiofile = models.FileField(upload_to='audio_files/%Y/%m/%d')
+    originalfilename = models.CharField(max_length=200, default="", null=False)
+    thumb = models.ImageField(default='elements/default_audio.jpg', upload_to='elements/%Y/%m/%d')
+
+class ElementUpVote(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="element_upvotes")
+    element = models.ForeignKey(Element, on_delete=models.CASCADE, related_name="upvotes")
+
+class ElementDownVote(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="element_downvotes")
+    element = models.ForeignKey(Element, on_delete=models.CASCADE, related_name="downvotes")
+
+class ElementSave(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="element_saves")
+    element = models.ForeignKey(Element, on_delete=models.CASCADE, related_name="saves")
+
+class ElementHide(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="element_hides")
+    element = models.ForeignKey(Element, on_delete=models.CASCADE, related_name="hides")
+
+class ElementComment(models.Model):
+    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="element_comments")
+    curation_date = models.DateTimeField(auto_now_add=True, editable=False)
+    updated = models.DateTimeField(auto_now=True, editable=False)
+    rich_text = JSONField(blank=True, default=dict)
+    element = models.ForeignKey(Element, on_delete=models.CASCADE, related_name="comments")
+    plain_text = models.TextField(default='')
+    suspended = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.curator.username} - {self.plain_text[0:30]}"
+
+class CommentReply(models.Model):
+    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="element_comment_replies")
+    curation_date = models.DateTimeField(auto_now_add=True, editable=False)
+    updated = models.DateTimeField(auto_now=True, editable=False)
+    rich_text = JSONField(blank=True, default=dict)
+    plain_text = models.TextField(default='')
+    comment = models.ForeignKey(ElementComment, on_delete=models.CASCADE, related_name="replies")
+    suspended = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.curator.username} - {self.plain_text[:30]}"
+
+
+"""
+
+class Reply(models.Model):
+    pass 
+
+class MediaComment(models.Model): TODO should this be for the Media or the note?
+    simple text field (non-json)
+    pass
+
+
+class MediaTranscript:
+    curator
+    curation_date
+    language
+    updated
+    content (should this be json???)
+
+    pass
+
+class MediaTranslation:
+    pass
+
+
+class 
+"""
 
 class Translation(models.Model):
     # Source & User
@@ -110,7 +233,7 @@ class YouTubeElement(models.Model):
 
     # Title Defaults to What's Pulled in From YouTube, but Can be Changed
     title = models.CharField(max_length=150, default="", null=False)
-    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    slug = models.SlugField(max_length=255, allow_unicode=True, unique=True, null=True, blank=True)
 
     # TODO - Consider whether or not to add a start/stop time?
 
@@ -149,7 +272,7 @@ class YouTubeElement(models.Model):
 @receiver(pre_save, sender=YouTubeElement)
 def add_slug_to_youtubeelement(sender, instance, *args, **kwargs):
     if instance and not instance.slug:
-        slug = slugify(instance.title)
+        slug = slugify(instance.title, allow_unicode=True)
         random_string = generate_random_string()
         instance.slug = slug + "-" + random_string
 
@@ -172,7 +295,7 @@ class AudioElement(models.Model):
 
     # Title Defaults to What's Pulled in From YouTube, but Can be Changed
     title = models.CharField(max_length=150, default="", null=False)
-    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    slug = models.SlugField(max_length=255, allow_unicode=True, unique=True, null=True, blank=True)
 
     # TODO - Consider whether or not to add a start/stop time?
 
@@ -211,7 +334,7 @@ class AudioElement(models.Model):
 @receiver(pre_save, sender=AudioElement)
 def add_slug_to_audioelement(sender, instance, *args, **kwargs):
     if instance and not instance.slug:
-        slug = slugify(instance.title)
+        slug = slugify(instance.title, allow_unicode=True)
         random_string = generate_random_string()
         instance.slug = slug + "-" + random_string
 
@@ -261,7 +384,7 @@ class TextElement(models.Model):
    
     #### Content
     title = models.CharField(max_length=150, default="", null=False)
-    slug = models.SlugField(max_length=255, unique=True, null=True, blank=True)
+    slug = models.SlugField(max_length=255, allow_unicode=True, unique=True, null=True, blank=True)
 
     content = JSONField(null=True, blank=True)
     rawtext = models.TextField(default='')
@@ -296,19 +419,25 @@ class TextElement(models.Model):
 @receiver(pre_save, sender=TextElement)
 def add_slug_to_textelement(sender, instance, *args, **kwargs):
     if instance and not instance.slug:
-        slug = slugify(instance.title)
+        slug = slugify(instance.title, allow_unicode=True)
         random_string = generate_random_string()
         instance.slug = slug + "-" + random_string
-
-
-
-
 
 
 # class WebElement(models.Model):
 # class DocumentElement(models.Model):
 
+class SavedVideo(models.Model):
+   curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+   youtube_element = models.ForeignKey(YouTubeElement, on_delete=models.CASCADE)
 
+class SavedAudio(models.Model):
+   curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+   audio_element = models.ForeignKey(AudioElement, on_delete=models.CASCADE)
+
+class SavedText(models.Model):
+   curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+   text_element = models.ForeignKey(TextElement, on_delete=models.CASCADE)
 
 
 

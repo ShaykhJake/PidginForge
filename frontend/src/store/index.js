@@ -32,14 +32,6 @@ export default new Vuex.Store({
           direction: "LTR"
         }
       ],
-      learningtopics: [
-        {
-          name: "health"
-        },
-        {
-          name: "food"
-        }
-      ],
       points: 0
     },
     bob: "bob"

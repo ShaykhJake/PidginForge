@@ -6,44 +6,46 @@
           Change Password
         </v-card-title>
         <v-card-text class="desertsand calligraphy--text">
-            <v-row wrap dense>
-              <v-col cols="12">
-                <v-form ref="form" v-model="valid">
-                  <v-text-field
-                    v-model="password1"
-                    :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
-                    :rules="[
-                      rules.required,
-                      rules.min,
-                      rules.upper,
-                      rules.number,
-                      rules.special
-                    ]"
-                    :type="show1 ? 'text' : 'password'"
-                    name="input-10-1"
-                    hint="At least 8 characters"
-                    counter
-                    label="Password"
-                    @click:append="show1 = !show1"
-                  ></v-text-field>
-                  <v-text-field
-                    v-model="password2"
-                    :append-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
-                    :rules="[rules.required, rules.passMatch]"
-                    :type="show2 ? 'text' : 'password'"
-                    name="input-10-2"
-                    label="Confirm Password"
-                    value=""
-                    class="input-group--focused"
-                    @click:append="show2 = !show2"
-                  ></v-text-field>
-                </v-form>
-              </v-col>
-            </v-row>
+          <v-row wrap dense>
+            <v-col cols="12">
+              <v-form ref="form" v-model="valid">
+                <v-text-field
+                  v-model="password1"
+                  :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
+                  :rules="[
+                    rules.required,
+                    rules.min,
+                    rules.upper,
+                    rules.number,
+                    rules.special
+                  ]"
+                  :type="show1 ? 'text' : 'password'"
+                  name="input-10-1"
+                  hint="At least 8 characters"
+                  counter
+                  label="Password"
+                  @click:append="show1 = !show1"
+                ></v-text-field>
+                <v-text-field
+                  v-model="password2"
+                  :append-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
+                  :rules="[rules.required, rules.passMatch]"
+                  :type="show2 ? 'text' : 'password'"
+                  name="input-10-2"
+                  label="Confirm Password"
+                  value=""
+                  class="input-group--focused"
+                  @click:append="show2 = !show2"
+                ></v-text-field>
+              </v-form>
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-card-actions class="sandstone">
           <v-spacer></v-spacer>
-          <v-btn color="garbage desertsand--text" @click="closeDialog">Cancel<v-icon>mdi-cancel</v-icon></v-btn>
+          <v-btn color="garbage desertsand--text" @click="closeDialog"
+            >Cancel<v-icon>mdi-cancel</v-icon></v-btn
+          >
           <v-btn
             color="primary"
             @click="submitChange"
@@ -63,7 +65,7 @@ import { apiService } from "@/common/api.service.js";
 export default {
   name: "ChangePassword",
   props: {
-    showDialog: Boolean,
+    showDialog: Boolean
   },
   data() {
     return {
@@ -71,7 +73,7 @@ export default {
       show2: false,
       rules: {
         required: value => !!value || "Required.",
-        min: v => (v || '').length >= 8 || "Min 8 characters",
+        min: v => (v || "").length >= 8 || "Min 8 characters",
         upper: v =>
           /(?=.*[A-Z])/.test(v) || "Must have one uppercase character",
         number: v => /(?=.*\d)/.test(v) || "Must have one number",

@@ -1,7 +1,7 @@
 <template>
-  <v-app>
-    <v-content>
-      <div id="app" class="sandstone">
+  <v-app class="desertsand">
+    <v-main>
+      <div id="app" class="desertsand">
         <NavbarComponent
           v-if="!loadingUser"
           :user-data="userData"
@@ -11,7 +11,7 @@
           <router-view :key="$route.fullPath" />
         </keep-alive>
       </div>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 
@@ -32,11 +32,13 @@ export default {
   methods: {
     syncUserData(userData) {
       this.userData = userData;
-      if(!this.userData.image){
-        this.userData.image="https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg"
+      if (!this.userData.image) {
+        this.userData.image =
+          "https://jakesdesk-media.s3.amazonaws.com/media/public/profile_pics/default.jpg";
       }
-      if(!this.userData.avatar){
-        this.userData.avatar="https://jakesdesk-media.s3.amazonaws.com/media/public/avatars/default.jpg"
+      if (!this.userData.avatar) {
+        this.userData.avatar =
+          "https://jakesdesk-media.s3.amazonaws.com/media/public/avatars/default.jpg";
       }
       localStorage.setItem("username", userData.user.username);
     },
@@ -46,24 +48,7 @@ export default {
         apiService(endpoint).then(data => {
           if (data != null) {
             this.allLanguages = data;
-            localStorage.setItem("languages", JSON.stringify(data))
-            this.error = false;
-          } else {
-            console.log("Something bad happened...");
-            this.error = true;
-          }
-          this.loadingLanguages = false;
-        });
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    getTopics() {
-      let endpoint = `/api/categories/topics/`;
-      try {
-        apiService(endpoint).then(data => {
-          if (data != null) {
-            localStorage.setItem("topics", JSON.stringify(data))
+            localStorage.setItem("languages", JSON.stringify(data));
             this.error = false;
           } else {
             console.log("Something bad happened...");
@@ -80,7 +65,7 @@ export default {
       try {
         apiService(endpoint).then(data => {
           if (data != null) {
-            localStorage.setItem("profilelist", JSON.stringify(data))
+            localStorage.setItem("profilelist", JSON.stringify(data));
             this.error = false;
           } else {
             console.log("Something bad happened...");
@@ -93,12 +78,14 @@ export default {
       }
     },
     initializeUser() {
-      apiService(`api/users/profile/`).then(data => {
-        this.syncUserData(data);
-        this.loadingUser = false;
-      }).catch(err => {
-        console.log(err);
-      });
+      apiService(`api/users/profile/`)
+        .then(data => {
+          this.syncUserData(data);
+          this.loadingUser = false;
+        })
+        .catch(err => {
+          console.log(err);
+        });
     },
     reloadUserData() {
       apiService(`api/users/profile/`).then(data => {
@@ -108,8 +95,7 @@ export default {
   },
   mounted() {
     this.getLanguages();
-    this.getTopics();
-    this.getUserProfileList();
+    // this.getUserProfileList();
   },
   created() {
     this.initializeUser();
@@ -142,5 +128,21 @@ body {
 #app {
   height: 100vh;
   background-color: #dbd4c4;
+}
+.ProseMirror {
+  color: black;
+  background-color: #faf5e2;
+  padding: 10px 10px 10px 10px;
+  height: 350px;
+  font-size: 1.25em;
+  line-height: 1.35em;
+  overflow: auto;
+  resize: vertical;
+  border-color: #66665e;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  /* padding: 4px, 4px;
+    margin: 4px, 4px; */
 }
 </style>

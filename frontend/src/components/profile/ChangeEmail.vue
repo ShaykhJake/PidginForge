@@ -9,10 +9,7 @@
           <v-row wrap dense>
             <v-col cols="12">
               <p>Current address: {{ currentEmail }}</p>
-              <v-form
-                ref="form"
-                v-model="valid"
-              >
+              <v-form ref="form" v-model="valid">
                 <v-text-field
                   v-model="email1"
                   :rules="[rules.required, rules.pattern]"
@@ -118,7 +115,7 @@ export default {
       this.$refs.form.validate();
     },
     checkAvailable() {
-      this.checkingAvailability=true;
+      this.checkingAvailability = true;
       let endpoint = `/api/users/checkemail/`;
       try {
         apiService(endpoint, "POST", { email: this.email1 }).then(data => {
@@ -135,10 +132,10 @@ export default {
             return false;
           }
         });
-        this.checkingAvailability=false;
+        this.checkingAvailability = false;
       } catch (err) {
         console.log(err);
-        this.checkingAvailability=false;
+        this.checkingAvailability = false;
       }
     },
 
@@ -176,7 +173,7 @@ export default {
       this.error = false;
       this.success = false;
       this.available = false;
-      this.$emit("closeDialog")
+      this.$emit("closeDialog");
     }
   }
 };

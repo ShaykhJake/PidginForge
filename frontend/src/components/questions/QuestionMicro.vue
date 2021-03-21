@@ -3,6 +3,11 @@
     <v-hover>
       <template v-slot:default="{ hover }">
         <v-card class="pa-0 desertsand">
+          <v-card-text class="pa-0">
+            <v-row dense class="ma-0 pa-0">
+              <v-col cols="12" class="pa-0"> </v-col>
+            </v-row>
+          </v-card-text>
           <v-card-title class="py-1 desertsand">
             <v-row dense no-gutters>
               <v-col>
@@ -22,13 +27,17 @@
                 <v-avatar mx-2 size="48">
                   <v-img
                     class="elevation-6"
-                    :src="question.author.user_profile.avatar ? question.author.user_profile.avatar  : 'https://jakesdesk-media.s3.amazonaws.com/media/public/avatars/default.jpg' "
+                    :src="
+                      question.author.user_profile.avatar
+                        ? question.author.user_profile.avatar
+                        : 'https://jakesdesk-media.s3.amazonaws.com/media/public/avatars/default.jpg'
+                    "
                   ></v-img>
                 </v-avatar>
               </v-col>
 
               <v-col>
-                <p class="subtitle-2 black--text">{{ shortQuestion }}</p>
+                <p class="subtitle-2 black--text">{{ question.title }}</p>
               </v-col>
             </v-row>
           </v-card-text>
@@ -41,7 +50,6 @@
                     {{ question.nativelanguage }} &#8594;
                     {{ question.learninglanguage }}
                   </span>
-                  |<span class="topics--text"> {{ question.topic }}</span
                   ><br />
                 </p>
                 <p class="primary--text overline mb-0">
@@ -64,10 +72,10 @@
               >
               <v-btn block class="mb-2 saves" @click="toggleSave">
                 <span :hidden="question.user_has_saved"
-                  >Like Question<v-icon right>mdi-heart</v-icon></span
+                  >Save Question<v-icon right>mdi-heart</v-icon></span
                 >
                 <span :hidden="!question.user_has_saved"
-                  >Unlike Video<v-icon right>mdi-heart-broken</v-icon></span
+                  >Unsave Question<v-icon right>mdi-heart-broken</v-icon></span
                 >
               </v-btn>
             </v-overlay>
@@ -79,7 +87,7 @@
 </template>
 
 <script>
-// import { apiService } from "@/common/api.service.js";
+import { apiService } from "@/common/api.service.js";
 export default {
   name: "QuestionMicro",
   props: {
@@ -91,46 +99,39 @@ export default {
       overlay: false
     };
   },
-  computed: {
-    shortQuestion() {
-      let question = this.question.content;
-      if (question.length > 100) {
-        let short = this.question.content.slice(0, 100);
-        return short + "...";
-      } else {
-        return question;
-      }
-    }
-  },
+  computed: {},
 
   methods: {
     // Get Current User
     // Save / Unsave Item
     toggleSave() {
-      // let endpoint=`api/elements/youtube/saved/`;
-      // try {
-      // apiService(endpoint, "POST", { pk: this.youTubeElement.id }).then(data => {
-      //    this.submitting = false;
-      //    if (data != null) {
-      //       if (data.success == true){
-      //          // this.$emit("hideElement")
-      //          this.youTubeElement.user_has_saved = !this.youTubeElement.user_has_saved;
-      //          if (this.youTubeElement.user_has_saved){
-      //             this.youTubeElement.saved_count += 1
-      //          } else {
-      //             this.youTubeElement.saved_count -= 1
-      //          }
-      //          console.log(data.message)
-      //       } else {
-      //          this.alertType = 'error';
-      //       }
-      //    } else {
-      //       this.alertType = 'error';
-      //    }
-      // });
-      // } catch (err) {
-      // console.log(err);
-      // }
+      this.saving = true;
+      let endpoint = `api/questions/question/save/`;
+      try {
+        apiService(endpoint, "POST", { slug: this.question.slug }).then(
+          data => {
+            if (data != null) {
+              if (data.success == true) {
+                // this.$emit("hideElement")
+                this.question.user_has_saved = !this.question.user_has_saved;
+                if (this.question.user_has_saved) {
+                  this.question.saved_count += 1;
+                } else {
+                  this.question.saved_count -= 1;
+                }
+                // console.log(data.message)
+              } else {
+                // this.alertType = 'error';
+              }
+            } else {
+              // this.alertType = 'error';
+            }
+            this.saving = false;
+          }
+        );
+      } catch (err) {
+        console.log(err);
+      }
     }
   }
 };

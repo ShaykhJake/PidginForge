@@ -1,5 +1,6 @@
 import { Node } from "tiptap";
 import { wrapIn } from "prosemirror-commands";
+// import { setBlockType } from 'tiptap-commands'
 import { findParentNode, findSelectedNodeOfType } from "prosemirror-utils";
 
 export default class TextDirection extends Node {
@@ -24,9 +25,13 @@ export default class TextDirection extends Node {
       group: "block",
       defining: true,
       draggable: false,
-      toDOM: node => ["div", { style: `direction:${node.attrs.direction};` }, 0]
+      toDOM: node => ["p", { style: `direction: ${node.attrs.direction};` }, 0]
     };
   }
+
+  // commands({ type, schema }) {
+  //   return () => toggleBlockType(type, schema.nodes.paragraph)
+  // }
 
   commands({ type }) {
     return attrs => {

@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     
     'rest_framework',
     'rest_framework.authtoken',
+    # 'debug_toolbar',
+    'django_filters',
 
     'django_registration',
     'allauth',
@@ -65,12 +67,16 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'users',
+    'forum',
     'questions',
     'storages',
     'categories',
     'elements',
     'malapropos',
     'events',
+    'lessons',
+    'vocab',
+    
 ]
 
 MIDDLEWARE = [
@@ -84,6 +90,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
+    
 ]
 
 if not DEVMODE:
@@ -99,6 +107,12 @@ CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1:8080',
     'https://jakesdesk-media.s3.amazonaws.com',
 )
+
+INTERNAL_IPS = [
+    # ...
+    '127.0.0.1',
+    # ...
+]
 
 ROOT_URLCONF = 'pidginforge.urls'
 
@@ -274,6 +288,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 4,
     # 'DATETIME_INPUT_FORMATS': ['%Y-%m-%d %H:%M',],

@@ -12,7 +12,7 @@
       </v-row>
       <v-row wrap dense>
         <v-col cols="12" sm="6" lg="4" xl="3">
-          <v-card class="mx-auto desertsand" max-width="320">
+          <v-card class="mx-auto desertsand" max-width="310">
             <v-card-text>
               <div>Create or Curate New Elements</div>
               <p class="headline text--primary">
@@ -28,18 +28,21 @@
                 <v-btn
                   class="mb-2 primary"
                   block
+                  @click="elementEditorDialog = true"
                   large
-                  @click="loadYouTubeEditor"
-                  >YouTube<v-icon right>mdi-video</v-icon></v-btn
-                >
-                <v-btn class="mb-2 primary" block large @click="loadAudioEditor"
-                  >Audio <v-icon right>audiotrack</v-icon></v-btn
-                >
-                <v-btn class="mb-2 primary" block @click="textEditorDialog=true" large
-                  >Text <v-icon right>text_fields</v-icon></v-btn
+                  >Learning Element<v-icon right>text_fields</v-icon></v-btn
                 >
                 <v-btn class="mb-2 primary" block :disabled="true" large
-                  >Vocab<v-icon right>credit_card</v-icon></v-btn
+                  >Lexemes & Terms<v-icon right
+                    >mdi-card-text-outline</v-icon
+                  ></v-btn
+                >
+                <v-btn
+                  class="mb-2 primary"
+                  block
+                  @click="$router.push({ name: 'Stacks-Viewer' })"
+                  large
+                  >Vocab Card Stacks<v-icon right>mdi-cards</v-icon></v-btn
                 >
               </v-container>
             </v-card-actions>
@@ -47,7 +50,7 @@
         </v-col>
 
         <v-col cols="12" sm="6" lg="4" xl="3">
-          <v-card class="mx-auto desertsand" max-width="340">
+          <v-card class="mx-auto desertsand" max-width="310">
             <v-card-text>
               <div>Create or Curate New Lessons</div>
               <p class="headline text--primary">
@@ -63,11 +66,17 @@
             <v-card-actions>
               <v-container>
                 <v-btn
+                  disabled
                   block
                   class="mb-2 elements desertsand--text"
-                  :disabled="true"
+                  :to="{
+                    name: 'Lesson-Builder',
+                    params: {
+                      elementslug: null
+                    }
+                  }"
                   large
-                  >Content-Based</v-btn
+                  >Lesson Builder</v-btn
                 >
                 <v-btn
                   block
@@ -104,7 +113,7 @@
         </v-col>
 
         <v-col cols="12" sm="6" lg="4" xl="3">
-          <v-card class="mx-auto desertsand" max-width="315">
+          <v-card class="mx-auto desertsand" max-width="310">
             <v-card-text>
               <div>Further Curate & Improve Your Work</div>
               <p class="headline text--primary">
@@ -171,7 +180,7 @@
         </v-col>
 
         <v-col cols="12" sm="6" lg="4" xl="3">
-          <v-card class="mx-auto desertsand" max-width="315">
+          <v-card class="mx-auto desertsand" max-width="310">
             <v-card-text>
               <div>Help Care for Orphaned Objects</div>
               <p class="headline text--primary">
@@ -238,30 +247,11 @@
         </v-col>
       </v-row>
     </v-container>
-    <YouTubeElementEditor
-      v-if="youTubeEditorLoaded"
-      :editor-dialog="showYouTubeEditor"
-      :editing="false"
-      :video="blankVideo"
-      :key="youTubeKey"
-      @closeDialog="showYouTubeEditor = false"
-      @rerenderYouTube="rerenderYouTube"
-    />
-    <AudioElementEditor
-      v-if="audioEditorLoaded"
-      :editor-dialog="showAudioEditor"
-      :editing="false"
-      :audio="blankAudio"
-      :key="audioKey"
-      @closeDialog="showAudioEditor = false"
-      @rerenderAudio="rerenderAudio"
-    />
-    <TextElementEditor
-      v-if="textEditorDialog"
-      :editor-dialog="textEditorDialog"
+    <ElementEditor
+      v-if="elementEditorDialog"
+      :editor-dialog="elementEditorDialog"
       :is-new-element="true"
-      :key="textKey"
-      @closeDialog="textEditorDialog = false"
+      @closeDialog="elementEditorDialog = false"
     />
   </div>
 </template>
@@ -270,23 +260,14 @@
 export default {
   name: "Curate",
   components: {
-    YouTubeElementEditor: () =>
+    ElementEditor: () =>
       import(
-        /* webpackPrefetch: true */ "@/components/elements/YouTubeElementEditor.vue"
-      ),
-    AudioElementEditor: () =>
-      import(
-        /* webpackPrefetch: true */ "@/components/elements/AudioElementEditor.vue"
-      ),
-    TextElementEditor: () =>
-      import(
-        /* webpackPrefetch: true */ "@/components/elements/TextElementEditor.vue"
+        /* webpackPrefetch: true */ "@/components/elements/ElementEditor.vue"
       )
-
-
   },
   data() {
     return {
+      elementEditorDialog: false,
       youTubeKey: 0,
       youTubeEditorLoaded: false,
       showYouTubeEditor: false,
@@ -304,8 +285,7 @@ export default {
       loadingTranscription: true,
       violations: 0,
       loadingViolations: true,
-      textEditorDialog: false,
-
+      textEditorDialog: false
     };
   },
   props: {},

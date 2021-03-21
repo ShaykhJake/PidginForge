@@ -1,14 +1,15 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import AnswerEditor from "../views/AnswerEditor.vue";
 import Home from "../views/Home.vue";
 import Events from "../views/Events.vue";
 import NotFound from "../views/NotFound.vue";
 import QuestionViewer from "../views/QuestionViewer.vue";
-// import YouTubeViewer from "../views/YouTubeViewer.vue";
-// import AudioViewer from "../views/AudioViewer.vue";
-import MediaElementViewer from "../views/MediaElementViewer.vue";
-import TextElementViewer from "../views/TextElementViewer.vue";
+import LessonBuilder from "../components/lessons/LessonBuilder.vue";
+import LessonViewer from "../views/LessonViewer.vue";
+import LexemeCurator from "../components/vocab/LexemeCurator.vue";
+import StacksViewer from "../components/vocab/stacks/StacksViewer.vue";
+import LearnStack from "../components/vocab/stacks/LearnStack.vue";
+import ElementViewer from "../views/ElementViewer.vue";
 import Curate from "../views/Curate.vue";
 import Learn from "../views/Learn.vue";
 
@@ -44,21 +45,39 @@ export default new VueRouter({
       props: true
     },
     {
-      path: "/answer/:id",
-      name: "Answer-Editor",
-      component: AnswerEditor,
+      path: "/element/:slug",
+      name: "Element-Viewer",
+      component: ElementViewer,
       props: true
     },
     {
-      path: "/media/:elementtype/:elementslug",
-      name: "Media-Viewer",
-      component: MediaElementViewer,
+      path: "/lessons/builder/:lessonslug?",
+      name: "Lesson-Builder",
+      component: LessonBuilder,
       props: true
     },
     {
-      path: "/text/:elementslug",
-      name: "Text-Viewer",
-      component: TextElementViewer,
+      path: "/curate/cardstack/:stackslug?",
+      name: "Stacks-Viewer",
+      component: StacksViewer,
+      props: true
+    },
+    {
+      path: "/learn/cardstack/:slug",
+      name: "Learn-Stack",
+      component: LearnStack,
+      props: true
+    },
+    {
+      path: "/curate/lexeme/:lexemeslug?",
+      name: "Lexeme-Curator",
+      component: LexemeCurator,
+      props: true
+    },
+    {
+      path: "/lessons/viewer/:lessonslug",
+      name: "Lesson-Viewer",
+      component: LessonViewer,
       props: true
     },
     {

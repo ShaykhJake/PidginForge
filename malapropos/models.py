@@ -11,9 +11,7 @@ REASON_CHOICES = (
 
 # Create your models here.
 class Flag(models.Model):
-    # flagger
     flagger = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="flag_flagger")
-    # flagdate
     flagdate = models.DateTimeField(auto_now_add=True, editable=False)
 
     reason = models.CharField(max_length=10, choices = REASON_CHOICES, default = 'Copyright')

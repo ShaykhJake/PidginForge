@@ -23,8 +23,10 @@
                     </v-btn>
                   </template>
                   <ProfileSnippet
-                    :username="curatorName"
-                    @closeDialog="closeProfileDialog"
+                    v-if="profileDialog"
+                    :profileObject="audio.curator"
+                    :profileDialog="profileDialog"
+                    @closeDialog="profileDialog = false"
                   />
                 </v-dialog>
 

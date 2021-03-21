@@ -10,19 +10,21 @@
             <v-col cols="12">
               <p class="overline mb-2">
                 Curated by
-                    <v-btn
-                      @click="profileDialog=true"
-                      text
-                      small
-                      class="primary--text font-weight-bold px-0 py-0"
-                    >
-                      {{ curatorName }}
-                    </v-btn>
-                  <ProfileSnippet v-if="profileDialog"
-                    :profile-dialog="profileDialog"
-                    :curator-object="elementObject.curator"
-                    @closeDialog="closeProfileDialog"
-                  />
+                <v-btn
+                  @click="profileDialog = true"
+                  text
+                  small
+                  class="primary--text font-weight-bold px-0 py-0"
+                >
+                  {{ curatorName }}
+                </v-btn>
+                <ProfileSnippet
+                  v-if="profileDialog"
+                  :profileObject="elementObject.curator"
+                  :profileDialog="profileDialog"
+                  @closeDialog="profileDialog = false"
+                />
+
                 on {{ elementObject.curationdate }} <br />
               </p>
             </v-col>
@@ -130,7 +132,9 @@
                   color="saves lighten-2"
                   :content="elementObject.saved_count"
                 >
-                  <v-icon v-if="!elementObject.user_has_saved">mdi-heart</v-icon>
+                  <v-icon v-if="!elementObject.user_has_saved"
+                    >mdi-heart</v-icon
+                  >
                   <v-icon v-else>mdi-heart-broken</v-icon>
                 </v-badge>
               </v-btn>
@@ -140,13 +144,15 @@
                 :loading="hiding"
                 icon
               >
-                <v-icon v-if="!elementObject.user_has_hidden">mdi-eye-off</v-icon>
+                <v-icon v-if="!elementObject.user_has_hidden"
+                  >mdi-eye-off</v-icon
+                >
                 <v-icon v-else>mdi-eye</v-icon>
               </v-btn>
 
               <v-btn
                 v-if="typeVideo"
-                @click="showYouTubeEditor=true"
+                @click="showYouTubeEditor = true"
                 class="mr-1 mb-1 primary desertsand--text"
                 icon
               >
@@ -165,7 +171,7 @@
 
               <v-btn
                 v-if="typeAudio"
-                @click="showAudioEditor=true"
+                @click="showAudioEditor = true"
                 class="mr-1 mb-1 primary desertsand--text"
                 icon
               >
@@ -301,7 +307,7 @@ export default {
       userSaved: false,
       voteScore: 0,
       youTubeHeight: 0,
-      isProfileSnippetVisible: false,
+
       voteColor: "text--black font-weight-bold"
     };
   },
@@ -588,7 +594,7 @@ export default {
   // Get comments?? (this can probably just be part of the larger package
 };
 </script>
-<style  type="text/css">
+<style type="text/css">
 .v-card__text,
 .v-card__title {
   word-break: keep-all; /* maybe !important  */

@@ -1,20 +1,60 @@
 <template>
-  <div class="single-question pt-2 sandstone">
+  <div class="pt-2 sandstone">
     <v-container v-if="!loadingQuestion" fill-height fluid>
       <v-row wrap dense no-gutters>
         <v-col cols="12">
           <v-card>
             <v-card-title class="calligraphy desertsand--text pa-1">
               <v-row dense no-gutters>
-                <v-col cols="1" class="pa-0">
-                  <v-avatar class="mr-2" size="42">
-                    <v-img
-                      class="elevation-6"
-                      :src="question.author.user_profile.avatar"
-                    ></v-img>
-                  </v-avatar>
+                <v-col cols="auto" class="pa-0 ma-0">
+                  <QuestionUpDownVote
+                    @updateVote="updateVote"
+                    :up-vote-count="question.upvote_count"
+                    :down-vote-count="question.downvote_count"
+                    :user-vote="question.user_vote"
+                    :disabled="isQuestionAuthor"
+                    :question_id="question.id"
+                  />
+                </v-col>
+
+                <v-col cols="auto" class="pa-0">
+                  <v-card class="calligraphy pa-1 ma-1" outlined>
+                    <v-card-text class="pa-0 calligraphy" align="center">
+                      <v-avatar class="mr-2" size="42">
+                        <v-img
+                          class="elevation-6"
+                          :src="question.author.user_profile.avatar"
+                        ></v-img>
+                      </v-avatar>
+                    </v-card-text>
+                    <v-card-actions align="center">
+                      <p class="caption pa-0 ma-0">
+                        <v-dialog v-model="profileDialog" width="275">
+                          <template v-slot:activator="{ on }">
+                            <a
+                              v-on="on"
+                              text
+                              small
+                              class="primary--text font-weight-bold px-0 py-0"
+                            >
+                              {{ question.author.username }}
+                            </a>
+                          </template>
+                          <ProfileSnippet
+                            v-if="profileDialog"
+                            :profileObject="question.author"
+                            :profileDialog="profileDialog"
+                            @closeDialog="profileDialog = false"
+                          />
+                        </v-dialog>
+                      </p>
+                    </v-card-actions>
+                  </v-card>
                 </v-col>
                 <v-col class="pa-0">
+                  <p class="caption mb-0">{{ question.created_at }}</p>
+                  <span class="title mb-0">{{ question.title }}</span
+                  ><br />
                   <v-chip
                     class="desertsand languages--text text--darken-1 mr-1"
                     x-small
@@ -22,39 +62,20 @@
                     {{ question.nativelanguage }} &#8594;
                     {{ question.learninglanguage }}
                   </v-chip>
+
                   <v-chip
-                    class="desertsand topics--text text--darken-1"
+                    outlined
                     x-small
+                    class="sandstone sandstone--text text--lighten-2 ml-1"
+                    v-for="tag in question.tags"
+                    :key="tag.id"
+                    >{{ tag }}</v-chip
                   >
-                    {{ question.topic }}
-                  </v-chip>
-                  <p class="pa-0 ma-0">
-                    On {{ question.created_at }},
-
-                    <v-dialog v-model="profileDialog" width="275">
-                      <template v-slot:activator="{ on }">
-                        <a
-                          v-on="on"
-                          text
-                          small
-                          class="primary--text font-weight-bold px-0 py-0"
-                        >
-                          {{ question.author.username }}
-                        </a>
-                      </template>
-                      <ProfileSnippet
-                        :username="question.author.username"
-                        @closeDialog="profileDialog = false"
-                      />
-                    </v-dialog>
-
-                    asked...
-                  </p>
                 </v-col>
               </v-row>
             </v-card-title>
-            <v-card-text class="desertsand black--text">
-              <p class="subtitle-1">"{{ question.content }}""</p>
+            <v-card-text class="desertsand black--text pa-0">
+              <editor-content :editor="editor" />
             </v-card-text>
             <v-card-actions class="desertsand">
               <v-row>
@@ -68,7 +89,7 @@
                 <v-col cols="12" v-if="!isQuestionAuthor">
                   <v-btn
                     small
-                    @click="answering = true"
+                    @click="answerQuestion"
                     class="primary desertsand--text mr-1"
                     :disabled="question.user_has_answered"
                   >
@@ -109,35 +130,13 @@
                     </v-badge>
                   </v-btn>
                 </v-col>
+
                 <v-col cols="12" v-if="answering">
-                  <v-form ref="newAnswer" v-model="valid" class="mt-2">
-                    <v-textarea
-                      v-model="newAnswer.content"
-                      block
-                      outlined
-                      label="Answer Content*"
-                      :rules="[rules.contentMin]"
-                      counter
-                      rows="3"
-                      maxlength="240"
-                    ></v-textarea>
-                  </v-form>
-                  <v-btn
-                    small
-                    class="success mr-1"
-                    @click="submitAnswer"
-                    :disabled="!valid"
-                    :loading="submittingAnswer"
-                  >
-                    Submit <v-icon right>mdi-reply</v-icon>
-                  </v-btn>
-                  <v-btn
-                    small
-                    class="garbage mr-1 desertsand--text "
-                    @click="answering = false"
-                  >
-                    Cancel<v-icon right>mdi-cancel</v-icon>
-                  </v-btn>
+                  <AnswerPost
+                    v-if="answering"
+                    @submitAnswer="submitAnswer"
+                    @cancelEdit="cancelEdit"
+                  />
                 </v-col>
               </v-row>
             </v-card-actions>
@@ -168,11 +167,26 @@
 <script>
 import { apiService } from "@/common/api.service.js";
 import AnswerView from "@/components/questions/AnswerView.vue";
+import AnswerPost from "@/components/questions/AnswerPost.vue";
 import ContentFlagger from "@/components/ContentFlagger.vue";
-// import AnswerComponent from "@/components/Answer.vue";
+import QuestionUpDownVote from "@/components/questions/QuestionUpDownVote.vue";
 import QuestionAuthorActions from "@/components/questions/QuestionAuthorActions.vue";
+import { Editor, EditorContent } from "tiptap";
+import {
+  Blockquote,
+  HardBreak,
+  Heading,
+  Bold,
+  Italic,
+  Link,
+  Strike,
+  Underline
+} from "tiptap-extensions";
+import { default as Alignment } from "@/components/tiptaptoo/Alignment.js";
+import { default as TextDirection } from "@/components/tiptaptoo/TextDirection.js";
+
 export default {
-  name: "Question",
+  name: "QuestionViewer",
   props: {
     // userData: Object,
     slug: {
@@ -182,8 +196,11 @@ export default {
   },
   components: {
     // AnswerComponent,
+    EditorContent,
     QuestionAuthorActions,
+    QuestionUpDownVote,
     AnswerView,
+    AnswerPost,
     ContentFlagger,
     ProfileSnippet: () =>
       import(
@@ -213,12 +230,33 @@ export default {
       rules: {
         contentMin: value =>
           (value || "").length > 9 || "You must type at least 10 characters!"
-      }
+      },
+      editorFontSize: 1,
+      editor: new Editor({
+        editable: false,
+        extensions: [
+          new Blockquote(),
+          new HardBreak(),
+          new Heading({ levels: [3] }),
+          new Bold(),
+          new Alignment(),
+          new TextDirection(),
+          new Italic(),
+          new Link(),
+          new Strike(),
+          new Underline()
+        ],
+        content: `
+                            ...loading...
+                           `
+      })
     };
   },
   computed: {
+    editorFontClass() {
+      return `font-size:${this.editorFontSize}em`;
+    },
     isQuestionAuthor() {
-      // return this.question.author.username === this.requestUser;
       return this.question.author.username === this.requestUser;
       // return true;
     }
@@ -230,24 +268,27 @@ export default {
     setRequestUser() {
       return (this.requestUser = window.localStorage.getItem("username"));
     },
-    updateQuestion(data) {
-      this.question.content = data.content;
-      this.question.nativelanguage = this.nativelanguage;
-      this.question.learninglanguage = this.learninglanguage;
-      this.question.topic = this.topic;
-      this.question.tags = this.tags;
+    updateVote(data) {
+      this.question.user_vote = data.newuservote;
+      this.question.downvote_count = data.newdowncount;
+      this.question.upvote_count = data.newupcount;
     },
-    // getQuestionData() {
-    //     this.userHasAnswered = this.question.user_has_answered;
-    //     this.setPageTitle(this.question.content);
-    //     this.questionReady = true;
-    // },
+    updateQuestion(data) {
+      this.question.title = data.title;
+      this.question.rich_text = data.rich_text;
+      this.question.nativelanguage = data.nativelanguage;
+      this.question.learninglanguage = data.learninglanguage;
+      this.question.tags = data.tags;
+      this.editor.setContent(this.question.rich_text);
+    },
+
     getQuestionData() {
       this.loadingQuestion = true;
-      let endpoint = `/api/questions/${this.slug}/`;
+      let endpoint = `/api/questions/questions/${this.slug}/`;
       apiService(endpoint).then(data => {
         if (data) {
           this.question = data;
+          this.editor.setContent(this.question.rich_text);
           // this.question = data;
           // this.userHasAnswered = data.user_has_answered;
           // this.setPageTitle(data.content);
@@ -262,7 +303,7 @@ export default {
     },
     getQuestionAnswers() {
       this.loadingAnswers = true;
-      let endpoint = `/api/questions/${this.slug}/answers/`;
+      let endpoint = `/api/questions/questions/${this.slug}/answers/`;
       if (this.next) {
         endpoint = this.next;
       }
@@ -280,7 +321,7 @@ export default {
     },
     onSubmit() {
       if (this.newAnswerBody) {
-        let endpoint = `/api/questions/${this.slug}/answer/`;
+        let endpoint = `/api/quesetions/questions/${this.slug}/answer/`;
         apiService(endpoint, "POST", { body: this.newAnswerBody }).then(
           data => {
             this.answers.unshift(data);
@@ -296,22 +337,20 @@ export default {
         this.error = "You can't submit an empty answer!";
       }
     },
-    submitAnswer() {
-      let endpoint = `/api/questions/${this.slug}/answer/`;
+    submitAnswer(details) {
+      let endpoint = `/api/questions/questions/${this.slug}/answer/`;
       this.submittingAnswer = true;
-      console.log(this.newAnswer.content);
-      apiService(endpoint, "POST", { content: this.newAnswer.content }).then(
-        data => {
-          this.answers.unshift(data);
-          this.question.user_has_answered = true;
-          this.answering = false;
-          this.submittingAnswer = false;
-        }
-      );
+      console.log(details);
+      apiService(endpoint, "POST", { details: details }).then(data => {
+        this.answers.unshift(data);
+        this.question.user_has_answered = true;
+        this.answering = false;
+        this.submittingAnswer = false;
+      });
     },
     async deleteAnswer(answer) {
-      let endpoint = `/api/answers/${answer.id}/`;
-      console.log("deleting");
+      let endpoint = `/api/questions/answers/${answer.id}/`;
+
       try {
         await apiService(endpoint, "DELETE");
         this.$delete(this.answers, this.answers.indexOf(answer));
@@ -322,7 +361,7 @@ export default {
     },
     toggleSave() {
       this.saving = true;
-      let endpoint = `api/question/save/`;
+      let endpoint = `api/questions/question/save/`;
       try {
         apiService(endpoint, "POST", { slug: this.question.slug }).then(
           data => {
@@ -353,14 +392,40 @@ export default {
       this.flaggerDialog = false;
       this.question.user_has_flagged = true;
       this.question.flag_count += 1;
+    },
+    answerQuestion() {
+      this.answering = true;
+    },
+    cancelEdit() {
+      this.answering = false;
     }
   },
   created() {
     this.setRequestUser();
     this.getQuestionData();
     this.getQuestionAnswers();
+  },
+  beforeDestroy() {
+    this.editor.destroy();
   }
 };
 </script>
-
-<style scoped></style>
+<style scoped>
+>>> .ProseMirror {
+  color: black;
+  background-color: none;
+  padding: 5px 5px 5px 5px;
+  height: auto;
+  font-size: 1.15em;
+  line-height: 1.35em;
+  overflow: auto;
+  resize: vertical;
+  border-color: black;
+  border-style: none;
+  border-width: 0px;
+  border-radius: 5px;
+}
+>>> .ProseMirror:focus {
+  outline: none;
+}
+</style>

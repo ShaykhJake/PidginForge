@@ -1,85 +1,77 @@
 <template>
   <v-row justify="center" class="ma-0">
-    <v-dialog
-      v-model="showDialog"
-      scrollable
-      persistent
-      max-width="600px"
-    >
+    <v-dialog v-model="showDialog" scrollable persistent max-width="600px">
       <v-card>
         <v-card-title class="sandstone calligraphy--text">
           Change Photo
         </v-card-title>
-        
-        <v-card-text class="desertsand">
 
-            <v-row wrap dense jusify="center">
-              <v-col cols="12" justify="center">
-                <v-form v-model="valid"> 
-                  <v-file-input
-                    :rules="rules"
-                    show-size
-                    @change="setImage"
-                    accept="image/png, image/jpeg, image/gif"
-                    placeholder="Pick a profile image"
-                    prepend-icon="mdi-camera"
-                    label="Profile Image"
-                    ref="input"
-                    name="image"
-                  ></v-file-input>
-                </v-form>
-              </v-col>
-            </v-row>
-            <v-row wrap dense no-gutters v-if="imageSource">
-              <v-col cols="12">
-                <section class="cropper-area">
-                  <p class="text-center">Original</p>
-                  <vue-cropper
-                    ref="cropper"
-                    :aspect-ratio="1"
-                    :src="imageSource"
-                    preview=".preview"
-                    :auto-crop-area="1"
-                  />
-                </section>
-              </v-col>
-              <v-col cols="12" class="align-content-center">
-                <div align="center">
-                  <v-btn @click.prevent="rotate(90)" class="mx-1 sandstone">
-                    <span class="hidden-sm-and-down">Rotate Right</span>
-                    <v-icon>rotate_right</v-icon>
-                  </v-btn>
-                  <v-btn @click.prevent="rotate(-90)" class="mx-1 sandstone">
-                    <span class="hidden-sm-and-down">Rotate Left</span>
-                    <v-icon>rotate_left</v-icon>
-                  </v-btn>
-                  <v-btn @click.prevent="rotate(90)" class="mx-1 sandstone">
-                    <span class="hidden-sm-and-down">Flip Image</span>
-                    <v-icon>flip</v-icon>
-                  </v-btn>
-                </div>
-              </v-col>
-              <v-col cols="12">
-                <div align="center">
+        <v-card-text class="desertsand">
+          <v-row wrap dense jusify="center">
+            <v-col cols="12" justify="center">
+              <v-form v-model="valid">
+                <v-file-input
+                  :rules="rules"
+                  show-size
+                  @change="setImage"
+                  accept="image/png, image/jpeg, image/gif"
+                  placeholder="Pick a profile image"
+                  prepend-icon="mdi-camera"
+                  label="Profile Image"
+                  ref="input"
+                  name="image"
+                ></v-file-input>
+              </v-form>
+            </v-col>
+          </v-row>
+          <v-row wrap dense no-gutters v-if="imageSource">
+            <v-col cols="12">
+              <section class="cropper-area">
+                <p class="text-center">Original</p>
+                <vue-cropper
+                  ref="cropper"
+                  :aspect-ratio="1"
+                  :src="imageSource"
+                  preview=".preview"
+                  :auto-crop-area="1"
+                />
+              </section>
+            </v-col>
+            <v-col cols="12" class="align-content-center">
+              <div align="center">
+                <v-btn @click.prevent="rotate(90)" class="mx-1 sandstone">
+                  <span class="hidden-sm-and-down">Rotate Right</span>
+                  <v-icon>rotate_right</v-icon>
+                </v-btn>
+                <v-btn @click.prevent="rotate(-90)" class="mx-1 sandstone">
+                  <span class="hidden-sm-and-down">Rotate Left</span>
+                  <v-icon>rotate_left</v-icon>
+                </v-btn>
+                <v-btn @click.prevent="rotate(90)" class="mx-1 sandstone">
+                  <span class="hidden-sm-and-down">Flip Image</span>
+                  <v-icon>flip</v-icon>
+                </v-btn>
+              </div>
+            </v-col>
+            <v-col cols="12">
+              <div align="center">
                 <p class="text-center">Avatar Preview</p>
                 <div class="preview avatar text-center" />
-                </div>
-              </v-col>
-            </v-row>
+              </div>
+            </v-col>
+          </v-row>
 
-            <v-row>
-              <v-col cols="12">
-                <div class="content"></div>
-              </v-col>
-            </v-row>
-
+          <v-row>
+            <v-col cols="12">
+              <div class="content"></div>
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-card-actions class="sandstone">
           <v-spacer></v-spacer>
-          <v-btn
-            color="garbage desertsand--text"
-            @click="closeDialog"
-            >Cancel<v-icon>mdi-cancel</v-icon></v-btn>
+          <v-btn color="garbage desertsand--text" @click="closeDialog"
+            >Cancel<v-icon>mdi-cancel</v-icon></v-btn
+          >
           <v-btn
             color="primary"
             @click="submitChange"
@@ -107,18 +99,18 @@ export default {
   props: {
     imgSrc: {
       type: String,
-      required: false,
+      required: false
     },
     imgName: {
       type: String,
-      required: false,
+      required: false
     },
-    showDialog: Boolean,
+    showDialog: Boolean
   },
   data() {
     return {
-      imageSource: '',
-      imageName: '',
+      imageSource: "",
+      imageName: "",
       loadingImage: false,
       loaded: false,
       cropImg: "",
@@ -153,7 +145,7 @@ export default {
   methods: {
     initializeImage() {
       this.imageSource = this.imgSrc;
-      this.imageName = this.imgName;      
+      this.imageName = this.imgName;
     },
     cropImage() {
       // get image data for post processing, e.g. upload or setting image src
@@ -248,17 +240,15 @@ export default {
       this.success = false;
       this.available = false;
       this.$emit("closeDialog");
-    },
-  },
-  mounted() {
-    if(this.imgSrc){
-      this.initializeImage();
-      this.loaded=true;
     }
   },
-  created() {
-
-  }
+  mounted() {
+    if (this.imgSrc) {
+      this.initializeImage();
+      this.loaded = true;
+    }
+  },
+  created() {}
 };
 </script>
 <style scoped type="text/css">

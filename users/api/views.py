@@ -107,6 +107,7 @@ def get_snippet(request, username):
         if request.user.is_authenticated:
             profile = get_object_or_404(Profile, user__username=username)
             resdata['avatar'] = profile.avatar.url
+            resdata['image'] = profile.image.url
             resdata['username'] = profile.user.username
             resdata['language'] = profile.nativelanguage.name
             resdata['biography'] = profile.biography
@@ -120,7 +121,6 @@ def get_snippet(request, username):
     else:
         resdata['message'] = 'Unknown Failure'
         resdata['success'] = False
-    print(resdata)
     return Response(resdata)
 
 
@@ -128,7 +128,6 @@ def get_snippet(request, username):
 def user_togglefollow(request):
    if request.method == 'POST':
       resdata = {}
-      print(request.data)
       if request.user.is_authenticated:
          profile = get_object_or_404(Profile, user__username=(request.data['username']))
          if request.user in profile.followed.all():
@@ -147,7 +146,6 @@ def user_togglefollow(request):
 def user_togglehide(request):
    if request.method == 'POST':
       resdata = {}
-      print(request.data)
       if request.user.is_authenticated:
          element = get_object_or_404(Profile, user__username=(request.data['username']))
          if request.user in element.hidden.all():
@@ -245,17 +243,6 @@ def get_user_profile(request):
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
 
-    # elif request.method == "PUT":
-    #     serializer = ProfileSerializer(profile, data=request.data)
-    #     data = {}
-
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         data["success"] = "update successful"
-    #         return Response(data=data)
-
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 # BASIC PROFILE LIST (For generic view)
 # TODO, But not immediate since i have Django Admin
@@ -318,7 +305,6 @@ class FileUploadView(APIView):
         serializer = ProfileImageSerializer(request.user, data=request.data, partial=True)
         data = {}
         if serializer.is_valid():
-            print("hello")
             if serializer.image_update(request):
                 # print("Photo successfully changed!")
                 data['message'] = "Photo successfully changed!"
@@ -328,27 +314,3 @@ class FileUploadView(APIView):
                 data['message'] = "There was a problem with your request!"
                 data['success'] = False
         return Response(data)
-
-
-@api_view(['POST',])
-def change_image(request):
-    serializer = ProfileImageSerializer(data=request.data)
-    print(serializer)
-    if request.method == 'POST':
-        print("hello")
-        # f = request.data['file']
-        print(request.file)
-        # serializer = CheckUsernameAvailableSerializer(data=request.data)
-        # data = {}
-        # if serializer.is_valid():
-        #     if serializer.change_username(request):
-        #         data['message'] = "Your username was changed!"
-        #         data['success'] = True
-        #         return Response(data)
-        #     else:
-        #         data['message'] = "That username is not available!"
-        #         data['success'] = False
-        #         return Response(data)
-        # data['message'] = "There was a problem with your request!"
-        # data['success'] = False
-        # return Response(data)

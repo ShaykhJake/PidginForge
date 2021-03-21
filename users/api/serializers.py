@@ -50,19 +50,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=False,
         slug_field='name'
     )
-    # learninglanguage = LanguageSerializer(many=True)
-
-    # learningtopics = TopicTagSerializer(many=True)
-    learningtopics = serializers.SlugRelatedField(
-        queryset = TopicTag.objects.all(),
-        many=True,
-        read_only=False,
-        slug_field='name'
-    )
-
     class Meta:
         model = Profile
-        fields = ['user', 'biography', 'country', 'image', 'avatar', 'nativelanguage', 'learninglanguage', 'learningtopics', 'points', 'image_name', 'follower_count']
+        fields = ['user', 'biography', 'country', 'image', 'avatar', 'nativelanguage', 'learninglanguage', 'points', 'image_name', 'follower_count']
     
     def get_follower_count(self, instance):
         return instance.followed.count()
@@ -89,26 +79,18 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         slug_field='name'
     )
 
-    learningtopics = serializers.SlugRelatedField(
-        queryset = TopicTag.objects.all(),
-        many=True,
-        read_only=False,
-        slug_field='name'
-    )
-
     class Meta:
         model = Profile
-        fields = ['nativelanguage', 'learninglanguage', 'learningtopics', 'biography']
+        fields = ['nativelanguage', 'learninglanguage', 'biography']
 
     def updateprofile(self, user, profiledata):
         profile = Profile.objects.get(user = user.pk)
         profile.nativelanguage = profiledata['nativelanguage']
         profile.learninglanguage.set(profiledata['learninglanguage'])
-        profile.learningtopics.set(profiledata['learningtopics'])
         profile.biography = profiledata['biography']
         print("HELLO!")
         profile.save()
-        # profile.save(update_fields=['nativelanguage', 'learninglanguage', 'learningtopics', 'biography'])
+        # profile.save(update_fields=['nativelanguage', 'learninglanguage', 'biography'])
         return True
     
 
@@ -122,12 +104,11 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     country = serializers.CharField(max_length=100, min_length=None, allow_blank=True)
     nativelanguage = LanguageSerializer()
     learninglanguage = LanguageSerializer(many=True)
-    learningtopics = TopicTagSerializer(many=True)
     # points = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['user', 'biography', 'country', 'nativelanguage', 'learninglanguage', 'learningtopics', 'points',]
+        fields = ['user', 'biography', 'country', 'nativelanguage', 'learninglanguage', 'points',]
 
 
 # Image & Avatar Updating
