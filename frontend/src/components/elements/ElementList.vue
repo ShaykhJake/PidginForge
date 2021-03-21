@@ -70,6 +70,22 @@
           >
             <div>
               <div class="element-list">
+                <v-row
+                  wrap
+                  dense
+                  v-if="elements.length < 1 && !loading"
+                >
+                  <v-col cols="12">
+                    <v-card>
+                      <v-card-text class="desertsand calligraphy--text">
+                        There are no elements which match your language
+                        preferences. You may need to update your profile to add
+                        learning languages...or maybe we just don't
+                        have enough content yet!
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
                 <v-row wrap dense v-if="elements.length < 0 && !loading">
                   <v-col cols="12">
                     <v-card>
@@ -129,75 +145,75 @@
 </template>
 
 <script>
-import { apiService } from "@/common/api.service.js";
-import ElementMicro from "@/components/elements/ElementMicro.vue";
-export default {
-  name: "ElementList",
-  components: {
-    ElementMicro,
-    ElementEditor: () =>
-      import(
-        /* webpackPrefetch: true */ "@/components/elements/ElementEditor.vue"
-      )
-  },
-  data() {
-    return {
-      elements: [],
-      totalCount: 0,
-      loading: false,
-      next: null,
-      showElements: true,
-      showElementEditor: false
-    };
-  },
-  props: {
-    preferenceFilter: {
-      required: false,
-      default: false
-    }
-  },
-  computed: {
-    filteredElements() {
-      if (this.preferenceFilter) {
-        return this.elements.filter(element => {
-          return !element.filtered;
-        });
-      } else {
-        return this.elements;
-      }
+  import { apiService } from "@/common/api.service.js";
+  import ElementMicro from "@/components/elements/ElementMicro.vue";
+  export default {
+    name: "ElementList",
+    components: {
+      ElementMicro,
+      ElementEditor: () =>
+        import(
+          /* webpackPrefetch: true */ "@/components/elements/ElementEditor.vue"
+        ),
     },
-    filteredCount() {
-      let list = this.filteredElements;
-      return list.length;
-    }
-  },
-
-  methods: {
-    getElements() {
-      let endpoint = `/api/elements/list/?by_preference=True`;
-      if (this.next) {
-        endpoint = this.next;
-      }
-      this.loading = true;
-      apiService(endpoint).then(data => {
-        this.totalCount = data.count;
-        this.elements.push(...data.results);
-        this.loading = false;
-        if (data.next) {
-          this.next = data.next;
+    data() {
+      return {
+        elements: [],
+        totalCount: 0,
+        loading: false,
+        next: null,
+        showElements: true,
+        showElementEditor: false,
+      };
+    },
+    props: {
+      preferenceFilter: {
+        required: false,
+        default: false,
+      },
+    },
+    computed: {
+      filteredElements() {
+        if (this.preferenceFilter) {
+          return this.elements.filter((element) => {
+            return !element.filtered;
+          });
         } else {
-          this.next = null;
+          return this.elements;
         }
-      });
+      },
+      filteredCount() {
+        let list = this.filteredElements;
+        return list.length;
+      },
     },
-    refreshList() {
-      this.elements = [];
-      this.next = null;
+
+    methods: {
+      getElements() {
+        let endpoint = `/api/elements/list/?by_preference=True`;
+        if (this.next) {
+          endpoint = this.next;
+        }
+        this.loading = true;
+        apiService(endpoint).then((data) => {
+          this.totalCount = data.count;
+          this.elements.push(...data.results);
+          this.loading = false;
+          if (data.next) {
+            this.next = data.next;
+          } else {
+            this.next = null;
+          }
+        });
+      },
+      refreshList() {
+        this.elements = [];
+        this.next = null;
+        this.getElements();
+      },
+    },
+    created() {
       this.getElements();
-    }
-  },
-  created() {
-    this.getElements();
-  }
-};
+    },
+  };
 </script>

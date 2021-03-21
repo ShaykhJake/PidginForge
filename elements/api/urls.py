@@ -92,7 +92,7 @@ urlpatterns = [
     re_path('^comments/list/$', ElementCommentList.as_view(), name="element_comment_list"),
     re_path('^commentreplies/list/$', CommentReplyList.as_view(), name="comment_reply_list"),
     
-    path('element/<slug:slug>/', get_element, name="get_element"),
+    path('element/<str:slug>/', get_element, name="get_element"),
     path('vote/element/', element_togglevote, name="element_togglevote"),
     path('save/element/', element_togglesave, name="element_togglesave"),
     path('hide/element/', element_togglehide, name="element_togglehide"),
