@@ -29,6 +29,7 @@ export default new Vuetify({
         // Backgrounds
         sandstone: "#dbd4c4",
         desertsand: "#faf5e2",
+        // desertsand: "#f9f9f9",
         calligraphy: "#66665e",
 
         // Titles

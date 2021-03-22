@@ -1,6 +1,6 @@
 <template>
   <div class="lessonlist">
-    <v-card>
+    <v-card elevation="5">
       <v-card-title class="sandstone pa-1">
         Saved Elements <v-spacer></v-spacer>
         <small>({{ favorites.length }} of {{ totalCount }} loaded)</small>
@@ -10,7 +10,7 @@
           two-line
           dense
           subheader
-          class="calligraphy overflow-y-auto"
+          class="desertsand overflow-y-auto"
           max-height="250"
           height="250"
         >
@@ -37,12 +37,17 @@
               <v-icon v-text="favorite.curator['user_profile'].avatar"></v-icon>
             </v-list-item-avatar>
 
-            <v-list-item-content class="desertsand--text">
+            <v-list-item-content dense>
               <v-list-item-title>{{ favorite.title }} </v-list-item-title>
-              <v-list-item-subtitle class="sandstone--text"
-                >#TODO</v-list-item-subtitle
-              >
-              <v-list-item-subtitle> </v-list-item-subtitle>
+              <v-list-item-subtitle>
+                <v-chip small color="primary" class="mr-1" outlined>{{favorite.sub_type}}</v-chip>
+                <v-chip small color="languages" outlined>{{ favorite.language }}</v-chip>
+                </v-list-item-subtitle>
+                <v-list-item-subtitle>
+                  <v-chip v-for="tag in favorite.tags" :key="tag.uuid" color="tags" small outlined class="mr-1">
+                    {{ tag }}
+                  </v-chip>
+                </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>

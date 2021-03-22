@@ -6,12 +6,12 @@
         <v-spacer />
         <small> ({{ favorites.length }} of {{ totalCount }} loaded) </small>
       </v-card-title>
-      <v-card-text class="calligraphy pa-0">
+      <v-card-text class="desertsand pa-0">
         <v-list
           two-line
           dense
           subheader
-          class="calligraphy overflow-y-auto"
+          class="desertsand overflow-y-auto"
           max-height="250"
           height="250"
         >
@@ -36,14 +36,17 @@
               <v-icon v-text="favorite.curator['user_profile'].avatar"></v-icon>
             </v-list-item-avatar>
 
-            <v-list-item-content class="desertsand--text">
+            <v-list-item-content>
               <v-list-item-title>{{ favorite.name }} </v-list-item-title>
-              <v-list-item-subtitle class="sandstone--text"
+              <v-list-item-subtitle class="calligraphy--text"
                 >Word Count: {{ favorite.pair_count }};
                 {{ favorite.stats.mastery }} % mastery of
                 {{ favorite.pair_count }} cards seen.</v-list-item-subtitle
               >
-              <v-list-item-subtitle> </v-list-item-subtitle>
+              <v-list-item-subtitle>
+                <v-chip color="languages" small outlined>
+                  {{ favorite.learning_language }}
+                  </v-chip> </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>

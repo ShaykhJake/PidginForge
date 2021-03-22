@@ -1,6 +1,6 @@
 <template>
   <div class="question">
-    <v-card>
+    <v-card elevation="5">
       <v-card-title class="sandstone pa-1">
         Saved Questions
         <v-spacer />
@@ -11,7 +11,7 @@
           two-line
           dense
           subheader
-          class="calligraphy overflow-y-auto"
+          class="desertsand overflow-y-auto"
           max-height="250"
           height="250"
         >
@@ -22,8 +22,8 @@
               $router.push({
                 name: 'Question-Viewer',
                 params: {
-                  slug: favorite.slug
-                }
+                  slug: favorite.slug,
+                },
               })
             "
           >
@@ -38,12 +38,25 @@
               <v-icon v-text="favorite.author.user_profile.avatar"></v-icon>
             </v-list-item-avatar>
 
-            <v-list-item-content class="desertsand--text">
+            <v-list-item-content>
               <v-list-item-title>{{ favorite.title }} </v-list-item-title>
-              <v-list-item-subtitle class="sandstone--text"
-                >#TODO</v-list-item-subtitle
-              >
-              <v-list-item-subtitle> </v-list-item-subtitle>
+
+              <v-list-item-subtitle class="elements--text">
+                <v-chip small color="languages" class="mr-2" outlined>{{
+                  favorite.learninglanguage
+                }}</v-chip>
+              </v-list-item-subtitle>
+              <v-list-item-subtitle>
+                <v-chip
+                  v-for="tag in favorite.tags"
+                  :key="tag.uuid"
+                  small
+                  color="tags"
+                  outlined
+                  class="mr-1"
+                  >{{ tag }}</v-chip
+                >
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -65,45 +78,45 @@
 </template>
 
 <script>
-import { apiService } from "@/common/api.service.js";
-export default {
-  name: "SavedQuestionList",
-  data() {
-    return {
-      totalCount: 0,
-      favorites: [],
-      loadingFavorites: false,
-      next: null
-    };
-  },
-  props: {},
-  computed: {},
+  import { apiService } from "@/common/api.service.js";
+  export default {
+    name: "SavedQuestionList",
+    data() {
+      return {
+        totalCount: 0,
+        favorites: [],
+        loadingFavorites: false,
+        next: null,
+      };
+    },
+    props: {},
+    computed: {},
 
-  methods: {
-    getFavorites() {
-      let endpoint = `/api/questions/list/?saved=True`;
-      if (this.next) {
-        endpoint = this.next;
-      }
-      this.loadingFavorites = true;
-      apiService(endpoint).then(data => {
-        if (data) {
-          this.totalCount = data.count;
-          this.favorites.push(...data.results);
-          this.loadingFavorites = false;
-          if (data.next) {
-            this.next = data.next;
-          } else {
-            this.next = null;
-            this.loadingFavorites = false;
-          }
+    methods: {
+      getFavorites() {
+        let endpoint = `/api/questions/list/?saved=True`;
+        if (this.next) {
+          endpoint = this.next;
         }
-      });
-    }
-  },
-  created() {
-    this.getFavorites();
-  }
-};
+        this.loadingFavorites = true;
+        apiService(endpoint).then((data) => {
+          if (data) {
+            this.totalCount = data.count;
+            this.favorites.push(...data.results);
+            this.loadingFavorites = false;
+            if (data.next) {
+              this.next = data.next;
+            } else {
+              this.next = null;
+              this.loadingFavorites = false;
+            }
+          }
+        });
+      },
+    },
+    created() {
+      this.getFavorites();
+    },
+  };
 </script>
 <style scoped></style>
