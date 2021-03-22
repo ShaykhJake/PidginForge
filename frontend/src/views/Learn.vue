@@ -1,8 +1,7 @@
 <template>
-  <div>
-    <v-card class="ma-3 desertsand">
-      <v-card-title> Learner Dashboard </v-card-title>
-      <v-card-text>
+    <div>
+    <v-container class="pa-2 pt-2 mx-auto" fill-height fluid>
+      <h1>Learner Dashboard</h1>
         <v-row wrap dense v-if="false">
           <v-col cols="12">
             <v-card>
@@ -28,8 +27,7 @@
             <SavedQuestionList />
           </v-col>
         </v-row>
-      </v-card-text>
-    </v-card>
+    </v-container>
   </div>
 </template>
 <script>
