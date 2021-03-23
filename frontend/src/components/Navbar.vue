@@ -53,7 +53,6 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-btn
-            disabled
             small
             fab
             class="mx-1 calligraphy"
@@ -61,7 +60,7 @@
             router
             :to="{ name: 'Favorites' }"
           >
-            <v-icon class="desertsand--text">heart</v-icon>
+            <v-icon class="desertsand--text">favorite</v-icon>
           </v-btn>
         </template>
         <span>Favorites</span>
@@ -71,6 +70,7 @@
         <template v-slot:activator="{ on }">
           <v-btn
             small
+            disabled
             fab
             class="mx-1 calligraphy"
             v-on="on"
