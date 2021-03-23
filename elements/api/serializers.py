@@ -74,6 +74,7 @@ class QuickElementSerializer(serializers.Serializer):
     upvote_count = serializers.SerializerMethodField(read_only=True)
     downvote_count = serializers.SerializerMethodField(read_only=True)
     user_vote = serializers.SerializerMethodField(read_only=True)
+    transcript_count = serializers.SerializerMethodField(read_only=True)
     # flag_count = serializers.SerializerMethodField(read_only=True)
 
     def get_element(self, instance):
@@ -112,6 +113,9 @@ class QuickElementSerializer(serializers.Serializer):
             return -1
         else:
             return 0
+    
+    def get_transcript_count(self, instance):
+        return instance.transcripts.count()
 
 class ElementListSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -131,6 +135,7 @@ class ElementListSerializer(serializers.Serializer):
     upvote_count = serializers.SerializerMethodField(read_only=True)
     downvote_count = serializers.SerializerMethodField(read_only=True)
     comment_count = serializers.SerializerMethodField(read_only=True)
+    transcript_count = serializers.SerializerMethodField(read_only=True)
     # user_vote = serializers.SerializerMethodField(read_only=True)
     # flag_count = serializers.SerializerMethodField(read_only=True)
 
@@ -176,6 +181,9 @@ class ElementListSerializer(serializers.Serializer):
             return -1
         else:
             return 0
+
+    def get_transcript_count(self, instance):
+        return instance.transcripts.count()
 
 
 
@@ -302,6 +310,62 @@ class CommentReplySerializer(serializers.ModelSerializer):
     def get_curation_date(self, instance):
         return instance.curation_date.strftime("%B %d, %Y")
 
+
+
+class TranscriptSerializer(serializers.ModelSerializer):
+    curator = CuratorSerializer(read_only=True)
+    curation_date = serializers.SerializerMethodField(read_only=True)
+    updated = serializers.SerializerMethodField(read_only=True)
+    forks_count = serializers.SerializerMethodField(read_only=True)
+    # translations = serializers.SerializerMethodField(read_only=True)
+    # user_vote = serializers.SerializerMethodField(read_only=True)
+    # upvote_count = serializers.SerializerMethodField(read_only=True)
+    # downvote_count = serializers.SerializerMethodField(read_only=True)
+    # user_translation = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Transcript
+        fields = '__all__'
+        # fields = ['id', 'curator', 'translations', 'curationdate', 'updated', 'user_vote', 'upvote_count', 'downvote_count', 'published']
+
+    # This will only return those items that are published
+    def get_translations(self, instance):
+        request = self.context.get("request")
+        translations = instance.translations.filter(
+            published=True).select_related('curator')
+        return TranslationSnippetSerializer(translations, context={"request": request}, many=True).data
+        # return TranslationSnippetSerializer(instance.translations.all(), context={"request": request}, many=True).data
+
+    def get_user_translation(self, instance):
+        request = self.context.get("request")
+        for translation in instance.translations.all():
+            if translation.curator == request.user:
+                return translation.pk
+        return 0
+
+    def get_curation_date(self, instance):
+        return instance.curation_date.strftime("%B %d, %Y")
+
+    def get_updated(self, instance):
+        return instance.updated.strftime("%B %d, %Y")
+
+    def get_user_vote(self, instance):
+        request = self.context.get("request")
+        if request.user in instance.upvote.all():
+            return 1
+        elif request.user in instance.downvote.all():
+            return -1
+        else:
+            return 0
+
+    def get_upvote_count(self, instance):
+        return instance.upvote.count()
+
+    def get_downvote_count(self, instance):
+        return instance.downvote.count()
+
+    def get_forks_count(self, instance):
+        return instance.forks.count()
 
 """OLD STUFF"""
 
@@ -441,60 +505,6 @@ class TranscriptSnippetSerializer(serializers.ModelSerializer):
         return instance.forks.count()
 
 
-class TranscriptSerializer(serializers.ModelSerializer):
-    curator = CuratorSerializer(read_only=True)
-    translations = serializers.SerializerMethodField(read_only=True)
-    curationdate = serializers.SerializerMethodField(read_only=True)
-    updated = serializers.SerializerMethodField(read_only=True)
-    user_vote = serializers.SerializerMethodField(read_only=True)
-    upvote_count = serializers.SerializerMethodField(read_only=True)
-    downvote_count = serializers.SerializerMethodField(read_only=True)
-    forks_count = serializers.SerializerMethodField(read_only=True)
-    user_translation = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = Transcript
-        fields = '__all__'
-        # fields = ['id', 'curator', 'translations', 'curationdate', 'updated', 'user_vote', 'upvote_count', 'downvote_count', 'published']
-
-    # This will only return those items that are published
-    def get_translations(self, instance):
-        request = self.context.get("request")
-        translations = instance.translations.filter(
-            published=True).select_related('curator')
-        return TranslationSnippetSerializer(translations, context={"request": request}, many=True).data
-        # return TranslationSnippetSerializer(instance.translations.all(), context={"request": request}, many=True).data
-
-    def get_user_translation(self, instance):
-        request = self.context.get("request")
-        for translation in instance.translations.all():
-            if translation.curator == request.user:
-                return translation.pk
-        return 0
-
-    def get_curationdate(self, instance):
-        return instance.curationdate.strftime("%B %d, %Y")
-
-    def get_updated(self, instance):
-        return instance.updated.strftime("%B %d, %Y")
-
-    def get_user_vote(self, instance):
-        request = self.context.get("request")
-        if request.user in instance.upvote.all():
-            return 1
-        elif request.user in instance.downvote.all():
-            return -1
-        else:
-            return 0
-
-    def get_upvote_count(self, instance):
-        return instance.upvote.count()
-
-    def get_downvote_count(self, instance):
-        return instance.downvote.count()
-
-    def get_forks_count(self, instance):
-        return instance.forks.count()
 
 
 class YouTubeElementSerializer(serializers.ModelSerializer):

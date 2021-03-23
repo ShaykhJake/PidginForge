@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from elements.api.views import (
     ElementList,
     ElementCommentList,
+    TranscriptList,
     CommentReplyList,
     ElementViewSet,
     ElementCommentViewSet,
@@ -91,6 +92,7 @@ urlpatterns = [
     re_path('^list/$', ElementList.as_view(), name="element_list"),
     re_path('^comments/list/$', ElementCommentList.as_view(), name="element_comment_list"),
     re_path('^commentreplies/list/$', CommentReplyList.as_view(), name="comment_reply_list"),
+    re_path('^transcripts/list/$', TranscriptList.as_view(), name="transcript_list"),
     
     path('element/<str:slug>/', get_element, name="get_element"),
     path('vote/element/', element_togglevote, name="element_togglevote"),

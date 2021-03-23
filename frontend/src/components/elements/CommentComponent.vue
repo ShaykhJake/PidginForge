@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card class="pa-1 sandstone">
+    <v-card class="ma-0 pa-0 sandstone">
       <!-- COMMMENT CARD -->
       <v-card-title
         class="calligraphy desertsand--text subtitle-2 py-1 px-1 ma-0"
@@ -44,6 +44,13 @@
           &nbsp;commented:
         </p>
         <v-spacer />
+                <v-btn icon @click="changeEditorFontSize('up')">
+          <v-icon color="primary">zoom_in</v-icon>
+        </v-btn>
+        <v-btn icon @click="changeEditorFontSize('down')" class="mr-2">
+          <v-icon color="primary">zoom_out</v-icon>
+        </v-btn>
+
         <div v-if="isCommentCurator && !editMode && !deleteConfirm" cols="12">
           <v-btn
             small
@@ -94,38 +101,47 @@
           </v-btn>
         </div>
       </v-card-title>
-      <!-- <v-card-title v-else>New Comment</v-card-title> -->
+
+      <v-card-title
+        class="calligraphy desertsand--text subtitle-2 py-1 px-1 ma-0"
+        v-if="comment.isNewComment"
+      >
+        New Comment
+        <v-spacer />
+        <v-btn icon @click="changeEditorFontSize('up')">
+          <v-icon color="primary">zoom_in</v-icon>
+        </v-btn>
+        <v-btn icon @click="changeEditorFontSize('down')" class="mr-2">
+          <v-icon color="primary">zoom_out</v-icon>
+        </v-btn>
+        <v-btn
+          small
+          class="primary desertsand--text mr-1"
+          @click="submitNewComment"
+          :loading="submittingComment"
+        >
+          Submit Comment<v-icon right>mdi-reply</v-icon>
+        </v-btn>
+
+        <v-btn
+          small
+          @click="cancelNewComment"
+          class="mr-1 garbage desertsand--text"
+        >
+          Cancel<v-icon right>mdi-cancel</v-icon>
+        </v-btn>
+      </v-card-title>
 
       <v-card-text class="desertsand black--text pa-0 ma-0">
         <SimpleTipTap
           :editMode="editMode"
           ref="textEditor"
-          :content="comment.rich_text ? comment.rich_text : 'new comment'"
+          :showZoom="false"
+          :content="comment.rich_text ? comment.rich_text : null"
         />
       </v-card-text>
 
-      <v-card-actions v-if="comment.isNewComment">
-        <div>
-          <v-btn
-            small
-            class="primary desertsand--text mr-1"
-            @click="submitNewComment"
-            :loading="submittingComment"
-          >
-            Submit Comment<v-icon right>mdi-reply</v-icon>
-          </v-btn>
-
-          <v-btn
-            small
-            @click="cancelNewComment"
-            class="mr-1 garbage desertsand--text"
-          >
-            Cancel<v-icon right>mdi-cancel</v-icon>
-          </v-btn>
-        </div>
-      </v-card-actions>
-
-      <v-card-actions v-else class="desertsand pb-0">
+      <v-card-actions v-if="false" class="desertsand pb-0">
         <v-row dense wrap no-gutters>
           <v-col v-if="!replying && !editMode && false" cols="12">
             <v-btn
@@ -350,8 +366,12 @@
         this.comment.user_has_flagged = true;
         this.comment.flag_count += 1;
       },
-      setEditor() {
-        this.editor.setContent(this.comment.details);
+      changeEditorFontSize(direction) {
+        if (direction === "up") {
+            this.$refs.textEditor.changeEditorFontSize('up');
+        } else {
+            this.$refs.textEditor.changeEditorFontSize('down');
+        }
       },
     },
     mounted() {

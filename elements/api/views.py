@@ -100,7 +100,7 @@ class ElementList(generics.ListAPIView):
         queryset = Element.objects.filter(suspended=False).exclude(hides__user=user).select_related(
             'curator__user_profile', 'language'
         ).prefetch_related(
-            'saves', 'upvotes', 'downvotes', 'comments'
+            'saves', 'upvotes', 'downvotes', 'comments', 'transcripts'
         ).annotate(
             user_has_saved=Exists(
                 ElementSave.objects.filter(
@@ -176,6 +176,33 @@ class CommentReplyList(generics.ListAPIView):
         user = self.request.user
         queryset = CommentReply.objects.filter(suspended=False).select_related(
             'curator__user_profile', 'comment'
+        )
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+class TranscriptFilter(django_filter.FilterSet):
+    tags = django_filter.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = Transcript
+        fields = ('element','curator')
+    
+
+class TranscriptList(generics.ListAPIView):
+    model = Transcript
+    serializer_class = TranscriptSerializer
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = TranscriptFilter
+    search_fields = ['plain_text']
+    ordering_fields = ['curation_date', 'updated']
+    ordering = ['-curation_date']
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Transcript.objects.filter(Q(published=True) | Q(curator=self.request.user)).select_related(
+            'curator__user_profile'
         )
 
     def get_serializer_context(self):
@@ -804,22 +831,16 @@ def audio_togglevote(request):
 ####### TRANSCRIPT VIEWS ############
 class TranscriptViewSet(viewsets.ModelViewSet):
     # queryset = Transcript.objects.all().select_related('curator').prefetch_related('upvote', 'downvote','translations').order_by("-curationdate")
-    queryset = Transcript.objects.all()
+    queryset = Transcript.objects.all().order_by("-curation_date")
     lookup_field = "pk"
     serializer_class = TranscriptSerializer
     permission_classes = [IsAuthenticated, IsCuratorOrReadOnly]
 
-    #  def create(self, request):
-    #     print(request.data['audiofile'])
-    #     resdata = {}
-    #     resdata["message"]="hello"
-    #     return Response(resdata)
 
     def retrieve(self, request, pk):
         if request.user.is_authenticated:
             serializer_context = {"request": request}
-            queryset = Transcript.objects.all().select_related('curator').prefetch_related(
-                'upvote', 'downvote', 'translations').order_by("-curationdate")
+            queryset = Transcript.objects.all().select_related('curator').order_by("-curation_date")
             transcript = get_object_or_404(queryset, Q(
                 published=True) | Q(curator=request.user), pk=pk)
             # transcript = get_object_or_404(Transcript, pk=pk)
@@ -832,42 +853,22 @@ class TranscriptViewSet(viewsets.ModelViewSet):
         self.request.user.user_profile.points += 10
         self.request.user.user_profile.save()
         #   print(self.request.data)
-        if self.request.data['elementtype'] == 'YouTube':
-            element = get_object_or_404(
-                YouTubeElement, slug=self.request.data['elementslug'])
-
-        elif self.request.data['elementtype'] == 'Audio':
-            element = get_object_or_404(
-                AudioElement, slug=self.request.data['elementslug'])
-
-        if self.request.data['usertranscript']:
-            print("Yup, user script exists")
-            userscript = get_object_or_404(
-                Transcript, pk=self.request.data['usertranscript'])
-            if userscript:
-                print("Userscript deleted")
-                userscript.delete()
-                #   element.transcripts.remove(userscript)
-                #   element.save()
-
-        element.transcripts.add(serializer.data['id'])
-        element.save()
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, pk):
-        print("Updating")
-        element = get_object_or_404(Transcript, pk=pk)
+        transcript = get_object_or_404(Transcript, pk=pk)
+        print("success")
         resdata = {}
-        if element.curator == request.user:
+        if transcript.curator == request.user:
             serializer_context = {"request": request}
             serializer = TranscriptSerializer(
-                element, data=request.data, partial=True)
+                transcript, data=request.data, partial=True)
             if serializer.is_valid():
+                print("valid")
                 serializer.save()
-                resdata['message'] = 'Transcript updated!'
-                resdata['success'] = True
+                return Response(serializer.data)
             else:
+                print("NOPE")
                 resdata['message'] = 'Updates were invalid!'
                 resdata['success'] = False
         else:
@@ -875,20 +876,6 @@ class TranscriptViewSet(viewsets.ModelViewSet):
             resdata['success'] = False
             #  updatedserializer=AudioElementSerializer(element, context=serializer_context)
         return Response(resdata)
-
-    def list(self, request):
-        queryset = Transcript.objects.filter(
-            published=True).order_by("-curationdate")
-        serializer_context = {"request": request}
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = TranscriptSnippetSerializer(
-                page, many=True, context=serializer_context)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = TranscriptSnippetSerializer(
-            queryset, many=True, context=serializer_context)
-        return Response(serializer.data)
 
 
 @api_view(['POST'])

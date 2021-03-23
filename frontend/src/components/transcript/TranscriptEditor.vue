@@ -747,7 +747,7 @@ export default {
         var newstamp = parseInt(currenttime);
         this.editor.commands.timestamp({ timehack: newstamp });
       } else {
-        console.log("Transcript is locked");
+        // console.log("Transcript is locked");
       }
     },
 

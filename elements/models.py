@@ -110,6 +110,54 @@ class CommentReply(models.Model):
         return f"{self.curator.username} - {self.plain_text[:30]}"
 
 
+class Translation(models.Model):
+    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="translation_curator") #do we want this to be null?
+    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
+    curation_date = models.DateTimeField(auto_now_add=True, editable=False)
+    updated = models.DateTimeField(auto_now=True, editable=False)
+    rich_text = JSONField(null=True, blank=True)
+    plain_text = models.TextField(default='', db_index=True)
+    notes = models.TextField(default='', null=True, blank=True)
+    published = models.BooleanField(default=False)
+    forkparent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='forks')
+    
+    def __str__(self):
+        if (self.curator and self.targetlanguage):
+            return self.curator.username + " on " + self.curationdate.strftime("%B %d, %Y") + " in " + self.targetlanguage.name 
+        else:
+            return "Object Orphaned"
+
+
+class Transcript(models.Model):
+    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="transcript_curator") #do we want this to be null?
+    curation_date = models.DateTimeField(auto_now_add=True, editable=False)
+    element = models.ForeignKey(Element, on_delete=models.CASCADE, null=True, related_name="transcripts")
+    updated = models.DateField(auto_now=True, editable=False)
+    rich_text = JSONField(null=True, blank=True)
+    plain_text = models.TextField(default='', db_index=True)
+    notes = models.TextField(default='', null=True, blank=True)
+    published = models.BooleanField(default=False)
+    forkparent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='forks')
+
+    def __str__(self):
+        if (self.curator):
+            return self.curator.username + " on " + self.curation_date.strftime("%B %d, %Y")
+        return "Object Orphaned"
+
+# class ElementTranscript:
+#     created = models.DateTimeField(auto_now_add=True)
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="element_saves")
+
+
+#     curator
+#     curation_date
+#     language
+#     updated
+#     content (should this be json???)
+
+#     pass
+
+
 """
 
 class Reply(models.Model):
@@ -120,14 +168,6 @@ class MediaComment(models.Model): TODO should this be for the Media or the note?
     pass
 
 
-class MediaTranscript:
-    curator
-    curation_date
-    language
-    updated
-    content (should this be json???)
-
-    pass
 
 class MediaTranslation:
     pass
@@ -136,82 +176,6 @@ class MediaTranslation:
 class 
 """
 
-class Translation(models.Model):
-    # Source & User
-    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="translation_curator") #do we want this to be null?
-    targetlanguage = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True)
-    
-    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
-    updated = models.DateTimeField(auto_now=True, editable=False)
-    
-    #### Content
-    content = JSONField(null=True, blank=True)
-    notes = models.TextField(default='', null=True, blank=True)
-    # REFERENCES
-    # TODO termlist = models.ManyToMany  ... #Should we store the list of words here, or create a separate list with a key to it?
-    # TODO speakers = models.ManyToManyField(Person, related_name="transcript_speaker")
-    # TODO people = models.ManyToManyField(Person, related_name="transcript_reference")
-    # TODO placenames = models.ManyToManyField(PlaceName, related_name="transcript_placename")
-    # TODO termpairs = ... THIS IS A WAY FOR THE TRANSLATOR TO HIGHLIGHT RELATIONSHIPS BETWEEN TRANSLATED TERMS AND TRANSCRIPT TERMS
-
-    # Interactions
-    published = models.BooleanField(default=False)
-    forkparent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='forks')
-    # TODO Figure out the QC models...this might be a bit more complicated because of
-    # how to track & integrate changes that were previously made
-    # TODO qcs = models.ManyToManyField... #Should this be totally separate?
-
-
-    # TODO Build Interactions
-    upvote = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="translation_upvoted")
-    downvote= models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="translation_downvoted")
-
-    # TODO add something in here about forking?? QCing?
-    #  Interactions
-    
-    def __str__(self):
-        if (self.curator and self.targetlanguage):
-            return self.curator.username + " on " + self.curationdate.strftime("%B %d, %Y") + " in " + self.targetlanguage.name 
-        else:
-            return "Object Orphaned"
-
-
-class Transcript(models.Model):
-    ## This model is a critical many-to-many model; resource: https://docs.djangoproject.com/en/3.0/topics/db/examples/many_to_many/
-    # Source & User
-    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="transcript_curator") #do we want this to be null?
-    curationdate = models.DateTimeField(auto_now_add=True, editable=False)
-    updated = models.DateField(auto_now=True, editable=False)
-   
-    #### Content
-    content = JSONField(null=True, blank=True)
-    notes = models.TextField(default='', null=True, blank=True)
-    # References #TODO
-    # TODO termlist = models.ManyToMany  ... #Should we store the list of words here, or create a separate list with a key to it?
-    # TODO speakers = models.ManyToManyField(Person, related_name="transcript_speaker")
-    # TODO people = models.ManyToManyField(Person, related_name="transcript_reference")
-    # TODO placenames = models.ManyToManyField(PlaceName, related_name="transcript_placename")
-
-    # QCing & Forking #TODO
-    published = models.BooleanField(default=False)
-    forkparent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='forks')
-    # TODO Figure out the QC models...this might be a bit more complicated because of
-    # how to track & integrate changes that were previously made
-    # TODO qcs = models.ManyToManyField... #Should this be totally separate?
-    
-    #  Interactions #TODO 
-    upvote = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="transcript_upvoted")
-    downvote= models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="transcript_downvoted")
-    # HOW TO ADD COMMENT FLAGS DIRECTLY TO SCRIPT????!? TODO
-
-    translations = models.ManyToManyField(Translation, blank=True, related_name="transcripts")
-    #  rating = models.ManyToManyField(Rating, null=True)
-    #  comment = models.ManyToManyField(Comment, null=True)
-
-    def __str__(self):
-        if (self.curator):
-            return self.curator.username + " on " + self.curationdate.strftime("%B %d, %Y")
-        return "Object Orphaned"
 
 
 

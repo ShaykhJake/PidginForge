@@ -16,12 +16,28 @@
           </template>
           <span>Add Learner Comment</span>
         </v-tooltip>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on }">
+            <v-btn
+              v-on="on"
+              icon
+              @click="showComments = !showComments"
+              class="garbage--text"
+            >
+              <v-icon v-if="!showComments">mdi-eye</v-icon>
+              <v-icon v-if="showComments">mdi-eye-off</v-icon>
+            </v-btn>
+          </template>
+          <span v-if="!showComments">View Comments</span>
+          <span v-else>Hide Comments</span>
+        </v-tooltip>
       </v-card-title>
-      <v-card-text class="pa-0 ma-0 desertsand">
+      <v-card-text class="pa-1 ma-0 desertsand" v-show="showComments">
         <CommentComponent
+          class="mb-1"
           v-for="(comment, index) in comments"
           :comment="comment"
-          :key="index"
+          :key="comment.id"
           :element_id="element_id"
           :comment_index="index"
           :isNewComment="comment.isNewComment"
@@ -71,6 +87,7 @@ export default {
       editing: false,
       editMode: false,
       editValid: false,
+      showComments: true,
       submittingComment: false,
       submittingReply: false,
       replying: false,
@@ -114,7 +131,7 @@ export default {
         content: this.newReply.content,
         answerpk: this.comment.id
       }).then(data => {
-        this.comment.replies.unshift(data.data);
+        this.comment.replies.push(data.data);
         // this.userHasReplied = true;
         this.submittingReply = false;
         this.replying = false;
@@ -151,13 +168,12 @@ export default {
     },
     addComment() {
       const newComment = {
-        rich_text: "new comment",
+        // rich_text: "new comment",
         element_id: this.element_id,
         isNewComment: true
       };
-      this.comments.unshift(newComment);
+      this.comments.push(newComment);
       this.addingComment = true;
-      console.log("new comment");
     },
     deleteComment(comment) {
       this.comments.splice(this.comments.indexOf(comment), 1);
@@ -190,6 +206,7 @@ export default {
         if (data) {
           this.$set(this.comments, comment_index, data);
           // this.comments.unshift(data)
+          this.totalCount++
         }
         this.submitting = false;
       });

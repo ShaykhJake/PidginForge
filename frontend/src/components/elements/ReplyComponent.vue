@@ -100,7 +100,7 @@
         <SimpleTipTap
           :editMode="editMode"
           ref="textEditor"
-          :content="comment.rich_text ? comment.rich_text : 'new comment'"
+          :content="comment.rich_text ? comment.rich_text : null"
         />
       </v-card-text>
 

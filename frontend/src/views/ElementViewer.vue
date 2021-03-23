@@ -1,5 +1,5 @@
 <template>
-  <div class="mediaelement sandstone">
+  <div class="mediaelement desertsand">
     <v-container fluid class="pa-2">
       <v-card class="desertsand">
         <v-card-title class="pb-1">
@@ -184,20 +184,14 @@
         </v-card-text>
       </v-card>
 
+      <ElementTranscripts
+        v-if="element.id"
+        :element_id="element.id"
+        ref="scriptEditor"
+        @triggerTimeStamp="triggerTimeStamp"
+        @skipToTime="skipToTime"
+      />
       <ElementComments v-if="element.id" :element_id="element.id" />
-      <!-- <v-row dense no-gutters wrap class="d-none d-sm-flex">
-        <v-col cols="12">
-          <TranscriptEditor
-            v-if="ready"
-            ref="scripteditor"
-            :element-type="element.sub_type"
-            :element-slug="slug"
-            :passed-object="element"
-            @triggerTimeStamp="triggerTimeStamp"
-            @skipToTime="skipToTime"
-          />
-        </v-col>
-      </v-row> -->
 
       <ContentFlagger
         :flagger-dialog="flaggerDialog"
@@ -217,355 +211,359 @@
 </template>
 
 <script>
-import { apiService } from "@/common/api.service.js";
-import ElementComments from "@/components/elements/ElementComments.vue";
-import ElementVoter from "@/components/elements/ElementVoter.vue";
-import ElementEditor from "@/components/elements/ElementEditor.vue";
-import ContentFlagger from "@/components/ContentFlagger.vue";
-import SimpleTipTap from "@/components/elements/SimpleTipTap.vue";
-export default {
-  name: "ElementViewer",
-  components: {
-    // YTUpDownVote,
-    SimpleTipTap,
-    ElementVoter,
-    ElementEditor,
-    ElementComments,
-    ContentFlagger,
-    ProfileSnippet: () =>
-      import(
-        /* webpackPrefetch: true */ "@/components/profile/ProfileSnippet.vue"
-      ),
-    // YouTubeElementEditor: () =>
-    //   import(
-    //     /* webpackPrefetch: true */ "@/components/elements/YouTubeElementEditor.vue"
-    //   ),
-    AudioPlayerComponent: () =>
-      import(
-        /* webpackPrefetch: true */ "@/components/elements/AudioPlayerComponent.vue"
-      ),
+  import { apiService } from "@/common/api.service.js";
+  import ElementComments from "@/components/elements/ElementComments.vue";
+  import ElementTranscripts from "@/components/elements/ElementTranscripts.vue";
+  import ElementVoter from "@/components/elements/ElementVoter.vue";
+  import ElementEditor from "@/components/elements/ElementEditor.vue";
+  import ContentFlagger from "@/components/ContentFlagger.vue";
+  import SimpleTipTap from "@/components/elements/SimpleTipTap.vue";
+  export default {
+    name: "ElementViewer",
+    components: {
+      // YTUpDownVote,
+      SimpleTipTap,
+      ElementVoter,
+      ElementEditor,
+      ElementComments,
+      ElementTranscripts,
+      ContentFlagger,
+      ProfileSnippet: () =>
+        import(
+          /* webpackPrefetch: true */ "@/components/profile/ProfileSnippet.vue"
+        ),
+      // YouTubeElementEditor: () =>
+      //   import(
+      //     /* webpackPrefetch: true */ "@/components/elements/YouTubeElementEditor.vue"
+      //   ),
+      AudioPlayerComponent: () =>
+        import(
+          /* webpackPrefetch: true */ "@/components/elements/AudioPlayerComponent.vue"
+        ),
 
-    YouTubePlayerComponent: () =>
-      import(
-        /* webpackPrefetch: true */ "@/components/elements/YouTubePlayerComponent.vue"
-      )
+      YouTubePlayerComponent: () =>
+        import(
+          /* webpackPrefetch: true */ "@/components/elements/YouTubePlayerComponent.vue"
+        ),
 
-    // AudioElementEditor: () =>
-    //   import(
-    //     /* webpackPrefetch: true */ "@/components/elements/AudioElementEditor.vue"
-    //   ),
+      // AudioElementEditor: () =>
+      //   import(
+      //     /* webpackPrefetch: true */ "@/components/elements/AudioElementEditor.vue"
+      //   ),
 
-    // TranscriptEditor: () =>
-    //   import(
-    //     /* webpackPrefetch: true */ "@/components/transcript/TranscriptEditor.vue"
-    //   )
-  },
-  data() {
-    return {
-      hotKeysActive: false,
-      audioPlayerKey: 0,
-      heightText: "Start",
-      youTubeKey: 0,
-      audioKey: 0,
-      youTubeEditorLoaded: false,
+      // TranscriptEditor: () =>
+      //   import(
+      //     /* webpackPrefetch: true */ "@/components/transcript/TranscriptEditor.vue"
+      //   )
+    },
+    data() {
+      return {
+        hotKeysActive: false,
+        audioPlayerKey: 0,
+        heightText: "Start",
+        youTubeKey: 0,
+        audioKey: 0,
+        youTubeEditorLoaded: false,
 
-      showYouTubeEditor: false,
-      showAudioEditor: false,
-      audioEditorLoaded: false,
+        showYouTubeEditor: false,
+        showAudioEditor: false,
+        audioEditorLoaded: false,
 
-      editorDialog: false,
-      profileDialog: false,
-      element: {
-        curator: {},
-        transcripts: {}
+        editorDialog: false,
+        profileDialog: false,
+        element: {
+          curator: {},
+          transcripts: {},
+        },
+        video: {
+          curator: {},
+        },
+        max: 100,
+        youTubePlayerKey: 0,
+        next: null,
+        flaggerDialog: false,
+        loadEditor: false,
+        ready: false,
+        loadingVideo: false,
+        loadingAudio: false,
+        fitParent: true,
+        YTwidth: 275,
+        YTheight: 200,
+        userHidden: false,
+        saving: false,
+        hiding: false,
+        requestUser: "",
+        userSaved: false,
+        voteScore: 0,
+        youTubeHeight: 0,
+
+        voteColor: "text--black font-weight-bold",
+      };
+    },
+    props: {
+      slug: {
+        type: String,
+        required: true,
       },
-      video: {
-        curator: {}
+    },
+    computed: {
+      player() {
+        return this.$refs.player;
       },
-      max: 100,
-      youTubePlayerKey: 0,
-      next: null,
-      flaggerDialog: false,
-      loadEditor: false,
-      ready: false,
-      loadingVideo: false,
-      loadingAudio: false,
-      fitParent: true,
-      YTwidth: 275,
-      YTheight: 200,
-      userHidden: false,
-      saving: false,
-      hiding: false,
-      requestUser: "",
-      userSaved: false,
-      voteScore: 0,
-      youTubeHeight: 0,
-
-      voteColor: "text--black font-weight-bold"
-    };
-  },
-  props: {
-    slug: {
-      type: String,
-      required: true
-    }
-  },
-  computed: {
-    player() {
-      return this.$refs.player;
-    },
-    curatorName() {
-      return this.element.curator.username;
-    },
-    userIsCurator() {
-      return this.element.curator.username === this.requestUser;
-      // return false;
-    },
-    length() {
-      if (this.element.element.duration) {
-        let totalseconds = this.element.duration;
-        var hours = totalseconds / 3600,
-          minutes = (hours % 1) * 60,
-          seconds = (minutes % 1) * 60;
-        if (hours < 1) {
-          return Math.floor(minutes) + ":" + Math.round(seconds);
+      curatorName() {
+        return this.element.curator.username;
+      },
+      userIsCurator() {
+        return this.element.curator.username === this.requestUser;
+        // return false;
+      },
+      length() {
+        if (this.element.element.duration) {
+          let totalseconds = this.element.duration;
+          var hours = totalseconds / 3600,
+            minutes = (hours % 1) * 60,
+            seconds = (minutes % 1) * 60;
+          if (hours < 1) {
+            return Math.floor(minutes) + ":" + Math.round(seconds);
+          } else {
+            return (
+              Math.floor(hours) +
+              ":" +
+              Math.floor(minutes) +
+              ":" +
+              Math.round(seconds)
+            );
+          }
         } else {
-          return (
-            Math.floor(hours) +
-            ":" +
-            Math.floor(minutes) +
-            ":" +
-            Math.round(seconds)
-          );
+          return undefined;
         }
-      } else {
-        return undefined;
-      }
-    }
-  },
-
-  methods: {
-    // Get Current User
-    // Save / Unsave Item
-    destroyPlayer() {
-      // this.$destory()
-      console.log("hello");
-    },
-    closeEditorDialog() {
-      this.editorDialog = false;
-    },
-    toggleEditMode() {
-      this.$refs.textEditor.toggleEditMode();
-      console.log(
-        this.$refs.textEditor.editor.view.state.doc.textContent.length
-      );
-      console.log(this.$refs.textEditor.editor.getJSON());
-      console.log(this.$refs.textEditor.editor.view.state.doc.textContent);
-    },
-    recordTimeStamp(time) {
-      // this.$refs.ttviewer.recordTimeStamp(time)
-      this.$refs.scripteditor.recordTimeStamp(time);
-    },
-    triggerTimeStamp() {
-      // Sends a trigger to the Players to Emit a Timestamp
-      this.$refs.player.triggerTimeStamp();
-    },
-    updateVote(data) {
-      this.element.user_vote = data.newuservote;
-      this.element.downvote_count = data.newdowncount;
-      this.element.upvote_count = data.newupcount;
-    },
-    closeProfileDialog() {
-      this.profileDialog = false;
-    },
-    updateElement(element) {
-      this.element = element;
-      this.$refs.textEditor.editor.setContent(this.element.element.rich_text);
-    },
-    loadYouTubeEditor() {
-      this.youTubeEditorLoaded = true;
-      this.showYouTubeEditor = !this.showYouTubeEditor;
-    },
-    loadAudioEditor() {
-      this.audioEditorLoaded = true;
-      this.showAudioEditor = !this.showAudioEditor;
-    },
-    setRequestUser() {
-      return (this.requestUser = window.localStorage.getItem("username"));
-    },
-    rerenderYouTube() {
-      this.youTubeKey += 1;
-    },
-    loadElement(slug) {
-      this.loadingElement = true;
-      let endpoint = `/api/elements/element/${slug}/`;
-      apiService(endpoint).then(data => {
-        if (data) {
-          console.log(data);
-          this.element = data;
-          // this.setVideoSize;
-          this.loadingElement = false;
-          this.ready = true;
-        } else {
-          this.element = null;
-          this.setPageTitle("404 - Page Note Found");
-          this.loadingElement = false;
-        }
-      });
+      },
     },
 
-    getAudio() {
-      this.loadingAudio = true;
-      let endpoint = `/api/elements/audioz/${this.slug}/`;
-      apiService(endpoint).then(data => {
-        if (data) {
-          console.log("Get Audio:");
-          console.log(data);
-          this.element = data;
-          //  this.loadingAudio = false;
-          this.ready = true;
-        } else {
-          this.element = null;
-          this.setPageTitle("404 - Page Note Found");
-        }
-        this.loadingAudio = false;
-      });
-    },
+    methods: {
+      // Get Current User
+      // Save / Unsave Item
+      destroyPlayer() {
+        // this.$destory()
+        console.log("hello");
+      },
+      closeEditorDialog() {
+        this.editorDialog = false;
+      },
+      toggleEditMode() {
+        this.$refs.textEditor.toggleEditMode();
+        console.log(
+          this.$refs.textEditor.editor.view.state.doc.textContent.length
+        );
+        console.log(this.$refs.textEditor.editor.getJSON());
+        console.log(this.$refs.textEditor.editor.view.state.doc.textContent);
+      },
+      recordTimeStamp(time) {
+        // this.$refs.ttviewer.recordTimeStamp(time)
+        this.$refs.scriptEditor.recordTimeStamp(time);
+        console.log("sending4");
+      },
+      triggerTimeStamp(index) {
+        // Sends a trigger to the Players to Emit a Timestamp
+        // console.log("triggering4");
+        this.$refs.player.triggerTimeStamp(index);
+      },
+      updateVote(data) {
+        this.element.user_vote = data.newuservote;
+        this.element.downvote_count = data.newdowncount;
+        this.element.upvote_count = data.newupcount;
+      },
+      closeProfileDialog() {
+        this.profileDialog = false;
+      },
+      updateElement(element) {
+        this.element = element;
+        this.$refs.textEditor.editor.setContent(this.element.element.rich_text);
+      },
+      loadYouTubeEditor() {
+        this.youTubeEditorLoaded = true;
+        this.showYouTubeEditor = !this.showYouTubeEditor;
+      },
+      loadAudioEditor() {
+        this.audioEditorLoaded = true;
+        this.showAudioEditor = !this.showAudioEditor;
+      },
+      setRequestUser() {
+        return (this.requestUser = window.localStorage.getItem("username"));
+      },
+      rerenderYouTube() {
+        this.youTubeKey += 1;
+      },
+      loadElement(slug) {
+        this.loadingElement = true;
+        let endpoint = `/api/elements/element/${slug}/`;
+        apiService(endpoint).then((data) => {
+          if (data) {
+            console.log(data);
+            this.element = data;
+            // this.setVideoSize;
+            this.loadingElement = false;
+            this.ready = true;
+          } else {
+            this.element = null;
+            this.setPageTitle("404 - Page Note Found");
+            this.loadingElement = false;
+          }
+        });
+      },
 
-    toggleSave() {
-      this.saving = true;
-      let endpoint = "";
-      endpoint = `api/elements/save/element/`;
-      try {
-        apiService(endpoint, "POST", { pk: this.element.id }).then(data => {
-          if (data != null) {
-            if (data.success == true) {
-              // this.$emit("hideElement")
-              this.element.user_has_saved = !this.element.user_has_saved;
-              if (this.element.user_has_saved) {
-                this.element.saved_count += 1;
+      getAudio() {
+        this.loadingAudio = true;
+        let endpoint = `/api/elements/audioz/${this.slug}/`;
+        apiService(endpoint).then((data) => {
+          if (data) {
+            console.log("Get Audio:");
+            console.log(data);
+            this.element = data;
+            //  this.loadingAudio = false;
+            this.ready = true;
+          } else {
+            this.element = null;
+            this.setPageTitle("404 - Page Note Found");
+          }
+          this.loadingAudio = false;
+        });
+      },
+
+      toggleSave() {
+        this.saving = true;
+        let endpoint = "";
+        endpoint = `api/elements/save/element/`;
+        try {
+          apiService(endpoint, "POST", { pk: this.element.id }).then((data) => {
+            if (data != null) {
+              if (data.success == true) {
+                // this.$emit("hideElement")
+                this.element.user_has_saved = !this.element.user_has_saved;
+                if (this.element.user_has_saved) {
+                  this.element.saved_count += 1;
+                } else {
+                  this.element.saved_count -= 1;
+                }
+                // console.log(data.message)
               } else {
-                this.element.saved_count -= 1;
+                // this.alertType = 'error';
               }
-              // console.log(data.message)
             } else {
               // this.alertType = 'error';
             }
-          } else {
-            // this.alertType = 'error';
-          }
-          this.saving = false;
-        });
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    toggleHide() {
-      this.hiding = true;
-      let endpoint = "api/elements/hide/element/";
-      try {
-        apiService(endpoint, "POST", { pk: this.element.id }).then(data => {
-          if (data != null) {
-            if (data.success == true) {
-              this.element.user_has_hidden = data.hidden;
+            this.saving = false;
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      },
+      toggleHide() {
+        this.hiding = true;
+        let endpoint = "api/elements/hide/element/";
+        try {
+          apiService(endpoint, "POST", { pk: this.element.id }).then((data) => {
+            if (data != null) {
+              if (data.success == true) {
+                this.element.user_has_hidden = data.hidden;
+              } else {
+                this.alertType = "error";
+              }
             } else {
               this.alertType = "error";
             }
-          } else {
-            this.alertType = "error";
-          }
-          this.hiding = false;
-        });
-      } catch (err) {
-        console.log(err);
-      }
+            this.hiding = false;
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      },
+      skipToTime(time) {
+        this.player.skipToTime(time);
+      },
+      skipSeek(delta) {
+        this.player.skipSeek(delta);
+      },
+      togglePlay() {
+        this.player.togglePlay();
+      },
+      toggleHotKeys() {
+        if (!this.hotKeysActive) {
+          window.addEventListener("keydown", this.playerHotKey);
+          // document.addEventListener("keydown", this.playerHotKey);
+          this.hotKeysActive = true;
+          // console.log("Hot keys enabled")
+        } else {
+          // document.removeEventListener("keydown", this.playerHotKey);
+          window.removeEventListener("keydown", this.playerHotKey);
+          this.hotKeysActive = false;
+          // console.log("Hot keys disabled");
+        }
+      },
+      toggleEditor() {
+        if (this.element.sub_type === "Audio" && this.$refs.player) {
+          this.$refs.player.stop();
+        }
+        this.editorDialog = !this.editorDialog;
+      },
+      playerHotKey(e) {
+        if (e.key === "f" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          // console.log("Rewind 1 second")
+          this.skipSeek(-1);
+        }
+        // Advance 1 Second
+        if (e.key === "j" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          // console.log("Advance 1 second")
+          this.skipSeek(1);
+        }
+        // Pause Audio
+        if (e.key === "h" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          // console.log("Pause/Play");
+          this.togglePlay();
+        }
+        if (e.key === "g" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          console.log("This is media viewer, requesting a time stamp...");
+          this.triggerTimeStamp();
+        }
+      },
     },
-    skipToTime(time) {
-      this.player.skipToTime(time);
-    },
-    skipSeek(delta) {
-      this.player.skipSeek(delta);
-    },
-    togglePlay() {
-      this.player.togglePlay();
-    },
-    toggleHotKeys() {
-      if (!this.hotKeysActive) {
-        window.addEventListener("keydown", this.playerHotKey);
-        // document.addEventListener("keydown", this.playerHotKey);
-        this.hotKeysActive = true;
-        // console.log("Hot keys enabled")
-      } else {
-        // document.removeEventListener("keydown", this.playerHotKey);
-        window.removeEventListener("keydown", this.playerHotKey);
-        this.hotKeysActive = false;
-        // console.log("Hot keys disabled");
-      }
-    },
-    toggleEditor() {
-      if (this.element.sub_type === "Audio" && this.$refs.player) {
-        this.$refs.player.stop();
-      }
-      this.editorDialog = !this.editorDialog;
-    },
-    playerHotKey(e) {
-      if (e.key === "f" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        // console.log("Rewind 1 second")
-        this.skipSeek(-1);
-      }
-      // Advance 1 Second
-      if (e.key === "j" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        // console.log("Advance 1 second")
-        this.skipSeek(1);
-      }
-      // Pause Audio
-      if (e.key === "h" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        // console.log("Pause/Play");
-        this.togglePlay();
-      }
-      if (e.key === "g" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        console.log("This is media viewer, requesting a time stamp...");
-        this.triggerTimeStamp();
-      }
-    }
-  },
 
-  created() {
-    this.setRequestUser();
-    this.loadElement(this.slug);
-  },
+    created() {
+      this.setRequestUser();
+      this.loadElement(this.slug);
+    },
 
-  watch: {
-    $route() {
-      console.log("Watched: Change Route");
+    watch: {
+      $route() {
+        console.log("Watched: Change Route");
+        if (this.hotKeysActive) {
+          window.removeEventListener("keydown", this.playerHotKey);
+          this.hotKeysActive = false;
+          console.log("Hot keys disabled");
+        }
+      },
+    },
+    mounted() {},
+    beforeDestroy() {
+      console.log("Before destroy?");
+      // document.removeEventListener("keydown", this.playerHotKey);
       if (this.hotKeysActive) {
         window.removeEventListener("keydown", this.playerHotKey);
         this.hotKeysActive = false;
         console.log("Hot keys disabled");
       }
-    }
-  },
-  mounted() {},
-  beforeDestroy() {
-    console.log("Before destroy?");
-    // document.removeEventListener("keydown", this.playerHotKey);
-    if (this.hotKeysActive) {
-      window.removeEventListener("keydown", this.playerHotKey);
-      this.hotKeysActive = false;
-      console.log("Hot keys disabled");
-    }
-  }
-  // Get comments?? (this can probably just be part of the larger package
-};
+    },
+    // Get comments?? (this can probably just be part of the larger package
+  };
 </script>
 <style type="text/css">
-.v-card__text,
-.v-card__title {
-  word-break: keep-all; /* maybe !important  */
-  word-wrap: normal;
-}
+  .v-card__text,
+  .v-card__title {
+    word-break: keep-all; /* maybe !important  */
+    word-wrap: normal;
+  }
 </style>
