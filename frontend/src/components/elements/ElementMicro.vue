@@ -73,8 +73,8 @@
 
                 <p class="primary--text caption mb-0">
                   {{ element.saved_count }} Saves -
-                  {{ element.comment_count }} Comments - 0 Transcripts - 0
-                  Lessons
+                  {{ element.comment_count }} Comments - 
+                  {{ element.transcript_count }} Transcripts
                 </p>
               </v-col>
             </v-row>

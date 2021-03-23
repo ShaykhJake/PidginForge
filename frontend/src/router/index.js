@@ -12,6 +12,7 @@ import LearnStack from "../components/vocab/stacks/LearnStack.vue";
 import ElementViewer from "../views/ElementViewer.vue";
 import Curate from "../views/Curate.vue";
 import Learn from "../views/Learn.vue";
+import Favorites from "../views/Favorites.vue";
 
 Vue.use(VueRouter);
 
@@ -30,6 +31,12 @@ export default new VueRouter({
       path: "/learn",
       name: "Learn",
       component: Learn
+    },
+    {
+      // TODO - Should figure out how to show different content based on authenticated or anonymous
+      path: "/favorites",
+      name: "Favorites",
+      component: Favorites
     },
     {
       // TODO - Should figure out how to show different content based on authenticated or anonymous
