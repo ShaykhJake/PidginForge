@@ -81,7 +81,7 @@ export default {
     loadingLanguages: false,
     language: "",
     text: "",
-    curator_note: "",
+    curator_note: "n/a",
     valid: false,
     saving: false,
     rules: {

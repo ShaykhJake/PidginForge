@@ -79,7 +79,7 @@ export default {
     audio: {},
     valid: false,
     saving: false,
-    curator_note: "",
+    curator_note: "n/a",
     newRecording: false,
     rules: {
       requiredCuratorNote: value =>

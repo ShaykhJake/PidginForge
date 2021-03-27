@@ -274,9 +274,11 @@ export default {
 
     addNewSentence: false,
     newSentence: {
+      text: "",
       curator_note: "none"
     },
     defaultNew: {
+      text: "",
       curator_note: "none"
     },
 

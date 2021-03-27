@@ -108,7 +108,7 @@ export default {
   data: () => ({
     valid: false,
     lemma: null,
-    curator_note: null,
+    curator_note: "n/a",
     lexeme2List: [],
     fetchingLexeme2List: false,
     lexeme2: null,

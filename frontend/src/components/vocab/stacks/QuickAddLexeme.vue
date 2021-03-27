@@ -60,7 +60,7 @@ export default {
   data: () => ({
     valid: false,
     lemma: null,
-    curator_note: null,
+    curator_note: "n/a",
 
     submittingLexeme: false,
 

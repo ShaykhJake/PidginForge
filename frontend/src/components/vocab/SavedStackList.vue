@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card class="ma-0 pa-0">
+    <v-card class="ma-0 pa-0" elevation="5">
       <v-card-title class="sandstone pa-1"
         >Saved Vocab
         <v-spacer />
