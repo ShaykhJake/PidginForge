@@ -696,7 +696,7 @@ class CardStackSerializer(serializers.ModelSerializer):
         read_only=False,
         slug_field='name',
     )
-    tags = serializers.ListField(read_only=True)
+    tags = serializers.ListField()
     lexeme_pairs = LexemePairSerializer(many=True, required=False)
 
     class Meta:
