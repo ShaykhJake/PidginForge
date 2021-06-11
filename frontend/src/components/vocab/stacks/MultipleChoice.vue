@@ -213,16 +213,24 @@ export default {
       } else {
         this.currentPair = 0;
       }
+      
       this.side = Math.floor(Math.random() * 2) + 1;
-
       this.choices = [];
-      this.choices.push(this.currentPair);
+      const wordSet = new Set()
+      wordSet.add(this.randomPairs[this.currentPair].lexeme_1_details.lemma)
+      wordSet.add(this.randomPairs[this.currentPair].lexeme_2_details.lemma)
       for (let i = 0; i < this.randomPairs.length; i++) {
-        if (this.currentPair != i) {
-          this.choices.push(i);
-          // need to find a way to randomize the selection of these from a long list
+        if (this.currentPair != i && 
+        !wordSet.has(this.randomPairs[i].lexeme_1_details.lemma) && 
+        !wordSet.has(this.randomPairs[i].lexeme_2_details.lemma)) {
+            this.choices.push(i);
+            wordSet.add(this.randomPairs[i].lexeme_1_details.lemma)
+            wordSet.add(this.randomPairs[i].lexeme_2_details.lemma)
         }
       }
+      this.choices = this.shuffleArray(this.choices);
+      this.choices = this.choices.slice(0,3);
+      this.choices.push(this.currentPair);
       this.choices = this.shuffleArray(this.choices);
       console.log(this.choices);
       this.status = "prompt";

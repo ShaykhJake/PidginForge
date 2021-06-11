@@ -267,7 +267,8 @@ PRIVATE_FILE_STORAGE = 'pidginforge.storage_backends.PrivateMediaStorage'
 
 ####### Email Services ########
 ###### SES #######
-EMAIL_BACKEND = 'django_ses.SESBackend'
+# EMAIL_BACKEND = 'django_ses.SESBackend'
+EMAIL_BACKEND = 'django_amazon_ses.EmailBackend'
 SES_SENDER_EMAIL = os.environ.get('SES_FROM_EMAIL')
 
 EMAIL_HOST = 'email-smtp.us-east-1.amazonaws.com'
