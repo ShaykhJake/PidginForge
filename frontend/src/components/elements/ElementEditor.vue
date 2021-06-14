@@ -135,7 +135,7 @@
                     :content="elementObject.element.rich_text"
                   />
                 </div>
-                <div v-if="elementObject.sub_type == 'YouTube'" class="mb-3">
+                <div v-if="elementObject.sub_type == 'YouTube' && loaded" class="mb-3">
                   <v-row wrap dense v-if="isNewElement">
                     <v-col cols="9" md="10">
                       <v-form ref="linkform">
@@ -576,12 +576,15 @@ export default {
         apiService(endpoint, method, payload).then(data => {
           if (data.slug) {
             if (this.isNewElement) {
+              this.loaded = false
+              this.closeDialog();
               this.$router.push({
                 name: "Element-Viewer",
                 params: { slug: data.slug }
               });
             } else {
               // this.alertActive = false;
+              this.loaded = false
               this.updateViewer(data);
               this.closeDialog();
             }
@@ -620,6 +623,7 @@ export default {
       apiFileService(endpoint, method, formData).then(data => {
         if (data) {
           if (this.isNewElement) {
+            this.closeDialog();
             this.$router.push({
               name: "Element-Viewer",
               params: { slug: data.slug }
@@ -643,9 +647,6 @@ export default {
           this.loadNewFile = true;
         }
       }
-      console.log(this.loadNewFile);
-      console.log(this.valid);
-      console.log(this.loaded);
     }
   },
   mounted() {
