@@ -232,7 +232,6 @@ export default {
       this.choices = this.choices.slice(0,3);
       this.choices.push(this.currentPair);
       this.choices = this.shuffleArray(this.choices);
-      console.log(this.choices);
       this.status = "prompt";
       this.showcard = false;
       setTimeout(() => (this.showcard = true), 250);

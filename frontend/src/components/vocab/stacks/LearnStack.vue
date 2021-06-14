@@ -1,12 +1,31 @@
 <template>
   <div>
     <v-container fluid dense>
-      <v-card v-if="stack.id">
+      <v-card v-if="stack.id && editMode">
+        <v-card-title class="sandstone">
+          Editing Stack
+        </v-card-title>
+        <StackCurator :slug="slug" :key="slug" />
+      </v-card>
+      <v-card v-if="stack.id && !editMode">
         <v-card-title class="sandstone">
           Learn Stack: {{ stack.name }} ({{
             stack.lexeme_pairs ? stack.lexeme_pairs.length : 0
           }}
           Pairs)
+          <v-btn
+            v-if="requestUser === stack.curator.username"
+            small
+            class="mr-2 primary--text"
+            @click="editMode = true"
+            icon
+            >
+              <v-icon>
+                mdi-pencil
+              </v-icon>
+              
+          </v-btn>
+          
         </v-card-title>
         <v-card-text class="desertsand">
           Stack Details:<br />
@@ -109,10 +128,12 @@ import SimpleFlip from "@/components/vocab/stacks/SimpleFlip.vue";
 import MultipleChoice from "@/components/vocab/stacks/MultipleChoice.vue";
 // import MixAndMatch from "@/components/vocab/stacks/MixAndMatch.vue";
 import LexemeCurator from "@/components/vocab/LexemeCurator.vue";
+import StackCurator from "@/components/vocab/stacks/StackCurator.vue";
 
 export default {
   name: "LearnStack",
   components: {
+    StackCurator,
     SimpleFlip,
     MultipleChoice,
     // MixAndMatch,
@@ -123,6 +144,7 @@ export default {
   },
   data: () => ({
     simpleFlipDialog: false,
+    editMode: false,
     loadingStack: true,
     multipleChoiceDialog: false,
     mixAndMatchDialog: false,
@@ -147,6 +169,11 @@ export default {
       id: null
     }
   }),
+  computed: {
+    requestUser() {
+      return localStorage.getItem("username");
+    }
+  },
   methods: {
     loadStack(slug) {
       this.loadingStack = true;

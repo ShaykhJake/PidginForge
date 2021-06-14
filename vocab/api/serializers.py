@@ -632,17 +632,9 @@ class LearnLexemePairSerializer(serializers.ModelSerializer):
         # print(queryset)
         return False
 
-
     def get_pair_learning(self, instance):
         user = self.context.get("request").user
-        # queryset = LexemePairLearning.objects.filter(lexeme_pair=instance.pk).filter(curator=request.user)
-        # if queryset.exists():
-        #     learning_object = queryset[0]
-        # serializer = LexemePairLearningSerializer(learning_object)
-        # return serializer.data
         learnings = []
-
-        # queryset = LexemePairLearning.objects.filter(curator=user).filter(lexeme_pair=instance)
         queryset = instance.lexemepairlearning_set.filter(curator=user)
         if queryset.exists():
             learninglex = queryset[0]
@@ -650,34 +642,8 @@ class LearnLexemePairSerializer(serializers.ModelSerializer):
             newpair = LexemePairLearning.objects.create(curator=user, lexeme_pair=instance)
             learninglex = newpair
 
-        # print(queryset[0].last_attempted)
-        # print("Hello")
-
         serializer = LexemePairLearningSerializer(learninglex)
         return serializer.data
-
-    # def get_learning_pairs(self, instance):
-    #     user = self.context.get('request').user
-    #     # print(instance.lexeme_pairs)
-    #     # print(self)
-    #     # print(self.context)
-    #     # print(self.context.get('request'))
-
-    #     #TODO: Create a tuple or array for storing each learning pair, 
-    #     # then, run through the algorithm below. Then, serialize this list
-    #     # of new objects. THEN (and finally) return the list of lexeme pairs with all
-    #     # of the user's information for those objects
-
-    #     learnings = []
-    #     queryset = LexemePairLearning.objects.filter(curator=user)
-    #     for i in instance.lexeme_pairs.all():
-    #         if queryset.filter(lexeme_pair=i).exists():
-    #             learnings.append(queryset.filter(lexeme_pair=i)[0])
-    #         else:
-    #             newpair = LexemePairLearning.objects.create(curator=user, lexeme_pair=i)
-    #             learnings.append(newpair)
-    #     serializer = LexemePairLearningSerializer(learnings, many=True)
-    #     return serializer.data
 
 
 class CardStackSerializer(serializers.ModelSerializer):    

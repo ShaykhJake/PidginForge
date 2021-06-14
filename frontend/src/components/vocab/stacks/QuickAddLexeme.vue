@@ -2,14 +2,13 @@
   <v-dialog v-model="dialog" scrollable height="400" max-width="425">
     <v-card class="desertsand">
       <v-card-title class="sandstone">
-        Quick Add New Lexeme
+        Add New {{ language }} Lexeme
       </v-card-title>
       <v-card-text class="px-2">
-        <h2>New {{ language }} Lexeme</h2>
         <v-form v-model="valid" class="mt-2">
           <div :style="`direction:${direction}`">
             <v-text-field
-              label="New Lexeme's Lemma"
+              label="New Lexeme"
               v-model="lemma"
               outlined
               :reverse="direction === 'RTL' ? true : false"

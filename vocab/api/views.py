@@ -51,6 +51,7 @@ from vocab.api.serializers import (
                            QuickStackSerializer,
                            LearnStackSerializer,
                            LexemePairSerializer,
+                           LearnLexemePairSerializer,
                            FavoriteStackSerializer,
                             )
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -704,7 +705,7 @@ def add_stack_pair(request):
       pair = get_object_or_404(LexemePair, pk=request.data.get('pair'))
       stack.lexeme_pairs.add(pair)
       stack.save()
-      resdata = LexemePairSerializer(pair).data
+      resdata = LearnLexemePairSerializer(pair, context={'request': request}).data
       return Response(resdata)
 
 @api_view(['POST'])

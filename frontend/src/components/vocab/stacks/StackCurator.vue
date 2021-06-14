@@ -35,7 +35,6 @@
           :search="search"
           sort-by=""
           class="elevation-1 desertsand mt-2"
-          @click:row="handleClick"
         >
           <template v-slot:top>
             <v-toolbar flat class="sandstone">
@@ -49,7 +48,9 @@
                 hide-details
               ></v-text-field>
               <v-spacer></v-spacer>
-              <v-btn color="primary" dark class="mb-2" @click="dialog = true"
+              <v-btn 
+                v-if="stack.curator.username == requestUser"
+                color="primary" dark class="mb-2" @click="dialog = true"
                 >Add Pair</v-btn
               >
 
@@ -61,10 +62,6 @@
 
                   <v-card-text>
                     <v-container>
-                      <span class="overline"
-                        >Please note that languages are locked into the setting
-                        for the overall card stack.</span
-                      ><br />
 
                       <v-form class="mt-3" dense>
                         <h3 class="mb-2">
@@ -112,7 +109,7 @@
                             </template>
                           </template>
                         </v-autocomplete>
-                        <div style="text-align: center;" class="mb-5">
+                        <div style="text-align: center" class="mb-5">
                           <span class="overline">Don't see what you want?</span
                           ><br />
                           <v-btn
@@ -168,7 +165,7 @@
                             </template>
                           </template>
                         </v-autocomplete>
-                        <div style="text-align: center;" class="mb-5">
+                        <div style="text-align: center" class="mb-5">
                           <span class="overline">Don't see what you want?</span
                           ><br />
                           <v-btn
@@ -220,19 +217,23 @@
               mdi-delete
             </v-icon>
           </template>
-          <template v-slot:no-data>
-            ... stack is currently empty ...
-          </template>
+          <template v-slot:no-data> ... stack is currently empty ... </template>
         </v-data-table>
       </v-card-text>
-      <v-card-actions>
+      <v-card-actions v-if="stack.lexeme_pairs.length > 0">
         <v-spacer />
-        <v-btn
-          class="primary"
-          @click="$router.push({ name: 'Learn-Stack', params: { slug: slug } })"
-        >
-          Learn Stack
+        <v-btn 
+          class="mr-2 primary" @click="simpleFlipDialog = true">
+          Simple Flip
         </v-btn>
+        <v-btn 
+          class="mr-2 primary" 
+          @click="multipleChoiceDialog = true">
+          Multiple Choice
+        </v-btn>
+        <v-btn v-if="false" disabled class="mr-2 desertsand"> Mix & Match </v-btn><br />
+        <v-btn v-if="false" disabled class="mr-2 desertsand"> Cloze </v-btn><br />
+        <v-btn v-if="false" disabled class="mr-2 desertsand"> Speech </v-btn><br />
         <v-spacer />
       </v-card-actions>
       <v-overlay :value="loadingStack" absolute>
@@ -257,6 +258,21 @@
       @selectNewPair="selectNewPair"
     />
 
+    <SimpleFlip
+      v-if="simpleFlipDialog"
+      :dialog="simpleFlipDialog"
+      :pairs="stack.lexeme_pairs"
+      @closeDialog="simpleFlipDialog = false"
+    />
+    <MultipleChoice
+      v-if="multipleChoiceDialog"
+      :dialog="multipleChoiceDialog"
+      :pairs="stack.lexeme_pairs"
+      @closeDialog="multipleChoiceDialog = false"
+      @correctAnswer="recordCorrectAnswer"
+      @incorrectAnswer="recordIncorrectAnswer"
+    />
+
     <v-dialog
       v-model="viewLexemeDetails"
       v-if="viewLexemeDetails"
@@ -269,9 +285,7 @@
           <v-btn icon @click="viewLexemeDetails = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
-          <v-toolbar-title>
-            Lexeme Viewer
-          </v-toolbar-title>
+          <v-toolbar-title> Lexeme Viewer </v-toolbar-title>
         </v-toolbar>
         <v-card-text>
           <LexemeCurator :lexemeslug="lexemeViewSlug" />
@@ -282,394 +296,398 @@
 </template>
 
 <script>
-import { apiService } from "@/common/api.service.js";
-import QuickAddLexeme from "@/components/vocab/stacks/QuickAddLexeme.vue";
-import QuickAddPair from "@/components/vocab/stacks/QuickAddPair.vue";
-import LexemeCurator from "@/components/vocab/LexemeCurator.vue";
+  import { apiService } from "@/common/api.service.js";
+  import QuickAddLexeme from "@/components/vocab/stacks/QuickAddLexeme.vue";
+  import QuickAddPair from "@/components/vocab/stacks/QuickAddPair.vue";
+  import LexemeCurator from "@/components/vocab/LexemeCurator.vue";
+  import SimpleFlip from "@/components/vocab/stacks/SimpleFlip.vue";
+  import MultipleChoice from "@/components/vocab/stacks/MultipleChoice.vue";
 
-export default {
-  name: "StackCurator",
-  components: {
-    QuickAddLexeme,
-    QuickAddPair,
-    LexemeCurator
-  },
-  props: {
-    slug: String
-  },
-  data: () => ({
-    search: "",
-    selectedCard: null,
-    cards: [],
-    stack: {
-      name: "Fun Stack",
-      slug: "dirka-dirka",
-      curator: "ShaykhJake",
-      curationdate: "May 5, 2020"
+  export default {
+    name: "StackCurator",
+    components: {
+      SimpleFlip,
+      MultipleChoice,
+      QuickAddLexeme,
+      QuickAddPair,
+      LexemeCurator,
     },
-    allLanguages: [],
-    loadingLanguages: [],
-    lexeme1Object: {},
-    l1Language: "",
-    lexemeViewSlug: null,
-    lexeme1: "",
-    lexeme2: "",
-    lexemePair: null,
-    addLexemeDialog: false,
-    addPairDialog: false,
-    viewLexemeDetails: false,
-    l2Language: "",
-    lexeme1List: [],
-    fetchingLexeme1List: false,
-    lexemePairList: [],
-    loadingPairings: false,
-    lexeme2List: [],
-    loadingStack: false,
-    rules: {
-      requiredLanguage: value =>
-        (value || "").length > 0 || "You must choose a language",
-
-      requiredDescription: value =>
-        (value || "").length > 3 ||
-        "Description must be at least 4 characters long."
+    props: {
+      slug: String,
     },
-
-    dialog: false,
-    headers: [
-      {
-        text: "Pair ID",
-        align: "start",
-        sortable: true,
-        value: "id"
+    data: () => ({
+      search: "",
+      selectedCard: null,
+      cards: [],
+      stack: {
+        name: "Fun Stack",
+        slug: "dirka-dirka",
+        curator: "ShaykhJake",
+        curationdate: "May 5, 2020",
       },
-      { text: "Lexeme 1", value: "lexeme_1_details.lemma" },
-      { text: "L1 Language", value: "lexeme_1_language.name" },
-      { text: "Lexeme 2", value: "lexeme_2_details.lemma" },
-      { text: "L2 Language", value: "lexeme_2_language.name" },
-      { text: "Actions", value: "actions", sortable: false }
-    ],
-    editedIndex: -1,
-    editedItem: {
-      lexeme_1: "",
-      lexeme_1_language: {
-        name: "",
-        direction: ""
-      },
-      lexeme_2: "",
-      lexeme_2_language: {
-        name: "",
-        direction: ""
-      }
-    },
-    defaultItem: {
-      lexeme_1: "",
-      lexeme_1_language: {
-        name: "",
-        direction: ""
-      },
-      lexeme_2: "",
-      lexeme_2_language: {
-        name: "",
-        direction: ""
-      }
-    }
-  }),
-  computed: {
-    formTitle() {
-      return this.editedIndex === -1 ? "Add Pairing to Stack" : "Edit Pair";
-    },
-    requestUser() {
-      return localStorage.getItem("username");
-    }
-  },
-  watch: {
-    dialog(val) {
-      val || this.close();
-    }
-  },
+      simpleFlipDialog: false,
+      multipleChoiceDialog: false,
+      mixAndMatchDialog: false,
+      allLanguages: [],
+      loadingLanguages: [],
+      lexeme1Object: {},
+      l1Language: "",
+      lexemeViewSlug: null,
+      lexeme1: "",
+      lexeme2: "",
+      lexemePair: null,
+      addLexemeDialog: false,
+      addPairDialog: false,
+      viewLexemeDetails: false,
+      l2Language: "",
+      lexeme1List: [],
+      fetchingLexeme1List: false,
+      lexemePairList: [],
+      loadingPairings: false,
+      lexeme2List: [],
+      loadingStack: false,
+      rules: {
+        requiredLanguage: (value) =>
+          (value || "").length > 0 || "You must choose a language",
 
-  created() {
-    this.getLanguages();
-  },
-  methods: {
-    loadStack(slug) {
-      this.loadingStack = true;
-      let endpoint = `/api/vocab/cardstackz/${slug}/`;
-      let method = "GET";
-      try {
-        apiService(endpoint, method).then(data => {
-          if (data) {
-            // console.log(data);
-            this.stack = data;
-            this.cards = data.lexeme_pairs;
-            this.l1Language = data.learning_language;
-            this.l2Language = data.native_language;
-            this.loadLexeme1List(this.l1Language);
-            this.loadingStack = false;
-          } else {
-            console.log("There was a major problem with the request.");
-            // console.log(data.message);
-            this.loadingStack = false;
-          }
-        });
-      } catch (err) {
-        console.log(err);
-        this.loadingStack = false;
-      }
+        requiredDescription: (value) =>
+          (value || "").length > 3 ||
+          "Description must be at least 4 characters long.",
+      },
+
+      dialog: false,
+      headers: [
+        {
+          text: "Pair ID",
+          align: "start",
+          sortable: true,
+          value: "id",
+        },
+        { text: "Lexeme 1", value: "lexeme_1_details.lemma" },
+        { text: "Lexeme 2", value: "lexeme_2_details.lemma" },
+        { text: "Attempts Correct", value: "pair_learning.number_correct" },
+        { text: "Total Attempts", value: "pair_learning.attempts" },
+        { text: "Last Attempt", value: "pair_learning.last_attempted" },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
+      editedIndex: -1,
+      editedItem: {
+        lexeme_1: "",
+        lexeme_1_language: {
+          name: "",
+          direction: "",
+        },
+        lexeme_2: "",
+        lexeme_2_language: {
+          name: "",
+          direction: "",
+        },
+      },
+      defaultItem: {
+        lexeme_1: "",
+        lexeme_1_language: {
+          name: "",
+          direction: "",
+        },
+        lexeme_2: "",
+        lexeme_2_language: {
+          name: "",
+          direction: "",
+        },
+      },
+    }),
+    computed: {
+      formTitle() {
+        return this.editedIndex === -1 ? "Add Pairing to Stack" : "Edit Pair";
+      },
+      requestUser() {
+        return localStorage.getItem("username");
+      },
     },
-    loadLexemeView(slug) {
-      console.log(slug);
-      this.lexemeViewSlug = slug;
-      this.viewLexemeDetails = true;
+    watch: {
+      dialog(val) {
+        val || this.close();
+      },
     },
-    getLanguages() {
-      var localLanguagesFull = localStorage.getItem("languages_full");
-      if (localLanguagesFull) {
-        console.log("Shop local!");
-        this.allLanguages = JSON.parse(localLanguagesFull);
-      } else {
-        this.loadingLanguages = true;
-        let endpoint = `/api/categories/languages_full/`;
+
+    created() {
+      this.getLanguages();
+    },
+    methods: {
+      loadStack(slug) {
+        this.loadingStack = true;
+        // let endpoint = `/api/vocab/cardstackz/${slug}/`;
+        let endpoint = `/api/vocab/learnstack/${slug}/`;
+        let method = "GET";
         try {
-          apiService(endpoint).then(data => {
-            if (data != null) {
-              this.allLanguages = data;
-              this.error = false;
+          apiService(endpoint, method).then((data) => {
+            if (data) {
+              // console.log(data);
+              this.stack = data;
+              this.cards = data.lexeme_pairs;
+              this.l1Language = data.learning_language;
+              this.l2Language = data.native_language;
+              this.loadLexeme1List(this.l1Language);
+              this.loadingStack = false;
             } else {
-              console.log("Something bad happened...");
-              this.error = true;
+              console.log("There was a major problem with the request.");
+              // console.log(data.message);
+              this.loadingStack = false;
             }
-            this.loadingLanguages = false;
+          });
+        } catch (err) {
+          console.log(err);
+          this.loadingStack = false;
+        }
+      },
+
+      recordCorrectAnswer(pair) {
+        console.log(this.stack.lexeme_pairs.indexOf(pair));
+        let endpoint = `/api/vocab/lexemes/learning/correct/`;
+        let method = "POST";
+
+        let payload = {
+          learning_pair_id: pair.pair_learning.id,
+        };
+
+        try {
+          apiService(endpoint, method, payload).then((data) => {
+            if (data) {
+              for (let x = 0; x < this.stack.lexeme_pairs.length; x++) {
+                if (this.stack.lexeme_pairs[x].id == pair.id) {
+                  this.stack.lexeme_pairs[x].pair_learning.number_correct++;
+                  this.stack.lexeme_pairs[x].pair_learning.attempts++;
+                  break;
+                }
+              }
+            } else {
+              console.log("Update Completed");
+            }
           });
         } catch (err) {
           console.log(err);
         }
-      }
-    },
-    selectNewLexeme1(lexeme) {
-      this.lexeme1List.push(lexeme);
-      this.lexeme1Object = lexeme;
-      this.lexeme1 = lexeme.slug;
-    },
-    selectNewPair(pair) {
-      this.loadPairings();
-      // this.lexemePairList.push(pair);
-      this.lexemePair = pair.id;
-    },
-    createNewPair() {
-      let lexeme1 = this.lexeme1;
-      var filteredArray = this.lexeme1List.filter(function(element) {
-        return element.slug === lexeme1;
-      });
-      this.lexeme1Object = filteredArray[0];
-      // console.log(this.lexeme1Object)
-    },
-    initialize() {
-      this.cards = [
-        {
-          lexeme_1: {
-            lexeme: "اشتراك",
-            language: "Arabic-MSA",
-            direction: "RTL",
-            slug: "blah-blah-blah"
-          },
-          lexeme_2: {
-            lexeme: "participation",
-            language: "English",
-            direction: "LTR",
-            slug: "blah-blag-blah"
-          },
-          id: "2",
-          curator_note: "blah blah"
-        },
-        {
-          lexeme_1: {
-            lexeme: "tableau",
-            language: "French",
-            direction: "LTR",
-            slug: "blah-slah-blah"
-          },
-          lexeme_2: {
-            lexeme: "table",
-            language: "English",
-            direction: "LTR",
-            slug: "blah-tlah-blah"
-          },
-          id: "3",
-          curator_note: "blah blah"
-        },
-        {
-          lexeme_1: {
-            lexeme: "taco",
-            language: "Spanish",
-            direction: "LTR",
-            slug: "blah-blap-blah"
-          },
-          lexeme_2: {
-            lexeme: "taco",
-            language: "English",
-            direction: "LTR",
-            slug: "blah-blar-blah"
-          },
-          id: "4",
-          curator_note: "blah blah"
+
+        //
+      },
+      recordIncorrectAnswer(pair) {
+        let endpoint = `/api/vocab/lexemes/learning/incorrect/`;
+        let method = "POST";
+        let payload = {
+          learning_pair_id: pair.pair_learning.id,
+        };
+
+        try {
+          apiService(endpoint, method, payload).then((data) => {
+            if (data) {
+              for (let x = 0; x < this.stack.lexeme_pairs.length; x++) {
+                if (this.stack.lexeme_pairs[x].id == pair.id) {
+                  this.stack.lexeme_pairs[x].pair_learning.attempts++;
+                  break;
+                }
+              }
+              // console.log(data);
+              // console.log(data.message);
+            } else {
+              console.log("Something went wrong");
+            }
+          });
+        } catch (err) {
+          console.log(err);
         }
-      ];
-    },
-    loadPairings() {
-      this.loadingPairings = true;
-      let lexeme1 = this.lexeme1;
-      var filteredArray = this.lexeme1List.filter(function(element) {
-        return element.slug === lexeme1;
-      });
-      this.lexeme1Object = filteredArray[0];
-      //  console.log(this.lexeme1Object)
 
-      let endpoint = `/api/vocab/lexemes/pairlist/${this.lexeme1}/${this.stack.native_language}/`;
-      let method = "GET";
-      try {
-        apiService(endpoint, method).then(data => {
-          if (data) {
-            // console.log(data);
-            this.lexemePairList = data;
-            this.loadingPairings = false;
-          } else {
-            console.log("There was a major problem with the request.");
-            // console.log(data.message);
-            this.loadingPairings = false;
+        //
+      },
+      loadLexemeView(slug) {
+        this.lexemeViewSlug = slug;
+        this.viewLexemeDetails = true;
+      },
+      getLanguages() {
+        var localLanguagesFull = localStorage.getItem("languages_full");
+        if (localLanguagesFull) {
+          this.allLanguages = JSON.parse(localLanguagesFull);
+        } else {
+          this.loadingLanguages = true;
+          let endpoint = `/api/categories/languages_full/`;
+          try {
+            apiService(endpoint).then((data) => {
+              if (data != null) {
+                this.allLanguages = data;
+                this.error = false;
+              } else {
+                console.log("Something bad happened...");
+                this.error = true;
+              }
+              this.loadingLanguages = false;
+            });
+          } catch (err) {
+            console.log(err);
           }
+        }
+      },
+      selectNewLexeme1(lexeme) {
+        this.lexeme1List.push(lexeme);
+        this.lexeme1Object = lexeme;
+        this.lexeme1 = lexeme.slug;
+      },
+      selectNewPair(pair) {
+        this.loadPairings();
+        // this.lexemePairList.push(pair);
+        this.lexemePair = pair.id;
+      },
+      createNewPair() {
+        let lexeme1 = this.lexeme1;
+        var filteredArray = this.lexeme1List.filter(function(element) {
+          return element.slug === lexeme1;
         });
-      } catch (err) {
-        console.log(err);
-        this.loadingPairings = false;
-      }
-    },
-
-    loadLexeme1List(language) {
-      //  this.showingLexemeList = false;
-      this.fetchingLexeme1List = true;
-      this.lexeme1 = "";
-      this.lexeme1List = [];
-
-      let endpoint = `/api/vocab/lexemes/lexemelist/?language=${language}`;
-      let method = "GET";
-      try {
-        apiService(endpoint, method).then(data => {
-          if (data) {
-            //  console.log(data);
-            this.lexeme1List = data;
-            this.fetchingLexeme1List = false;
-          } else {
-            console.log("There was a major problem with the request.");
-            // console.log(data.message);
-            this.fetchingLexeme1List = false;
-          }
+        this.lexeme1Object = filteredArray[0];
+        // console.log(this.lexeme1Object)
+      },
+      loadPairings() {
+        this.loadingPairings = true;
+        let lexeme1 = this.lexeme1;
+        var filteredArray = this.lexeme1List.filter(function(element) {
+          return element.slug === lexeme1;
         });
-      } catch (err) {
-        console.log(err);
-        this.fetchingLexeme1List = false;
-      }
-    },
+        this.lexeme1Object = filteredArray[0];
+        //  console.log(this.lexeme1Object)
 
-    loadLexeme2List(language) {
-      this.showingLexemeList = false;
-      this.fetchingLexemeList = true;
+        let endpoint = `/api/vocab/lexemes/pairlist/${this.lexeme1}/${this.stack.native_language}/`;
+        let method = "GET";
+        try {
+          apiService(endpoint, method).then((data) => {
+            if (data) {
+              // console.log(data);
+              this.lexemePairList = data;
+              this.loadingPairings = false;
+            } else {
+              console.log("There was a major problem with the request.");
+              // console.log(data.message);
+              this.loadingPairings = false;
+            }
+          });
+        } catch (err) {
+          console.log(err);
+          this.loadingPairings = false;
+        }
+      },
 
-      let endpoint = `/api/vocab/lexemes/lexemelist/?language=${language}`;
-      let method = "GET";
-      try {
-        apiService(endpoint, method).then(data => {
-          if (data) {
-            //  console.log(data);
-            this.lexemeList = data;
+      loadLexeme1List(language) {
+        //  this.showingLexemeList = false;
+        this.fetchingLexeme1List = true;
+        this.lexeme1 = "";
+        this.lexeme1List = [];
 
-            this.fetchingLexemeList = false;
-          } else {
-            console.log("There was a major problem with the request.");
-            // console.log(data.message);
-            this.fetchingLexemeList = false;
-          }
+        let endpoint = `/api/vocab/lexemes/lexemelist/?language=${language}`;
+        let method = "GET";
+        try {
+          apiService(endpoint, method).then((data) => {
+            if (data) {
+              //  console.log(data);
+              this.lexeme1List = data;
+              this.fetchingLexeme1List = false;
+            } else {
+              console.log("There was a major problem with the request.");
+              // console.log(data.message);
+              this.fetchingLexeme1List = false;
+            }
+          });
+        } catch (err) {
+          console.log(err);
+          this.fetchingLexeme1List = false;
+        }
+      },
+
+      loadLexeme2List(language) {
+        this.showingLexemeList = false;
+        this.fetchingLexemeList = true;
+
+        let endpoint = `/api/vocab/lexemes/lexemelist/?language=${language}`;
+        let method = "GET";
+        try {
+          apiService(endpoint, method).then((data) => {
+            if (data) {
+              //  console.log(data);
+              this.lexemeList = data;
+
+              this.fetchingLexemeList = false;
+            } else {
+              console.log("There was a major problem with the request.");
+              // console.log(data.message);
+              this.fetchingLexemeList = false;
+            }
+          });
+        } catch (err) {
+          console.log(err);
+          this.fetchingLexemeList = false;
+        }
+      },
+
+      deleteItem(item) {
+        const index = this.cards.indexOf(item);
+        confirm("Are you sure you want to delete this item?") &&
+          this.cards.splice(index, 1);
+        // console.log(item.id)
+        let endpoint = `/api/vocab/deletestackpair/`;
+        let method = "POST";
+        let payload = {
+          stack: this.stack.slug,
+          pair: item.id,
+        };
+        try {
+          apiService(endpoint, method, payload).then((data) => {
+            if (data) {
+              // console.log(data)
+            } else {
+              console.log("There was a major problem with the request.");
+              // console.log(data.message);
+            }
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      },
+      close() {
+        this.dialog = false;
+        this.$nextTick(() => {
+          this.editedItem = Object.assign({}, this.defaultItem);
+          this.editedIndex = -1;
         });
-      } catch (err) {
-        console.log(err);
-        this.fetchingLexemeList = false;
-      }
-    },
+      },
 
-    deleteItem(item) {
-      const index = this.cards.indexOf(item);
-      confirm("Are you sure you want to delete this item?") &&
-        this.cards.splice(index, 1);
-      // console.log(item.id)
-      let endpoint = `/api/vocab/deletestackpair/`;
-      let method = "POST";
-      let payload = {
-        stack: this.stack.slug,
-        pair: item.id
-      };
-      try {
-        apiService(endpoint, method, payload).then(data => {
-          if (data) {
-            // console.log(data)
-          } else {
-            console.log("There was a major problem with the request.");
-            // console.log(data.message);
-          }
-        });
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    handleClick(value) {
-      this.selectedStack = value.id;
-      // console.log(this.selectedStack)
-      // console.log(value)
-    },
-    close() {
-      this.dialog = false;
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
-    },
+      addPair() {
+        this.saving = true;
+        let endpoint = `/api/vocab/addstackpair/`;
+        let method = "POST";
+        let payload = {
+          stack: this.stack.slug,
+          pair: this.lexemePair,
+        };
+        try {
+          apiService(endpoint, method, payload).then((data) => {
+            if (data && data.id) {
+              this.stack.lexeme_pairs.push(data);
+              // console.log(data)
+              this.close();
+              this.saving = false;
+            } else {
+              console.log("There was a major problem with the request.");
+              // console.log(data.message);
+              this.saving = false;
+            }
+          });
+        } catch (err) {
+          console.log(err);
+          this.saving = false;
+        }
 
-    addPair() {
-      this.saving = true;
-      let endpoint = `/api/vocab/addstackpair/`;
-      let method = "POST";
-      let payload = {
-        stack: this.stack.slug,
-        pair: this.lexemePair
-      };
-      try {
-        apiService(endpoint, method, payload).then(data => {
-          if (data && data.id) {
-            this.stack.lexeme_pairs.push(data);
-            // console.log(data)
-            this.close();
-            this.saving = false;
-          } else {
-            console.log("There was a major problem with the request.");
-            // console.log(data.message);
-            this.saving = false;
-          }
-        });
-      } catch (err) {
-        console.log(err);
-        this.saving = false;
-      }
-
-      this.close();
-    }
-  },
-  mounted() {
-    //  console.log("mount");
-    //  this.initialize();
-    this.loadStack(this.slug);
-
-    //  this.loadStack(this.slug)
-  }
-};
+        this.close();
+      },
+    },
+    mounted() {
+      this.loadStack(this.slug);
+    },
+  };
 </script>
 
 <style></style>

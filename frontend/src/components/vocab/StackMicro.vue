@@ -65,7 +65,7 @@
                 block
                 class="mb-2 primary"
                 :to="{
-                  name: 'Learn-Stack',
+                  name: 'Stacks-Viewer',
                   params: { slug: stack.slug }
                 }"
                 >View Stack <v-icon right>style</v-icon></v-btn

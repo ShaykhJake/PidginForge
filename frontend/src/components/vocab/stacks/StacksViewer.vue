@@ -200,7 +200,12 @@ export default {
   components: {
     StackCurator
   },
-  props: {},
+  props: {
+    slug: {
+      required: false,
+      default: null
+    }
+  },
   data: () => ({
     communityStacks: [],
     search: "",
@@ -289,7 +294,6 @@ export default {
       try {
         apiService(endpoint, method).then(data => {
           if (data) {
-            console.log(data);
             this.stacks = data;
             this.loadingStacks = false;
           } else {
@@ -362,10 +366,8 @@ export default {
       }
     },
     handleClick(value) {
-      this.selectedStack = null;
+      // this.selectedStack = null;
       this.selectedStack = value.id;
-      console.log(this.selectedStack);
-      console.log(value);
     },
     close() {
       this.dialog = false;
@@ -385,7 +387,6 @@ export default {
     },
     loadStack(slug) {
       this.selectedStack = slug;
-      console.log(slug);
     },
     submitSave(item) {
       this.saving = true;
@@ -453,6 +454,10 @@ export default {
   },
   mounted() {
     this.loadStacks();
+    if(this.slug != null){
+      console.log(this.slug);
+      this.selectedStack = this.slug;
+    }
   }
 };
 </script>
