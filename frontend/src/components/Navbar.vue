@@ -32,7 +32,15 @@
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <!-- <v-btn class="primary" router to:"confirm-logout"> -->
-
+      <v-text-field
+        v-if="!showingSearch"
+        hide-details
+        append-outer-icon="mdi-magnify"
+        single-line
+        v-on:keyup="submitSearch"
+        v-model="searchQuery"
+      ></v-text-field>
+      <v-spacer></v-spacer>
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-btn
@@ -263,6 +271,7 @@ export default {
       confirmLogoutDialog: false,
       drawer: false,
       username: null,
+      searchQuery: null,
       links: [
         // { icon: "school", text: "Learn", route: "/" },
         // { icon: "add_box", text: "Curate", route: "/" },
@@ -287,6 +296,19 @@ export default {
     },
     closeProfileUpdateDialog() {
       this.profileUpdateDialog = false;
+    },
+    submitSearch(e){
+      if (e.keyCode === 13) {
+        // console.log(this.searchQuery)
+        this.$router.push({ name: 'Search', params: {initialQuery: this.searchQuery }})
+        this.searchQuery = null;
+        // send search query to search page
+      }   
+    }
+  },
+  computed: {
+    showingSearch() {
+        return this.$route.name === "Search";
     }
   },
   created() {}

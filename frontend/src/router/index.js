@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
 import Events from "../views/Events.vue";
 import NotFound from "../views/NotFound.vue";
+import Search from "../views/Search.vue";
 import QuestionViewer from "../views/QuestionViewer.vue";
 import LessonBuilder from "../components/lessons/LessonBuilder.vue";
 import LessonViewer from "../views/LessonViewer.vue";
@@ -44,6 +45,12 @@ export default new VueRouter({
       name: "Collaborate",
       // Change 'Home' to collaborate once that component/view has actually been built
       component: Home
+    },
+    {
+      path: "/search/:initialQuery",
+      name: "Search",
+      component: Search,
+      props: true
     },
     {
       path: "/questions/:slug",
