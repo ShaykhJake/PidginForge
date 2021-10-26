@@ -1,6 +1,17 @@
 const BundleTracker = require("webpack-bundle-tracker");
 // const WorkerPlugin = require('worker-plugin')
 
+const devMode = false;
+
+let publicPath = "";
+
+if(devMode){
+  publicPath = "http://0.0.0.0:8080/";
+} else {
+  publicPath = "https://jakesdesk-media.s3.amazonaws.com/static/dist/"
+}
+
+
 // const WorkerPlugin = require('worker-plugin')
 module.exports = {
   // on Windows you might want to set publicPath: "http://127.0.0.1:8080/"
@@ -8,11 +19,8 @@ module.exports = {
   // Set the following directory to a place where Django can easily find it:
   outputDir: "../static/dist/",
 
-  // Production
-  publicPath: "https://jakesdesk-media.s3.amazonaws.com/static/dist/",
-
-  // Development
-  // publicPath: "http://0.0.0.0:8080/",
+  // Sets public path
+  publicPath: publicPath,
 
   // runtimeCompiler: true,
 
